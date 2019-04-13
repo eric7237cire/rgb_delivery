@@ -1,15 +1,15 @@
 const path = require('path');
+var webpack = require('webpack');
 
 module.exports = {
+
 
   module: {
     rules: [
 
-      {
-        test: /rgb-solver/,
-        use: ["null-loader"],
 
-      }
     ]
-  }
+  },
+
+  plugins: [new webpack.IgnorePlugin(/rgb_solver_bg/)]
 };

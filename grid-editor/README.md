@@ -7,3 +7,7 @@ because of
 https://github.com/webpack/webpack/issues/6615
 
 may not be possible
+
+having a problem with npm link removing itself
+
+Check E:\git\rgb_delivery\grid-editor\node_modules\rgb-solver
