@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 
+import * as wasm from "rgb-solver";
 
+wasm.greet();
 class Color {
   css_color: string;
   label: string;
@@ -45,6 +47,7 @@ export class AppComponent {
   selectedTile = this.tiles[0];
 
 onTileClick(t) {
+  wasm.greet();
   this.selectedTile = t;
 }
 
