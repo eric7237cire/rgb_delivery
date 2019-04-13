@@ -11,3 +11,14 @@ may not be possible
 having a problem with npm link removing itself
 
 Check E:\git\rgb_delivery\grid-editor\node_modules\rgb-solver
+
+
+
+https://github.com/koute/stdweb/tree/master/examples/hasher
+https://www.fullstackreact.com/articles/rust-react-and-web-assembly/
+above has a podcast
+
+
+
+maybe webpack debug
+https://webpack.js.org/contribute/debugging/

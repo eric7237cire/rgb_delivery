@@ -1,8 +1,22 @@
 import { Component } from '@angular/core';
 
-import * as wasm from "rgb-solver";
+import loadWasm from '../../../rgb-solver/src/lib.rs';
+console.log('I am alive!!!');
+loadWasm().then(result => {
+  const {add, subtract, multiply} = result.instance.exports;
+  console.log('4 + 2 = ', add(4, 2));
+  console.log('4 - 2 = ', subtract(4, 2));
+  console.log('4 * 2 = ', multiply(4, 2));
+});
 
-wasm.greet();
+/*
+const wasm = imp rt("../../../rgb-solver/pkg/rgb_solver");
+
+wasm.then(module => {
+  // won't typecheck if yourlib does not expose the run function
+  module.greet();
+});*/
+
 class Color {
   css_color: string;
   label: string;
@@ -47,7 +61,6 @@ export class AppComponent {
   selectedTile = this.tiles[0];
 
 onTileClick(t) {
-  wasm.greet();
   this.selectedTile = t;
 }
 
