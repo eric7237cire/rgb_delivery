@@ -18,7 +18,10 @@
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
             "outputPath": "dist/grid-editor",
-            "customWebpackConfig": {"path": "./custom-webpack.config.js"},
+            "customWebpackConfig": {"path": "./custom-webpack.config.js",
+
+            "mergeStrategies": { "resolve": "replace" }
+            },
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 
+/*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
 console.log('I am alive!!!');
 loadWasm().then(result => {
@@ -8,9 +9,13 @@ loadWasm().then(result => {
   console.log('4 - 2 = ', subtract(4, 2));
   console.log('4 * 2 = ', multiply(4, 2));
 });
+*/
 
+import * as wasm from "rgb-solver";
+
+wasm.greet();
 /*
-const wasm = imp rt("../../../rgb-solver/pkg/rgb_solver");
+const wasm = import("../../../rgb-solver/pkg/rgb_solver");
 
 wasm.then(module => {
   // won't typecheck if yourlib does not expose the run function

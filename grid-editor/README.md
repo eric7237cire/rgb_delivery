@@ -22,3 +22,9 @@ above has a podcast
 
 maybe webpack debug
 https://webpack.js.org/contribute/debugging/
+
+
+
+using angular without angular cli 
+https://www.edc4it.com/blog/web/helloworld-angular2.html
+
