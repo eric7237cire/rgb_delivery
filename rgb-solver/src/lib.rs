@@ -27,6 +27,9 @@ pub fn greet() {
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
 
+export type UniverseDataFixed = {
+"width" : number , "height" : number , "cells" : Array<CellData> } ;
+
 export type Coords = { "latitude": number, "longitude": number, };
 
 "#;
@@ -49,19 +52,31 @@ struct Tile {
     pub tile_index: usize
 }
 
-#[wasm_bindgen]
+#[derive(Serialize, Deserialize, TypescriptDefinition)]
+struct CellData {
+    pub tile: Tile,
+    pub color: Option<Color>,
+
+    pub row_index: usize,
+    pub col_index: usize,
+}
+
+#[derive(Serialize, Deserialize, TypescriptDefinition, Default)]
+pub struct UniverseData {
+    width: usize,
+    height: usize,
+
+    cells: Vec<Option<CellData>>,
+}
+
+#[wasm_bindgen()]
+//#[derive(   )]
 pub struct Universe {
-    width: u32,
-    height: u32,
-    color_list: [Color; 4],
-    tile_list: [Tile; 4]
+
+    data: UniverseData
 }
 
 impl Universe {
-    fn get_index(&self, row: u32, column: u32) -> usize {
-        (row * self.width + column) as usize
-    }
-
 
 }
 
@@ -76,7 +91,7 @@ impl fmt::Display for Universe {
             }
             write!(f, "\n")?;
         }*/
-        write!(f,"Nothing for now\n");
+        write!(f,"Nothing for now\n")?;
 
         Ok(())
     }
@@ -105,9 +120,9 @@ fn build_color_list() -> [Color; 4] {
   */
                 ];
 
-    color_list.iter_mut().enumerate().map( | (idx, c) | {
+    for (idx, c) in color_list.iter_mut().enumerate() {
         c.color_index = idx;
-    });
+    }
 
     color_list
 }
@@ -135,11 +150,25 @@ fn build_tile_list() -> [Tile; 4] {
 }
 
 /// Public methods, exported to JavaScript.
-#[wasm_bindgen]
+
+
+    #[wasm_bindgen]
+    pub fn get_colors() -> JsValue {
+        JsValue::from_serde( &build_color_list()).unwrap()
+    }
+
+    #[wasm_bindgen]
+    pub fn get_tiles() -> JsValue {
+        JsValue::from_serde(&build_tile_list()).unwrap()
+    }
+
+
+
+#[wasm_bindgen()]
 impl Universe {
     // ...
 
-    pub fn new(w: u32, h: u32) -> Universe {
+    pub fn new(h: usize, w: usize) -> Universe {
 
         log!(
                     "Building a new Grid.  [{}, {}] ",
@@ -152,22 +181,17 @@ impl Universe {
         let width = w;
         let height = h;
 
-        /*
+
         let cells = (0..width * height)
-            .map(|i| {
-                if i % 2 == 0 || i % 7 == 0 {
-                    Cell::Alive
-                } else {
-                    Cell::Dead
-                }
+            .map(|_i| {
+                None
             })
-            .collect();*/
+            .collect();
 
         Universe {
-            width,
+            data: UniverseData { width,
             height,
-            color_list: build_color_list(),
-            tile_list: build_tile_list()
+            cells }
         }
     }
 
@@ -175,27 +199,43 @@ impl Universe {
         self.to_string()
     }
 
-    pub fn get_colors(&self) -> JsValue {
-        JsValue::from_serde(&self.color_list).unwrap()
+
+
+    pub fn get_data(&self) -> JsValue {
+        JsValue::from_serde(&self.data).unwrap()
     }
 
-    pub fn get_tiles(&self) -> JsValue {
-        JsValue::from_serde(&self.tile_list).unwrap()
-    }
 
 
-    pub fn set_square(&self, row: u8, col: u8, color_val: &JsValue, tile_val: &JsValue ) {
+    pub fn set_square(&mut self, row_index: usize, col_index: usize, color_val: &JsValue, tile_val: &JsValue ) {
 
-        let color: Color = color_val.into_serde().unwrap();
-        let tile: Tile = tile_val.into_serde().unwrap();
+        let color: Option<Color> = color_val.into_serde().unwrap();
+        let tile: Option<Tile> = tile_val.into_serde().unwrap();
+
+
+        let idx: usize = row_index * self.data.width + col_index;
 
         log!(
-                    "Received [{}, {}] Color {:?} Tile {:?}",
-                    row,
-                    col,
+                    "Received Row/Col [{}, {}] = idx [{}].  Color {:?} Tile {:?}",
+                    row_index,
+                    col_index,
+            idx,
             color,
             tile
                 );
+
+
+        self.data.cells[idx] = if let Some(tile) = tile  {
+            Some(CellData {
+                row_index,col_index,
+                color, tile
+            })
+        } else {
+            None
+        };
+
+
+
 
     }
 }

@@ -33,17 +33,32 @@
 
 </div>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * num_cols"
-     [attr.height]="GRID_SIZE * num_rows" (click)="handleGridClick($event)">
+     [attr.height]="GRID_SIZE * num_rows"
+     (click)="handleGridClick($event, false)"
+     (contextmenu)="handleGridClick($event, true)"
+
+>
   <defs>
 
 
     <pattern id="grid" [attr.width]="GRID_SIZE" [attr.height]="GRID_SIZE" patternUnits="userSpaceOnUse">
 
       <path attr.d="M 0 0 L 0 {{GRID_SIZE}} L {{GRID_SIZE}} {{GRID_SIZE}} L {{GRID_SIZE}} 0 L 0 0" fill="none"
-            stroke="black" stroke-width="1"/>
+            stroke="rgb(200,200,200)" stroke-width="1"/>
     </pattern>
   </defs>
+  <rect fill="rgb(30,30,30" x="0" y="0" width="100%" height="100%"/>
+
+  <ng-container *ngFor="let cell of universeData?.cells">
+    <text *ngIf="cell"  [attr.x]="cell.col_index * GRID_SIZE + 15" [attr.y]="cell.row_index * GRID_SIZE + 25"
+(click)="handleClickSvgText($event)"
+      attr.fill="rgb({{cell.color.red}},{{cell.color.green}},{{cell.color.blue}})"
+          class="grid_text">{{cell.tile.label[0]}}</text>
+  </ng-container>
+
   <rect fill="url(#grid)" x="0" y="0" width="100%" height="100%"/>
+
+
 </svg>
 
 <router-outlet></router-outlet>
