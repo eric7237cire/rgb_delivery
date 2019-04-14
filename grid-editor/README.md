@@ -28,3 +28,14 @@ https://webpack.js.org/contribute/debugging/
 using angular without angular cli 
 https://www.edc4it.com/blog/web/helloworld-angular2.html
 
+https://blog.angularindepth.com/upgrading-a-project-without-cli-to-angular-6-b07b105adc02
+
+
+if using own webpack
+https://medium.com/ag-grid/webpack-tutorial-understanding-ngtools-webpack-306dd7f9e07d
+
+
+
+Typescript example:
+
+https://github.com/rustwasm/rust-webpack-template/issues/43#issuecomment-426597176
