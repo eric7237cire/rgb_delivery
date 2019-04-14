@@ -32,14 +32,14 @@
   </div>
 
 </div>
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="grid_size * num_cols"
-     [attr.height]="grid_size * num_rows">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * num_cols"
+     [attr.height]="GRID_SIZE * num_rows" (click)="handleGridClick($event)">
   <defs>
 
 
-    <pattern id="grid" [attr.width]="grid_size" [attr.height]="grid_size" patternUnits="userSpaceOnUse">
+    <pattern id="grid" [attr.width]="GRID_SIZE" [attr.height]="GRID_SIZE" patternUnits="userSpaceOnUse">
 
-      <path attr.d="M 0 0 L 0 {{grid_size}} L {{grid_size}} {{grid_size}} L {{grid_size}} 0 L 0 0" fill="none"
+      <path attr.d="M 0 0 L 0 {{GRID_SIZE}} L {{GRID_SIZE}} {{GRID_SIZE}} L {{GRID_SIZE}} 0 L 0 0" fill="none"
             stroke="black" stroke-width="1"/>
     </pattern>
   </defs>

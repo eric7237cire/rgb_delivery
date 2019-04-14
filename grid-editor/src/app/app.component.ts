@@ -1,6 +1,6 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {Color, Tile} from "../../../rgb-solver/pkg";
+import {Color, Tile, Universe} from "../../../rgb-solver/pkg";
 /*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
 console.log('I am alive!!!');
@@ -42,7 +42,7 @@ class TileType {
 })
 export class AppComponent implements OnInit, OnChanges {
   title = 'grid-editor';
-  grid_size = 40;
+  readonly GRID_SIZE = 40;
 
   num_cols: number = 10;
   num_rows: number = 10;
@@ -50,6 +50,8 @@ export class AppComponent implements OnInit, OnChanges {
   colors: Array<Color> = [];
 
   tiles: Array<Tile> = [];
+
+  universe: Universe = null;
 
   selectedColor = this.colors[0];
   selectedTile = this.tiles[0];
@@ -70,12 +72,12 @@ export class AppComponent implements OnInit, OnChanges {
     this.num_rows = _.toNumber(this.num_rows);
     this.num_cols = _.toNumber(this.num_cols);
 
-    let u = this.wasm.Universe.new(this.num_rows, this.num_cols);
+    this.universe = this.wasm.Universe.new(this.num_rows, this.num_cols);
 
-    console.log("My universe", u.render());
+    console.log("My universe", this.universe.render());
 
-    this.colors = u.get_colors();
-    this.tiles = u.get_tiles();
+    this.colors = this.universe.get_colors();
+    this.tiles = this.universe.get_tiles();
 
     if (!this.selectedColor) {
       this.selectedColor = this.colors[1];
@@ -133,4 +135,21 @@ export class AppComponent implements OnInit, OnChanges {
     return `rgb(${c.red}, ${c.green}, ${c.blue})`;
   }
 
+  handleGridClick(clickEvent: MouseEvent) {
+    console.log(clickEvent);
+    console.log(clickEvent.target);
+
+    var rect = ( <any>clickEvent.target).getBoundingClientRect();
+
+    var x = clickEvent.clientX - rect.left; //x position within the element.
+    var y = clickEvent.clientY - rect.top;  //y position within the element.
+
+    let colIndex = _.floor(x / this.GRID_SIZE);
+    let rowIndex = _.floor(y / this.GRID_SIZE);
+
+    console.log(`Clicked on row ${rowIndex}, col ${colIndex}`);
+
+    this.universe.set_square(rowIndex, colIndex, this.selectedColor, this.selectedTile);
+    //console.log(clickEvent.target.getBoundingClientRect());
+  }
 }

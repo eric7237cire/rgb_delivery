@@ -33,20 +33,20 @@ export type Coords = { "latitude": number, "longitude": number, };
 
 //#[wasm_bindgen]
 //https://github.com/tcr/wasm-typescript-definition
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, TypescriptDefinition)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default)]
 struct Color {
     pub label: String,
     pub red: u8,
     pub green: u8,
     pub blue: u8,
 
-
+    pub color_index: usize
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, TypescriptDefinition, Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default)]
 struct Tile {
     pub label: String,
-    pub tile_index: u8
+    pub tile_index: usize
 }
 
 #[wasm_bindgen]
@@ -91,6 +91,49 @@ macro_rules! log {
     }
 }
 
+
+fn build_color_list() -> [Color; 4] {
+    let mut color_list = [
+                Color{ label: "White".to_string(), red: 230, green: 230, blue: 230, ..Default::default()},
+                Color{ label: "Red".to_string(), red: 255, green: 0, blue: 0, ..Default::default()},
+                Color{ label: "Yellow".to_string(), red: 255, green: 255, blue: 0, ..Default::default()},
+                Color{ label: "Blue".to_string(), red: 50, green: 50, blue: 255, ..Default::default()},
+
+/*
+ colors = [ new Color("rgb(255,0,0)","Red"), new Color("rgb(255,255,0)","Yellow"),
+  new Color("rgb(50,50,255)", "Blue"), new Color("rgb(230,230,230)", "White") ] ;
+  */
+                ];
+
+    color_list.iter_mut().enumerate().map( | (idx, c) | {
+        c.color_index = idx;
+    });
+
+    color_list
+}
+
+fn build_tile_list() -> [Tile; 4] {
+    let mut tile_list = [
+                Tile { label: "Road".to_string(), ..Default::default()},
+                Tile { label: "Block".to_string(), ..Default::default()},
+                Tile { label: "Warehouse".to_string(), ..Default::default()},
+                Tile { label: "Van".to_string(), ..Default::default()},
+
+                ];
+
+    for (idx, t) in tile_list.iter_mut().enumerate() {
+        t.tile_index = idx;
+    }
+
+
+        log!(
+                    "Built tile list {:?} ",
+                    tile_list
+                );
+
+    tile_list
+}
+
 /// Public methods, exported to JavaScript.
 #[wasm_bindgen]
 impl Universe {
@@ -123,25 +166,8 @@ impl Universe {
         Universe {
             width,
             height,
-            color_list: [
-                Color{ label: "White".to_string(), red: 230, green: 230, blue: 230},
-                Color{ label: "Red".to_string(), red: 255, green: 0, blue: 0},
-                Color{ label: "Yellow".to_string(), red: 255, green: 255, blue: 0},
-                Color{ label: "Blue".to_string(), red: 50, green: 50, blue: 255},
-
-/*
- colors = [ new Color("rgb(255,0,0)","Red"), new Color("rgb(255,255,0)","Yellow"),
-  new Color("rgb(50,50,255)", "Blue"), new Color("rgb(230,230,230)", "White") ] ;
-  */
-                ],
-
-            tile_list: [
-                Tile { label: "Road".to_string(), ..Default::default()},
-                Tile { label: "Block".to_string(), ..Default::default()},
-                Tile { label: "Warehouse".to_string(), ..Default::default()},
-                Tile { label: "Van".to_string(), ..Default::default()},
-
-                ]
+            color_list: build_color_list(),
+            tile_list: build_tile_list()
         }
     }
 
@@ -155,5 +181,21 @@ impl Universe {
 
     pub fn get_tiles(&self) -> JsValue {
         JsValue::from_serde(&self.tile_list).unwrap()
+    }
+
+
+    pub fn set_square(&self, row: u8, col: u8, color_val: &JsValue, tile_val: &JsValue ) {
+
+        let color: Color = color_val.into_serde().unwrap();
+        let tile: Tile = tile_val.into_serde().unwrap();
+
+        log!(
+                    "Received [{}, {}] Color {:?} Tile {:?}",
+                    row,
+                    col,
+            color,
+            tile
+                );
+
     }
 }
