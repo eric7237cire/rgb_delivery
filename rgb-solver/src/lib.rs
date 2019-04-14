@@ -15,6 +15,6 @@ extern {
 
 #[wasm_bindgen]
 pub fn greet() {
-    alert("Hello, rgb-solver!");
+    alert("Hello, 33 rgb-solver!");
 }
 

@@ -11,9 +11,16 @@ loadWasm().then(result => {
 });
 */
 
-import * as wasm from "rgb-solver";
+function start(mymod: typeof import('rgb-solver')) {
+    console.log("All modules loaded");
+    mymod.greet();
+}
 
-wasm.greet();
+async function load() {
+    start(await import('rgb-solver'));
+}
+
+load();
 /*
 const wasm = import("../../../rgb-solver/pkg/rgb_solver");
 
