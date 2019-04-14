@@ -1,44 +1,47 @@
 <!--The content below is only a placeholder and can be replaced.-->
 
 <div class="inputs">
-<label>Number of Rows</label>
-<input type=text [(ngModel)] = "num_rows">
-<label>Number of Columns</label>
-<input type=text [(ngModel)] = "num_cols">
+  <label>Number of Rows</label>
+  <input type=text [(ngModel)]="num_rows" (ngModelChange)="updateDim()">
+  <label>Number of Columns</label>
+  <input type=text [(ngModel)]="num_cols" (ngModelChange)="updateDim()">
 
-<label>Color</label>
-<div class="colors"> 
-  <div class="color" 
-  (click)="onColorClick(c)"
-  *ngFor="let c of colors" [style.background-color]="c.css_color"  >{{c.label}}
-</div> </div>
-
-<label>Selected Color</label>
-<div class="color" [style.background-color]="selectedColor.css_color"  >{{selectedColor.label}}</div>
-
-<label>Tile type</label>
-<div class="tiles"> 
-    <div class="tile" 
-    (click)="onTileClick(t)"
-    *ngFor="let t of tiles"   >{{t.label}}
+  <label>Color</label>
+  <div class="colors">
+    <div class="color"
+         (click)="onColorClick(c)"
+         *ngFor="let c of colors" [style.background-color]="c.css_color">{{c.label}}
+    </div>
   </div>
-</div>
 
-<label>Selected Tile</label>
+  <label>Selected Color</label>
+  <div class="color" [style.background-color]="selectedColor.css_color">{{selectedColor.label}}</div>
 
-<div class="tile" 
-   >{{selectedTile.label}}
-</div>
+  <label>Tile type</label>
+  <div class="tiles">
+    <div class="tile"
+         (click)="onTileClick(t)"
+         *ngFor="let t of tiles">{{t.label}}
+    </div>
+  </div>
+
+  <label>Selected Tile</label>
+
+  <div class="tile"
+  >{{selectedTile.label}}
+  </div>
 
 </div>
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="grid_size * num_cols" [attr.height]="grid_size * num_rows">
-  <defs> 
-      
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="grid_size * num_cols"
+     [attr.height]="grid_size * num_rows">
+  <defs>
+
 
     <pattern id="grid" [attr.width]="grid_size" [attr.height]="grid_size" patternUnits="userSpaceOnUse">
-  		
-      <path attr.d="M 0 0 L 0 {{grid_size}} L {{grid_size}} {{grid_size}} L {{grid_size}} 0 L 0 0" fill="none" stroke="black" stroke-width="1"/>
-  	</pattern>
+
+      <path attr.d="M 0 0 L 0 {{grid_size}} L {{grid_size}} {{grid_size}} L {{grid_size}} 0 L 0 0" fill="none"
+            stroke="black" stroke-width="1"/>
+    </pattern>
   </defs>
   <rect fill="url(#grid)" x="0" y="0" width="100%" height="100%"/>
 </svg>

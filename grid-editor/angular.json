@@ -20,7 +20,7 @@
             "outputPath": "dist/grid-editor",
             "customWebpackConfig": {"path": "./custom-webpack.config.js",
 
-            "mergeStrategies": { "resolve": "replace" }
+
             },
             "index": "src/index.html",
             "main": "src/main.ts",

@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-
+import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import * as _ from "lodash";
 /*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
 console.log('I am alive!!!');
@@ -11,6 +11,7 @@ loadWasm().then(result => {
 });
 */
 
+/*
 function start(mymod: typeof import('rgb-solver')) {
     console.log("All modules loaded");
     mymod.greet();
@@ -21,6 +22,8 @@ async function load() {
 }
 
 load();
+*/
+
 /*
 const wasm = import("../../../rgb-solver/pkg/rgb_solver");
 
@@ -54,12 +57,12 @@ class TileType {
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.styl']
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnChanges {
   title = 'grid-editor';
   grid_size = 40;
 
-  num_cols = 10;
-  num_rows = 10;
+  num_cols:number = 10;
+  num_rows:number = 10;
 
   colors = [ new Color("rgb(255,0,0)","Red"), new Color("rgb(255,255,0)","Yellow"),
   new Color("rgb(50,50,255)", "Blue"), new Color("rgb(230,230,230)", "White") ] ;
@@ -72,7 +75,45 @@ export class AppComponent {
   selectedColor = this.colors[0];
   selectedTile = this.tiles[0];
 
-onTileClick(t) {
+
+  wasm: typeof import('../../../rgb-solver/pkg');
+
+  ngOnChanges(changes: SimpleChanges): void {
+
+    console.log("ng on changes");
+
+
+
+  }
+
+  updateDim() {
+    //if (!_.isNil(changes.num_cols) || !_.isNil(changes.num_rows) ) {
+
+    this.num_rows = _.toNumber(this.num_rows);
+    this.num_cols = _.toNumber(this.num_cols);
+
+    let u = this.wasm.Universe.new(this.num_rows, this.num_cols);
+
+    console.log("My universe",u.render());
+
+
+
+  }
+
+  ngOnInit(): void {
+
+    console.log("ng on init");
+
+    //RustRGBProject/pkg works but not in PyCharm
+    import("../../../rgb-solver/pkg").then(module => {
+
+      this.wasm = module;
+
+      this.updateDim();
+    });
+  }
+
+  onTileClick(t) {
   this.selectedTile = t;
 }
 
