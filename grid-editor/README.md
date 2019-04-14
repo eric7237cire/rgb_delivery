@@ -39,3 +39,15 @@ https://medium.com/ag-grid/webpack-tutorial-understanding-ngtools-webpack-306dd7
 Typescript example:
 
 https://github.com/rustwasm/rust-webpack-template/issues/43#issuecomment-426597176
+
+
+Get typings for serde:
+https://github.com/tcr/wasm-typescript-definition
+
+
+
+Cargo watch wasm-pack:
+https://github.com/rustwasm/wasm-pack/issues/457
+
+cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build"
+

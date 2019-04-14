@@ -22,7 +22,7 @@ module.exports = {
 
   plugins: [
 
-
+/* works OK
     new WasmPackPlugin({
       crateDirectory: path.resolve(__dirname, "../rgb-solver"),
 
@@ -54,6 +54,6 @@ module.exports = {
       // forceMode: "development",
     }),
 
-
+*/
   ]
 };

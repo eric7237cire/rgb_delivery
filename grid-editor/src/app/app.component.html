@@ -10,12 +10,12 @@
   <div class="colors">
     <div class="color"
          (click)="onColorClick(c)"
-         *ngFor="let c of colors" [style.background-color]="c.css_color">{{c.label}}
+         *ngFor="let c of colors" [style.background-color]="getCssForColor(c)">{{c.label}}
     </div>
   </div>
 
   <label>Selected Color</label>
-  <div class="color" [style.background-color]="selectedColor.css_color">{{selectedColor.label}}</div>
+  <div class="color" [style.background-color]="getCssForColor(selectedColor)">{{selectedColor?.label}}</div>
 
   <label>Tile type</label>
   <div class="tiles">
@@ -28,7 +28,7 @@
   <label>Selected Tile</label>
 
   <div class="tile"
-  >{{selectedTile.label}}
+  >{{selectedTile?.label}}
   </div>
 
 </div>

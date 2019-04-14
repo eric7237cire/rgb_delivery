@@ -1,5 +1,6 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
+import {Color, Tile} from "../../../rgb-solver/pkg";
 /*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
 console.log('I am alive!!!');
@@ -12,16 +13,7 @@ loadWasm().then(result => {
 */
 
 /*
-function start(mymod: typeof import('rgb-solver')) {
-    console.log("All modules loaded");
-    mymod.greet();
-}
 
-async function load() {
-    start(await import('rgb-solver'));
-}
-
-load();
 */
 
 /*
@@ -32,15 +24,6 @@ wasm.then(module => {
   module.greet();
 });*/
 
-class Color {
-  css_color: string;
-  label: string;
-
-  constructor(_css_class, _label) {
-    this.css_color = _css_class;
-    this.label = _label;
-  }
-}
 
 class TileType {
   key: string;
@@ -61,16 +44,12 @@ export class AppComponent implements OnInit, OnChanges {
   title = 'grid-editor';
   grid_size = 40;
 
-  num_cols:number = 10;
-  num_rows:number = 10;
+  num_cols: number = 10;
+  num_rows: number = 10;
 
-  colors = [ new Color("rgb(255,0,0)","Red"), new Color("rgb(255,255,0)","Yellow"),
-  new Color("rgb(50,50,255)", "Blue"), new Color("rgb(230,230,230)", "White") ] ;
+  colors: Array<Color> = [];
 
-  tiles = [ new TileType("R", "Road"),
-  new TileType("B", "Block"),
-  new TileType("W", "Warehouse"),
-  new TileType("V", "Van") ]
+  tiles: Array<Tile> = [];
 
   selectedColor = this.colors[0];
   selectedTile = this.tiles[0];
@@ -83,7 +62,6 @@ export class AppComponent implements OnInit, OnChanges {
     console.log("ng on changes");
 
 
-
   }
 
   updateDim() {
@@ -94,10 +72,33 @@ export class AppComponent implements OnInit, OnChanges {
 
     let u = this.wasm.Universe.new(this.num_rows, this.num_cols);
 
-    console.log("My universe",u.render());
+    console.log("My universe", u.render());
+
+    this.colors = u.get_colors();
+    this.tiles = u.get_tiles();
+
+    if (!this.selectedColor) {
+      this.selectedColor = this.colors[1];
+    }
+
+    if (!this.selectedTile) {
+      this.selectedTile = this.tiles[0];
+    }
+    console.log("Color", this.colors);
+    console.log("Tiles", this.tiles);
 
 
+  }
 
+  handleWasmLoaded(mymod: typeof import('rgb-solver')) {
+    console.log("All modules loaded");
+    this.wasm = mymod;
+    //mymod.greet();
+    this.updateDim();
+  }
+
+  async load() {
+    this.handleWasmLoaded(await import('rgb-solver'));
   }
 
   ngOnInit(): void {
@@ -105,19 +106,31 @@ export class AppComponent implements OnInit, OnChanges {
     console.log("ng on init");
 
     //RustRGBProject/pkg works but not in PyCharm
+
+    this.load();
+    /*
+    syntax when using wasm plugin
     import("../../../rgb-solver/pkg").then(module => {
 
       this.wasm = module;
 
       this.updateDim();
-    });
+    });*/
   }
 
   onTileClick(t) {
-  this.selectedTile = t;
-}
+    this.selectedTile = t;
+  }
 
   onColorClick(c) {
     this.selectedColor = c;
   }
+
+  getCssForColor(c: Color) {
+    if (_.isNil(c)) {
+      return "";
+    }
+    return `rgb(${c.red}, ${c.green}, ${c.blue})`;
+  }
+
 }
