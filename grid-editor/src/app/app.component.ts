@@ -1,6 +1,6 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {CellData, Color, Tile, Universe, UniverseData} from "../../../rgb-solver/pkg";
+import {CellData, Color, TileType, Universe, UniverseData} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 /*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
@@ -26,7 +26,6 @@ wasm.then(module => {
 });*/
 
 
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -36,27 +35,28 @@ export class AppComponent implements OnInit {
   title = 'grid-editor';
   readonly GRID_SIZE = 40;
 
-  num_cols: number = 3;
-  num_rows: number = 2;
+  num_cols: number = null;
+  num_rows: number = null;
 
   colors: Array<Color> = [];
 
-  tiles: Array<string> = ["Road", "Empty", "Warehouse"];
+  readonly tiles: Array<TileType> = ["Road", "Empty", "Warehouse"];
 
   universe: Universe = null;
 
   universeData: UniverseData = null;
 
   selectedColor = this.colors[0];
-  selectedTile = this.tiles[0];
+  selectedTile: TileType = this.tiles[0];
 
 
   wasm: typeof import('../../../rgb-solver/pkg');
 
-  constructor(private gridStorageService: GridStorageService) {}
+  constructor(private gridStorageService: GridStorageService) {
+  }
 
-  setGridSquare(rowIndex: number, colIndex:number, cellData: CellData) {
-    this.universe.set_square(rowIndex,colIndex, cellData);
+  setGridSquare(cellData: CellData) {
+    this.universe.set_square(cellData);
   }
 
   updateDim() {
@@ -64,28 +64,27 @@ export class AppComponent implements OnInit {
 
     let savedData = this.gridStorageService.loadGrid();
 
-    if (!_.isNil(savedData) && _.isArray(savedData.cells)) {
+    this.num_rows = _.toNumber(this.num_rows);
+    this.num_cols = _.toNumber(this.num_cols);
+
+    if (!_.isNil(savedData) && _.isArray(savedData.cells) && this.num_cols * this.num_rows == 0) {
       this.num_rows = savedData.height;
       this.num_cols = savedData.width;
     }
 
-    this.num_rows = _.toNumber(this.num_rows);
-    this.num_cols = _.toNumber(this.num_cols);
+
 
     this.universe = this.wasm.Universe.new(this.num_rows, this.num_cols);
 
+    console.log("Universe initial data", this.universe.get_data());
 
     //Giving web assembly the loaded data
     if (!_.isNil(savedData) && _.isArray(savedData.cells)) {
-      savedData.cells.forEach( (cellData: CellData, index) => {
-        let row = _.floor( index / this.num_cols);
-        let col = index % this.num_cols;
+      savedData.cells.forEach((cellData: CellData) => {
 
-        if (_.isNil(cellData)) {
-          this.setGridSquare(row,col, null);
-        } else {
-          this.universe.set_square(row, col, cellData);
-        }
+
+          this.setGridSquare(cellData);
+
 
       });
     }
@@ -94,7 +93,7 @@ export class AppComponent implements OnInit {
 
     this.universeData = this.universe.get_data();
     this.colors = this.wasm.get_colors();
-    this.tiles = this.wasm.get_tiles();
+
 
     if (!this.selectedColor) {
       this.selectedColor = this.colors[1];
@@ -152,24 +151,46 @@ export class AppComponent implements OnInit {
     return `rgb(${c.red}, ${c.green}, ${c.blue})`;
   }
 
-  handleGridClick(clickEvent: MouseEvent, clearSquare: boolean) : boolean {
+  handleGridClick(clickEvent: MouseEvent, clearSquare: boolean): boolean {
     console.log(clickEvent);
     console.log(clickEvent.target);
 
-    const rect = ( <any>clickEvent.target).getBoundingClientRect();
+    const rect = (<any>clickEvent.target).getBoundingClientRect();
 
     const x = clickEvent.clientX - rect.left; //x position within the element.
     const y = clickEvent.clientY - rect.top;  //y position within the element.
 
-    const colIndex = _.floor(x / this.GRID_SIZE);
-    const rowIndex = _.floor(y / this.GRID_SIZE);
+    const col_index = _.floor(x / this.GRID_SIZE);
+    const row_index = _.floor(y / this.GRID_SIZE);
 
-    console.log(`Clicked on row ${rowIndex}, col ${colIndex}.  Clear? ${clearSquare}`);
+    console.log(`Clicked on row ${row_index}, col ${col_index}.  Clear? ${clearSquare}`);
 
     if (clearSquare) {
-      this.setGridSquare(rowIndex, colIndex, null);
+      this.setGridSquare({row_index, col_index, tile: {type: "Empty"}});
     } else {
-      this.universe.set_square(rowIndex, colIndex, this.selectedColor, this.selectedTile);
+      switch (this.selectedTile) {
+        case "Empty":
+          this.setGridSquare({row_index, col_index, "tile": {type: this.selectedTile}});
+          break;
+        case "Road":
+          this.setGridSquare({
+            row_index, col_index, "tile": {
+              type: this.selectedTile,
+              used_mask: 0
+            }
+          });
+          break;
+        case "Warehouse":
+          this.setGridSquare({
+            row_index, col_index, "tile": {
+              type: this.selectedTile,
+              color: this.selectedColor,
+              is_filled: false
+            }
+          });
+          break;
+      }
+      //this.universe.set_square(rowIndex, colIndex, this.selectedColor, this.selectedTile);
     }
 
     this.universeData = this.universe.get_data();
@@ -184,5 +205,16 @@ export class AppComponent implements OnInit {
 
   handleClickSvgText() {
     return true;
+  }
+
+  getCellColor(cell: CellData) : string {
+    switch (cell.tile.type) {
+      case "Warehouse":
+        let w = cell.tile;
+        return `rgb(${w.color.red},${w.color.green},${w.color.blue}`;
+
+      default: return "rgb(200,200,200)";
+    }
+
   }
 }

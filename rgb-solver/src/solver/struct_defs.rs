@@ -1,5 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
+use crate::solver::struct_defs::TileEnum::Empty;
 //use crate::solver::utils::VAN_LABEL;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default)]
@@ -12,16 +13,9 @@ pub struct Color {
     pub color_index: usize
 }
 
-#[derive(Clone, Serialize, Deserialize, TypescriptDefinition)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition)]
 pub struct Van {
-    boxes: [Option<Color>; 3]
-}
-
-//1 tile per cell
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default)]
-pub struct Tile {
-    pub label: String,
-    pub tile_index: usize
+    pub boxes: [Option<Color>; 3]
 }
 
 #[derive(Clone, Serialize, Deserialize,Debug,TypescriptDefinition)]
@@ -43,7 +37,7 @@ pub struct Thing {
     pub thing_index: usize
 }
 
-#[derive(Clone, Serialize, Deserialize, TypescriptDefinition)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition)]
 pub struct CellData {
     pub tile: TileEnum,
     pub van: Option<Van>,
@@ -52,12 +46,18 @@ pub struct CellData {
     pub col_index: usize,
 }
 
+impl Default for CellData {
+    fn default() -> Self {
+        Self { tile: TileEnum::Empty, van: None, row_index: 0, col_index: 0 }
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition,  Default)]
 pub struct UniverseData {
     pub width: usize,
     pub height: usize,
 
-    pub cells: Vec<Option<CellData>>,
+    pub cells: Vec<CellData>,
 }
 
 #[wasm_bindgen()]

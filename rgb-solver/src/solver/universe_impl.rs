@@ -1,6 +1,9 @@
 use wasm_bindgen::prelude::*;
 use crate::solver::struct_defs::*;
 use super::utils;
+use crate::solver::struct_defs::TileEnum::{Road, Warehouse,Empty};
+use crate::solver::public_func::build_color_list;
+
 //use crate::solver::utils::VAN_LABEL;
 
 /*
@@ -42,11 +45,18 @@ impl Universe {
         let height = h;
 
 
-        let cells = (0..width * height)
-            .map(|_i| {
-                None
+        let cells: Vec<CellData> = (0..width * height)
+            .map(|idx| {
+                CellData{row_index: idx / width, col_index: idx % width,
+                     ..Default::default()}
             })
             .collect();
+
+        let cl = build_color_list();
+
+        //cells[0] =  CellData{row_index: 0, col_index: 0, tile: Road {used_mask: 45, _box: None}, van: None});
+        /*cells[1] =  CellData{row_index: 0, col_index: 0, tile: Warehouse {color: cl[2].clone(), is_filled: true},
+            van: Some( Van{ boxes: [None, Some(cl[0].clone()), Some(cl[3].clone())] } ) } );*/
 
         Universe {
             data: UniverseData { width,
@@ -67,35 +77,28 @@ impl Universe {
 
 
 
-    pub fn set_square(&mut self, row_index: usize, col_index: usize, tile_val: &JsValue ) {
+    pub fn set_square(&mut self, tile_val: &JsValue ) {
 
-        let tile: Option<TileEnum> = tile_val.into_serde().unwrap();
+        let tile: CellData = tile_val.into_serde().unwrap();
 
-        let idx: usize = row_index * self.data.width + col_index;
+
+        let idx: usize = tile.row_index * self.data.width + tile.col_index;
 
         log!(
                     "Received Row/Col [{}, {}] = idx [{}].  Tile {:?}",
-                    row_index,
-                    col_index,
+                    tile.row_index,
+                    tile.col_index,
             idx,
 
             tile
                 );
 
-
-        self.data.cells[idx] = if let Some(tile) = tile  {
-            Some(CellData {
-                row_index,
-                col_index,
-                van: None,
-                tile,
-            })
+        if idx < self.data.cells.len() {
+            self.data.cells[idx] = tile;
         } else {
-            None
-        };
-
-
-
-
+            log!(
+                    "Out of bounds, ignoring"
+                );
+        }
     }
 }

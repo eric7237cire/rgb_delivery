@@ -83,7 +83,12 @@ fn parse_non_primitive(s: &str) -> (String, bool) {
     else if s.starts_with("Option <") {
         let rest = &s[9..s.len() - 2];
         (format!("{}", rest), true)
-    } else if s == "TileEnum" {
+    }
+    else if s.starts_with("Vec <") {
+        let rest = &s[5..s.len() - 1];
+        (format!("Array<{}>", rest), false)
+    }
+    else if s == "TileEnum" {
         ("Road | Empty | Warehouse".to_string(), false)
     }
     else {

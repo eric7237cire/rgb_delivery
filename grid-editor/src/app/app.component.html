@@ -21,14 +21,14 @@
   <div class="tiles">
     <div class="tile"
          (click)="onTileClick(t)"
-         *ngFor="let t of tiles">{{t.label}}
+         *ngFor="let t of tiles">{{t}}
     </div>
   </div>
 
   <label>Selected Tile</label>
 
   <div class="tile"
-  >{{selectedTile?.label}}
+  >{{selectedTile}}
   </div>
 
 </div>
@@ -51,9 +51,9 @@
 
   <ng-container *ngFor="let cell of universeData?.cells">
     <text *ngIf="cell"  [attr.x]="cell.col_index * GRID_SIZE + 15" [attr.y]="cell.row_index * GRID_SIZE + 25"
-(click)="handleClickSvgText($event)"
-      attr.fill="rgb({{cell.color.red}},{{cell.color.green}},{{cell.color.blue}})"
-          class="grid_text">{{cell.tile.label[0]}}</text>
+(click)="handleClickSvgText()"
+      [attr.fill]="getCellColor(cell)"
+          class="grid_text">{{cell.tile.type[0]}}</text>
   </ng-container>
 
   <rect fill="url(#grid)" x="0" y="0" width="100%" height="100%"/>

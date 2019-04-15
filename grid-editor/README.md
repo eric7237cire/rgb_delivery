@@ -50,5 +50,5 @@ Cargo watch wasm-pack:
 https://github.com/rustwasm/wasm-pack/issues/457
 
 # in rgb-solver
-cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition
+cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition -w .
 

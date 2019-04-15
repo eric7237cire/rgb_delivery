@@ -29,6 +29,7 @@ pub fn greet() {
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
 
+export type TileType = "Road" | "Warehouse" | "Empty";
 
 "#;
 
