@@ -5,9 +5,9 @@ use collapse_list_bracket;
 
 use super::{derive_element, derive_field_str};
 
-pub fn derive_struct<'a>(
+pub fn derive_struct(
     style: ast::Style,
-    fields: Vec<ast::Field<'a>>,
+    fields: Vec<ast::Field>,
     attr_container: &attr::Container,
 ) -> String {
     let tokens = match style {
@@ -37,8 +37,8 @@ fn derive_struct_unit(_attr_container: &attr::Container) -> quote::Tokens {
     }
 }
 
-fn derive_struct_named_fields<'a>(
-    fields: Vec<ast::Field<'a>>,
+fn derive_struct_named_fields(
+    fields: Vec<ast::Field>,
     _attr_container: &attr::Container,
 ) -> String {
     fields.into_iter().enumerate()
