@@ -19,7 +19,7 @@ extern crate serde_bytes;
 
 #[proc_macro_derive(TypescriptDefinition)]
 pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    eprintln!(".........[input] {}", input);
+    //eprintln!(".........[input] {}", input);
     let input: DeriveInput = syn::parse(input).unwrap();
 
     let cx = Ctxt::new();
@@ -27,7 +27,7 @@ pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macr
 
     let typescript = match container.data {
         ast::Data::Enum(variants) => {
-            derive_enum::derive_enum(variants, &container.attrs)
+            derive_enum::derive_enum(variants, &container.attrs).to_string()
         }
         ast::Data::Struct(style, fields) => {
             derive_struct::derive_struct(style, fields, &container.attrs)
@@ -39,8 +39,8 @@ pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macr
     let export_ident = syn::Ident::from(format!("TS_EXPORT_{}", container.ident.to_string().to_uppercase()));
 
     eprintln!("....[typescript] {:?}", typescript_string);
-    // eprintln!("........[schema] {:?}", inner_impl);
-    // eprintln!();
+    //eprintln!("........[export_ident] {:?}", export_ident);
+   //eprintln!("............[container] {:?}", container);
     // eprintln!();
     // eprintln!();
 
@@ -73,21 +73,62 @@ fn collapse_list_bracket(body: Vec<quote::Tokens>) -> quote::Tokens {
     }
 }
 
-fn collapse_list_brace(body: Vec<quote::Tokens>) -> quote::Tokens {
-    let tokens = body.into_iter().fold(quote!{}, |mut agg, tokens| { agg.append_all(quote!{ #tokens , }); agg });
-    quote!{ { #tokens } }
+fn parse_non_primitive(s: &str) -> (String, bool) {
+
+    if s.starts_with("Vec < Option <") {
+        let rest = &s[15..s.len()-4];
+
+        (format!("Array<{}>", rest), false)
+    }
+    else if s.starts_with("Option <") {
+        let rest = &s[9..s.len() - 2];
+        (format!("{}", rest), true)
+    } else if s == "TileEnum" {
+        ("Road | Empty | Warehouse".to_string(), false)
+    }
+    else {
+        (format!("{}",s), false)
+    }
+
 }
 
-fn parse_non_primitive(s: &str) -> (quote::Tokens, bool) {
 
-    (quote!{ #s }, true)
+fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
+   // println!("Type: ??? {:?}", ty);
+    use syn::Type::*;
+    let mut is_optional = false;
 
+    let q_tokens = match ty {
+
+        Path(inner) => {
+            //let ty_string = format!("{:?}", inner.path);
+            let result = quote!{ #inner };
+            match result.to_string().as_ref() {
+                "u8" | "u16" | "u32" | "u64" | "u128" | "usize" |
+                "i8" | "i16" | "i32" | "i64" | "i128" | "isize" =>
+                    "number".to_string(),
+                "String" | "&str" | "&'static str" =>
+                    "string".to_string(),
+                "bool" => "boolean".to_string(),
+                something_else => {
+                    let (q, is_opt) = parse_non_primitive(something_else);
+                    is_optional = is_opt;
+                    q
+                },
+            }
+        },
+        Array(array) => format!("Array<{}>", type_to_ts_string( array.elem.as_ref()).0),
+
+        _  => format!("any 3").to_string()
+    };
+
+        (q_tokens, is_optional)
 }
 
 fn type_to_ts(ty: &syn::Type) -> (quote::Tokens, bool) {
    // println!("Type: ??? {:?}", ty);
     use syn::Type::*;
-    let mut is_optional = false;
+    let is_optional = false;
 
     let q_tokens = match ty {
         Slice(..) => quote!{ any },
@@ -107,11 +148,7 @@ fn type_to_ts(ty: &syn::Type) -> (quote::Tokens, bool) {
                 "String" | "&str" | "&'static str" =>
                     quote! { string },
                 "bool" => quote!{ boolean },
-                something_else => {
-                    let (q, is_opt) = parse_non_primitive(something_else);
-                    is_optional = is_opt;
-                    q
-                },
+                _ => quote!{any},
             }
         }
         TraitObject(..) => quote!{ trait any },
@@ -126,23 +163,17 @@ fn type_to_ts(ty: &syn::Type) -> (quote::Tokens, bool) {
         (q_tokens, is_optional)
 }
 
-fn derive_field<'a>(_variant_idx: usize, _field_idx: usize, field: &ast::Field<'a>) -> quote::Tokens {
+fn derive_field_str(_variant_idx: usize, _field_idx: usize, field: &ast::Field) -> String {
     let field_name = field.attrs.name().serialize_name();
-    let (ty, is_opt) = type_to_ts(&field.ty);
+    let (ty, is_opt) = type_to_ts_string(&field.ty);
 
-    if is_opt {
-        quote! {
-            #field_name: #ty
-        }
-    } else {
-        quote! {
-            #field_name?: #ty
-        }
+    format! ("{}{}: {}", field_name, if is_opt { "?" } else { ""}, ty)
 
-    }
+
 }
 
-fn derive_element<'a>(_variant_idx: usize, _element_idx: usize, field: &ast::Field<'a>) -> quote::Tokens {
+
+fn derive_element(_variant_idx: usize, _element_idx: usize, field: &ast::Field) -> quote::Tokens {
     let (ty, _is_opt) = type_to_ts(&field.ty);
     quote!{
         #ty

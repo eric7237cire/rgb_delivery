@@ -12,7 +12,7 @@ pub struct Color {
     pub color_index: usize
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition)]
 pub struct Van {
     boxes: [Option<Color>; 3]
 }
@@ -37,8 +37,6 @@ pub enum TileEnum {
 }
 
 
-
-
 //up to 4 things per cell
 pub struct Thing {
     pub label: String,
@@ -54,7 +52,7 @@ pub struct CellData {
     pub col_index: usize,
 }
 
-#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition,  Default)]
 pub struct UniverseData {
     pub width: usize,
     pub height: usize,

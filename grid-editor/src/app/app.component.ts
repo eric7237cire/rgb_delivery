@@ -1,6 +1,6 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {CellData, Color, Tile, Universe, UniverseData, UniverseDataFixed} from "../../../rgb-solver/pkg";
+import {CellData, Color, Tile, Universe, UniverseData} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 /*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
@@ -41,11 +41,11 @@ export class AppComponent implements OnInit {
 
   colors: Array<Color> = [];
 
-  tiles: Array<Tile> = [];
+  tiles: Array<string> = ["Road", "Empty", "Warehouse"];
 
   universe: Universe = null;
 
-  universeData: UniverseDataFixed = null;
+  universeData: UniverseData = null;
 
   selectedColor = this.colors[0];
   selectedTile = this.tiles[0];
@@ -55,6 +55,9 @@ export class AppComponent implements OnInit {
 
   constructor(private gridStorageService: GridStorageService) {}
 
+  setGridSquare(rowIndex: number, colIndex:number, cellData: CellData) {
+    this.universe.set_square(rowIndex,colIndex, cellData);
+  }
 
   updateDim() {
     //if (!_.isNil(changes.num_cols) || !_.isNil(changes.num_rows) ) {
@@ -79,9 +82,9 @@ export class AppComponent implements OnInit {
         let col = index % this.num_cols;
 
         if (_.isNil(cellData)) {
-          this.universe.set_square(row, col, null,null);
+          this.setGridSquare(row,col, null);
         } else {
-          this.universe.set_square(row, col, cellData.color, cellData.tile);
+          this.universe.set_square(row, col, cellData);
         }
 
       });
@@ -164,7 +167,7 @@ export class AppComponent implements OnInit {
     console.log(`Clicked on row ${rowIndex}, col ${colIndex}.  Clear? ${clearSquare}`);
 
     if (clearSquare) {
-      this.universe.set_square(rowIndex, colIndex, null,null);
+      this.setGridSquare(rowIndex, colIndex, null);
     } else {
       this.universe.set_square(rowIndex, colIndex, this.selectedColor, this.selectedTile);
     }

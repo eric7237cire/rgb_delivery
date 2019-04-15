@@ -29,40 +29,12 @@ pub fn greet() {
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
 
-export type TileRoad = {
-"used_mask": number,
-"_box" Color?
-};
-
-export type TileWarehouse {
-"color": Color,
-is_filled: boolean
-};
-
-export type Empty = {};
-
-export type UniverseDataFixed = {
-"width" : number , "height" : number , "cells" : Array<CellDataFixed> } ;
-
-export type Coords = { "latitude": number, "longitude": number, };
-
-export type CellDataFixed = {
-"tile" : TileRoad | TileWarehouse | Empty , "van" : any , "row_index" : number , "col_index" : number , } ;
-
-
 
 "#;
 
 mod solver;
 
-
-
-
 pub use solver::*;
-
-//#[wasm_bindgen]
-//https://github.com/tcr/wasm-typescript-definition
-
 
 use std::fmt;
 use crate::solver::struct_defs::Universe;
