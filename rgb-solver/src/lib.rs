@@ -1,5 +1,6 @@
 mod utils;
 
+//Serialize/Deserialize traints
 #[macro_use]
 extern crate serde_derive;
 
@@ -12,6 +13,7 @@ use wasm_typescript_definition::TypescriptDefinition;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
+//Calling a JS function
 #[wasm_bindgen]
 extern {
     fn alert(s: &str);
@@ -19,11 +21,11 @@ extern {
 
 #[wasm_bindgen]
 pub fn greet() {
-    alert("Hello, 433 rgb-solver!");
+    alert("Hello, rgb-solver!");
 }
 
 
-//example to generate typings
+//example to generate typings, perpended to the rest
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
 
@@ -52,16 +54,18 @@ struct Tile {
     pub tile_index: usize
 }
 
-#[derive(Serialize, Deserialize, TypescriptDefinition)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition)]
 struct CellData {
     pub tile: Tile,
     pub color: Option<Color>,
+
+    pub used_mask: u8,
 
     pub row_index: usize,
     pub col_index: usize,
 }
 
-#[derive(Serialize, Deserialize, TypescriptDefinition, Default)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct UniverseData {
     width: usize,
     height: usize,
@@ -70,9 +74,7 @@ pub struct UniverseData {
 }
 
 #[wasm_bindgen()]
-//#[derive(   )]
 pub struct Universe {
-
     data: UniverseData
 }
 
@@ -127,12 +129,20 @@ fn build_color_list() -> [Color; 4] {
     color_list
 }
 
+const VAN_LABEL: &str = "Van";
+
 fn build_tile_list() -> [Tile; 4] {
     let mut tile_list = [
                 Tile { label: "Road".to_string(), ..Default::default()},
+               /* Tile { label: "Road Used NE".to_string(), ..Default::default()},
+                Tile { label: "Road Used NW".to_string(), ..Default::default()},
+        Tile { label: "Road Used SW".to_string(), ..Default::default()},
+        Tile { label: "Road Used SE".to_string(), ..Default::default()},
+        Tile { label: "Road Used NS".to_string(), ..Default::default()},
+        Tile { label: "Road Used EW".to_string(), ..Default::default()},*/
                 Tile { label: "Block".to_string(), ..Default::default()},
                 Tile { label: "Warehouse".to_string(), ..Default::default()},
-                Tile { label: "Van".to_string(), ..Default::default()},
+                Tile { label: VAN_LABEL.to_string(), ..Default::default()},
 
                 ];
 
@@ -162,6 +172,32 @@ fn build_tile_list() -> [Tile; 4] {
         JsValue::from_serde(&build_tile_list()).unwrap()
     }
 
+
+#[wasm_bindgen()]
+impl Universe {
+    pub fn calculate(&self) {
+
+        let mut queue = Vec::new();
+
+        queue.push(self.data.clone());
+
+        while let Some(next_state) = queue.pop() {
+
+            //find all the cars
+            for cell_option in next_state.cells.iter() {
+
+                if let Some(cell) = cell_option {
+
+                    if cell.tile.label != VAN_LABEL {
+                        continue;
+                    }
+
+                    log!("Found a car @ {:?}", cell.tile);
+                }
+            }
+        }
+    }
+}
 
 
 #[wasm_bindgen()]
@@ -227,8 +263,11 @@ impl Universe {
 
         self.data.cells[idx] = if let Some(tile) = tile  {
             Some(CellData {
-                row_index,col_index,
-                color, tile
+                row_index,
+                col_index,
+                color,
+                tile,
+                used_mask: 0
             })
         } else {
             None
