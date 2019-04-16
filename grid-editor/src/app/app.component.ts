@@ -1,7 +1,8 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {CellData, Color, TileEnum_type, Universe, UniverseData} from "../../../rgb-solver/pkg";
+import {CellData, Color, TileEnum_type, Universe, UniverseData, Van} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
+import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 /*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
 console.log('I am alive!!!');
@@ -26,6 +27,8 @@ wasm.then(module => {
 });*/
 
 
+type Thing = "Van" | "Block" | "Clear";
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -47,16 +50,51 @@ export class AppComponent implements OnInit {
   universeData: UniverseData = null;
 
   selectedColor = this.colors[0];
+  selectedThing: Thing = "Van";
+  readonly THING_LIST: Array<Thing> = ["Van", "Block", "Clear"];
+
   selectedTile: TileEnum_type = this.tiles[0];
 
+  jsonSaveAs: SafeUrl;
 
   wasm: typeof import('../../../rgb-solver/pkg');
 
-  constructor(private gridStorageService: GridStorageService) {
+  constructor(private gridStorageService: GridStorageService, private sanitizer: DomSanitizer) {
   }
 
   setGridSquare(cellData: CellData) {
     this.universe.set_square(cellData);
+
+
+  }
+
+  handleFileSelect(evt) {
+    const files = evt.target.files; // FileList object
+
+    // files is a FileList of File objects. List some properties.
+    var output = [];
+    let file: File = files[0];
+
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      let fileTextData: string = reader.result as string;
+
+      let data: UniverseData = JSON.parse(fileTextData);
+
+      this.num_rows = data.height;
+      this.num_cols = data.width;
+
+      this.gridStorageService.storeGrid(data);
+
+      this.loadGridJsonData(data);
+    };
+
+
+    reader.readAsText(file);
+
+
   }
 
   updateDim() {
@@ -72,18 +110,23 @@ export class AppComponent implements OnInit {
       this.num_cols = savedData.width;
     }
 
+    this.loadGridJsonData(savedData);
+  }
 
+  loadGridJsonData(jsonData: UniverseData) {
+
+    console.log("Loading json data", jsonData);
 
     this.universe = this.wasm.Universe.new(this.num_rows, this.num_cols);
 
     console.log("Universe initial data", this.universe.get_data());
 
     //Giving web assembly the loaded data
-    if (!_.isNil(savedData) && _.isArray(savedData.cells)) {
-      savedData.cells.forEach((cellData: CellData) => {
+    if (!_.isNil(jsonData) && _.isArray(jsonData.cells)) {
+      jsonData.cells.forEach((cellData: CellData) => {
 
 
-          this.setGridSquare(cellData);
+        this.setGridSquare(cellData);
 
 
       });
@@ -144,6 +187,10 @@ export class AppComponent implements OnInit {
     this.selectedColor = c;
   }
 
+  onThingClick(thing) {
+    this.selectedThing = thing;
+  }
+
   getCssForColor(c: Color) {
     if (_.isNil(c)) {
       return "";
@@ -151,7 +198,7 @@ export class AppComponent implements OnInit {
     return `rgb(${c.red}, ${c.green}, ${c.blue})`;
   }
 
-  handleGridClick(clickEvent: MouseEvent, clearSquare: boolean): boolean {
+  handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
     console.log(clickEvent);
     console.log(clickEvent.target);
 
@@ -163,10 +210,33 @@ export class AppComponent implements OnInit {
     const col_index = _.floor(x / this.GRID_SIZE);
     const row_index = _.floor(y / this.GRID_SIZE);
 
-    console.log(`Clicked on row ${row_index}, col ${col_index}.  Clear? ${clearSquare}`);
+    console.log(`Clicked on row ${row_index}, col ${col_index}.  Right click? ${isRightClick}`);
 
-    if (clearSquare) {
-      this.setGridSquare({row_index, col_index, tile: {type: "Empty"}});
+    if (isRightClick) {
+      let cellIndex = row_index * this.num_cols + col_index;
+      let tile = this.universeData.cells[cellIndex].tile;
+
+      if (tile.type == "Road") {
+
+        switch (this.selectedThing) {
+          case "Van":
+            tile.van = {boxes: [null, null, null], color: this.selectedColor};
+            break;
+          case "Block":
+            tile.box = this.selectedColor;
+            break;
+          case "Clear":
+            tile.box = null;
+            tile.van = null;
+            break;
+        }
+
+        this.setGridSquare({row_index, col_index, tile});
+      } else {
+        console.log("Not a road");
+      }
+
+
     } else {
       switch (this.selectedTile) {
         case "Empty":
@@ -199,6 +269,11 @@ export class AppComponent implements OnInit {
 
     this.gridStorageService.storeGrid(this.universeData);
 
+    var theJSON = JSON.stringify(this.universeData, null, 2);
+    this.jsonSaveAs = this.sanitizer.bypassSecurityTrustUrl(
+      "data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
+
+
     return false;
     //console.log(clickEvent.target.getBoundingClientRect());
   }
@@ -207,13 +282,18 @@ export class AppComponent implements OnInit {
     return true;
   }
 
-  getCellColor(cell: CellData) : string {
+
+  getCellColor(cell: CellData): string {
     switch (cell.tile.type) {
       case "Warehouse":
         let w = cell.tile;
-        return `rgb(${w.color.red},${w.color.green},${w.color.blue}`;
+        return this.getCssForColor(w.color);
 
-      default: return "rgb(200,200,200)";
+      case "Empty":
+        return "rgb(100,100,100)";
+
+      default:
+        return "rgb(200,200,200)";
     }
 
   }

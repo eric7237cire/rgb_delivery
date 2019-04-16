@@ -10,10 +10,13 @@ clickable()
 button-border()
     border: 1px solid black
 
+box()
+  display: inline-block;
+  padding: 5px;
+  margin-right: 10px;
+
 .color {
-    display: inline-block;
-    padding: 5px;
-    margin-right: 10px;
+    box()
     button-border()
     clickable()
 }
@@ -22,9 +25,13 @@ button-border()
     width: 100%;
 }
 .tile {
-    display: inline-block;
-    padding: 5px;
-    margin-right: 10px;
+    box()
+    button-border()
+    clickable()
+}
+
+.thing {
+    box()
     button-border()
     clickable()
 }
@@ -33,3 +40,6 @@ button-border()
 
     font-size: 15px;
   }
+.van_text {
+  font-size: 40px;
+}

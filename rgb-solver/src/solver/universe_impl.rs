@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 use crate::solver::struct_defs::*;
 use super::utils;
 use crate::solver::struct_defs::TileEnum::{Road, Warehouse,Empty};
-use crate::solver::public_func::build_color_list;
+//use crate::solver::public_func::build_color_list;
 
 //use crate::solver::utils::VAN_LABEL;
 
@@ -52,7 +52,7 @@ impl Universe {
             })
             .collect();
 
-        let cl = build_color_list();
+        //let cl = build_color_list();
 
         //cells[0] =  CellData{row_index: 0, col_index: 0, tile: Road {used_mask: 45, _box: None}, van: None});
         /*cells[1] =  CellData{row_index: 0, col_index: 0, tile: Warehouse {color: cl[2].clone(), is_filled: true},

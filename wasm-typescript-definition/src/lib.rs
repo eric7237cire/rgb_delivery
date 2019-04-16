@@ -6,7 +6,7 @@ extern crate syn;
 extern crate serde;
 
 use serde_derive_internals::{ast, Ctxt};
-use syn::DeriveInput;
+use syn::{DeriveInput, Lit, Expr};
 
 mod derive_enum;
 mod derive_struct;
@@ -119,7 +119,35 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
                 },
             }
         },
-        Array(array) => format!("Array<{}>", type_to_ts_string( array.elem.as_ref()).0),
+        Array(array) => {
+            let array_len = match array.len {
+                Expr::Lit(ref inner) => {
+                    match inner.lit {
+                        Lit::Int(ref inner_inner) => {
+                            inner_inner.value()
+                        }
+                        _ => {
+                            //Error
+                            4
+                        }
+                    }
+                },
+                _ => {
+                    //Error
+                    2
+                }
+            };
+
+            let array_type : String = type_to_ts_string(array.elem.as_ref()).0;
+
+            let repeated_tuple_strings = (0..array_len).map(|_|
+                        array_type.clone())
+                        .collect::<Vec<String>>();
+
+            format!("[{}] ",
+                    repeated_tuple_strings
+                        .join(", "))
+        },
 
         _  => format!("any 3").to_string()
     };
