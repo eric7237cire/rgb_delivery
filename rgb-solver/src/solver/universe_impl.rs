@@ -18,8 +18,38 @@ enum Directions {
 
 //use Directions::*;
 use crate::solver::universe_impl::Directions::*;
+use crate::solver::struct_defs;
 
 const ALL_DIRECTIONS : [Directions;4] = [NORTH, EAST, SOUTH, WEST];
+
+impl Van {
+    fn get_top_box(&self) -> &Option<Color> {
+        for i in (0..2).rev() {
+            if !self.boxes[i].is_none() {
+                return &self.boxes[i];
+            }
+        }
+        return &None;
+    }
+
+    fn clear_top_box(&mut self) {
+        for i in (0..2).rev() {
+            if !self.boxes[i].is_none() {
+                self.boxes[i] = None;
+            }
+        }
+    }
+
+    fn get_empty_slot(&self) -> Option<usize> {
+        for i in (0..2).rev() {
+            if self.boxes[i].is_none() {
+                return Some(i);
+            }
+        }
+        return None;
+    }
+}
+
 
 impl Universe {
     fn private_calculate(&self) -> Option<UniverseData> {
@@ -48,8 +78,11 @@ impl Universe {
 
             //find all the cars
             for cell in cur_state.cells.iter() {
+
+                let cell_index = cell.row_index * self.data.width + cell.col_index;
+
                 match &cell.tile {
-                    Road {
+                    Road{
                         van: Some(van),
                         block: block_opt,
                         used_mask
@@ -62,13 +95,40 @@ impl Universe {
                             continue;
                         }
 
+                        //pick up a block if it exists
                         if let Some(block) = block_opt {
-                            for i in (0..2).rev() {
-                                if van.boxes[i].is_none() {
-                                    next_state.boxes[i] = Some(block.clone());
+                            if let Some(i) = van.get_empty_slot() {
+                                match &mut next_state.cells[cell_index].tile {
+                                    Road{ van: Some(next_van) ,..} => {
+                                        next_van.boxes[i] = Some(block.clone());
+                                    },
+                                    _ => panic!()
                                 }
                             }
                         }
+
+
+                        if cell.row_index > 0 {
+                            let north_tile = &cur_state.cells[ (cell.row_index-1) * self.data.width + cell.col_index ].tile;
+                            if let Warehouse {color: warehouse_color, is_filled} = north_tile {
+                                if !is_filled {
+
+                                     //drop off block at warehouse
+                                    if let Some(top_block) = van.get_top_box() {
+                                        if top_block == warehouse_color {
+                                            match &mut next_state.cells[cell_index].tile {
+                                                Road { van: Some(next_van), .. } => {
+                                                    next_van.clear_top_box();
+                                                },
+                                                _ => panic!()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+
 
 
                     },

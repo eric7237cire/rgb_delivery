@@ -3,28 +3,30 @@ use wasm_typescript_definition::TypescriptDefinition;
 //use crate::solver::struct_defs::TileEnum::Empty;
 //use crate::solver::utils::VAN_LABEL;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default,Hash)]
+use serde::*;
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
     pub label: String,
     pub red: u8,
     pub green: u8,
     pub blue: u8,
 
-    pub color_index: usize
+    pub color_index: usize,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition,Hash,Eq,PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Van {
     pub boxes: [Option<Color>; 3],
     pub color: Color,
-    pub is_done: bool
+    pub is_done: bool,
 }
 
-#[derive(Clone, Serialize, Deserialize,Debug,TypescriptDefinition,Hash,Eq,PartialEq)]
+#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 #[serde(tag = "type")]
 pub enum TileEnum {
-
-    Road { used_mask: u8,
+    Road {
+        used_mask: u8,
         #[serde(skip_serializing_if = "Option::is_none")]
         #[serde(rename = "block")]
         block: Option<Color>,
@@ -33,12 +35,11 @@ pub enum TileEnum {
         van: Option<Van>,
     },
     Warehouse { color: Color, is_filled: bool },
-    Empty
-
+    Empty,
 }
 
 
-#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash,Eq,PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct CellData {
     pub tile: TileEnum,
 
@@ -52,7 +53,7 @@ impl Default for CellData {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, TypescriptDefinition,  Default, Hash,Eq,PartialEq)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Eq, PartialEq)]
 pub struct UniverseData {
     pub width: usize,
     pub height: usize,

@@ -227,7 +227,7 @@ export class AppComponent implements OnInit {
 
         switch (this.selectedThing) {
           case "Van":
-            tile.van = {boxes: [null, null, null], color: this.selectedColor};
+            tile.van = {boxes: [null, null, null], color: this.selectedColor, is_done: false};
             break;
           case "Block":
             tile.box = this.selectedColor;
