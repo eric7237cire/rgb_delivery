@@ -88,9 +88,6 @@ fn parse_non_primitive(s: &str) -> (String, bool) {
         let rest = &s[5..s.len() - 1];
         (format!("Array<{}>", rest), false)
     }
-    else if s == "TileEnum" {
-        ("Road | Empty | Warehouse".to_string(), false)
-    }
     else {
         (format!("{}",s), false)
     }

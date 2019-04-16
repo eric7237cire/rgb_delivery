@@ -1,3 +1,5 @@
+#![feature(uniform_paths)]
+
 //Serialize/Deserialize traints
 #[macro_use]
 extern crate serde_derive;
@@ -23,11 +25,10 @@ pub fn greet() {
     alert("Hello, rgb-solver!");
 }
 
-
 //example to generate typings, perpended to the rest
 #[wasm_bindgen(typescript_custom_section)]
 const TS_APPEND_CONTENT: &'static str = r#"
-export type TileType = "Road" | "Warehouse" | "Empty";
+
 "#;
 
 mod solver;

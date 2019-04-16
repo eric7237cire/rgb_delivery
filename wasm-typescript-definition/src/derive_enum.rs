@@ -9,6 +9,19 @@ pub fn derive_enum(
     variants: Vec<ast::Variant>,
     _attr_container: &attr::Container,
 ) -> String {
+
+    //Create a string union type for all the tags (discriminator column)
+
+    let quoted_types = variants.iter().map( |variant| {
+        let variant_name = variant.attrs.name().serialize_name();
+        format!( r#""{}""#, variant_name)
+    }).collect::<Vec<String>>().join(" | ");
+
+    let types = variants.iter().map( |variant| {
+        let variant_name = variant.attrs.name().serialize_name();
+        variant_name
+    }).collect::<Vec<String>>().join(" | ");
+
     let tokens = variants.into_iter().enumerate()
         .map(|(variant_idx, variant)| {
             let variant_name = variant.attrs.name().serialize_name();
@@ -21,8 +34,10 @@ pub fn derive_enum(
                 ast::Style::Unit => derive_unit_variant(&variant_name),
             }
         }).collect::<Vec<String>>().join("\n");
-    
-    tokens
+
+    format!("export type {enum_name} = {1}\n{0}\nexport type {enum_name}_type = {2}\n", tokens,types,quoted_types,
+            enum_name=_attr_container.name().serialize_name() )
+
 }
 
 fn derive_unit_variant<'a>(variant_name: &str) -> String {

@@ -1,6 +1,6 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {CellData, Color, TileType, Universe, UniverseData} from "../../../rgb-solver/pkg";
+import {CellData, Color, TileEnum_type, Universe, UniverseData} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 /*
 import loadWasm from '../../../rgb-solver/src/lib.rs';
@@ -40,14 +40,14 @@ export class AppComponent implements OnInit {
 
   colors: Array<Color> = [];
 
-  readonly tiles: Array<TileType> = ["Road", "Empty", "Warehouse"];
+  readonly tiles: Array<TileEnum_type> = ["Road", "Empty", "Warehouse"];
 
   universe: Universe = null;
 
   universeData: UniverseData = null;
 
   selectedColor = this.colors[0];
-  selectedTile: TileType = this.tiles[0];
+  selectedTile: TileEnum_type = this.tiles[0];
 
 
   wasm: typeof import('../../../rgb-solver/pkg');

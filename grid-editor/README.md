@@ -49,6 +49,7 @@ https://github.com/tcr/wasm-typescript-definition
 Cargo watch wasm-pack:
 https://github.com/rustwasm/wasm-pack/issues/457
 
+cargo install cargo-watch
 # in rgb-solver
 cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition -w .
 
