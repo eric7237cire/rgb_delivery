@@ -156,6 +156,13 @@ export class AppComponent implements OnInit {
     this.wasm = mymod;
     //mymod.greet();
     this.updateDim();
+
+    console.log("Running calculate");
+
+    let calcResult: UniverseData = this.universe.calculate();
+    if (!_.isNil(calcResult)) {
+      this.loadGridJsonData(calcResult);
+    }
   }
 
   async load() {
