@@ -46,11 +46,19 @@
 
   <label> <a download='gridData.json' target="_blank" [href]="jsonSaveAs">Save As</a></label>
 
+  <label class="button" (click)="initCalculations()">Restart calculations</label>
+  <label class="button" (click)="nextCalculateStep(1)">Step 1</label>
+  <div>
+    <input type="text" [(ngModel)]="numCalcSteps">
+    <label class="button" (click)="nextCalculateStep(numCalcSteps)">Step N</label>
+  </div>
 
+  <div>Current mouse coords: {{mouseMoveRow}}, {{mouseMoveCol}}</div>
 </div>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * num_cols"
      [attr.height]="GRID_SIZE * num_rows"
      (click)="handleGridClick($event, false)"
+     (mousemove)="handleMouseMove($event)"
      (contextmenu)="handleGridClick($event, true)"
 
 >

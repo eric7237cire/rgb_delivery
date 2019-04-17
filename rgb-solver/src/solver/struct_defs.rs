@@ -1,9 +1,9 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-//use crate::solver::struct_defs::TileEnum::Empty;
-//use crate::solver::utils::VAN_LABEL;
+use std::collections::HashSet;
+use std::collections::vec_deque::VecDeque;
 
-use serde::*;
+use super::van::Van;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
@@ -15,15 +15,6 @@ pub struct Color {
     pub color_index: usize,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
-pub struct Van {
-    pub boxes: [Option<Color>; 3],
-    pub color: Color,
-    pub is_done: bool,
-
-    #[serde(skip)]
-    pub(crate) tick: usize
-}
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Road {
@@ -73,11 +64,25 @@ pub struct UniverseData {
     pub cells: Vec<CellData>,
 
     #[serde(skip)]
-    pub(crate) tick: usize
+    pub(crate) tick: usize,
+
+    #[serde(skip)]
+    pub(crate) vans: Vec<Van>,
+    #[serde(skip)]
+    pub(crate) current_van_index: usize
+
 }
 
 #[wasm_bindgen()]
+#[derive(Default)]
 pub struct Universe {
-    pub(crate) data: UniverseData
+    pub(crate) data: UniverseData,
+
+    //below are used for calculating
+    pub(crate) seen:  HashSet<UniverseData>,
+    pub(crate) queue: VecDeque<UniverseData>,
+
+
+    pub(crate) iter_count: usize
 }
 

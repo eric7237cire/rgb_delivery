@@ -6,3 +6,13 @@ macro_rules! log {
         web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
+
+macro_rules! log_trace {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
+}
+
+macro_rules! expr_nop { ($body:expr) => { $body } }
+
+macro_rules! noop { () => (); }

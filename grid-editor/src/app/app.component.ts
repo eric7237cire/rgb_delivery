@@ -77,6 +77,11 @@ export class AppComponent implements OnInit {
 
   wasm: typeof import('../../../rgb-solver/pkg');
 
+  numCalcSteps=9;
+
+  mouseMoveRow = 0;
+  mouseMoveCol = 0;
+
   constructor(private gridStorageService: GridStorageService, private sanitizer: DomSanitizer) {
   }
 
@@ -175,18 +180,10 @@ export class AppComponent implements OnInit {
     //mymod.greet();
     this.updateDim();
 
-    console.log("Running calculate");
 
-    let calcResult: UniverseData = this.universe.calculate();
+    this.initCalculations();
 
-
-
-    if (!_.isNil(calcResult)) {
-      this.universeData = calcResult;
-
-      console.log("Done calculate", this.universeData);
-    }
-
+    //this.nextCalculateStep(this.numCalcSteps);
 
   }
 
@@ -228,6 +225,19 @@ export class AppComponent implements OnInit {
       return "";
     }
     return `rgb(${c.red}, ${c.green}, ${c.blue})`;
+  }
+
+  handleMouseMove(moveEvent: MouseEvent) {
+    const rect = (<any>moveEvent.target).getBoundingClientRect();
+
+    const x = moveEvent.clientX - rect.left; //x position within the element.
+    const y = moveEvent.clientY - rect.top;  //y position within the element.
+
+    const col_index = _.floor(x / this.GRID_SIZE);
+    const row_index = _.floor(y / this.GRID_SIZE);
+
+    this.mouseMoveRow = row_index;
+    this.mouseMoveCol = col_index;
   }
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
@@ -341,4 +351,19 @@ export class AppComponent implements OnInit {
 
     return ( (cell.tile.used_mask & dm.mask) > 0 );
   }
+
+  initCalculations() {
+    this.universe.init_calculate();
+  }
+
+  nextCalculateStep(numStepsParam: number) {
+    let numSteps = _.toNumber(numStepsParam);
+
+    for (let i = 0; i < numSteps; i+=1) {
+      let data: UniverseData = this.universe.next_calculate();
+
+      this.universeData = data;
+    }
+  }
+
 }
