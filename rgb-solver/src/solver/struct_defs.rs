@@ -22,7 +22,7 @@ pub struct Van {
     pub is_done: bool,
 
     #[serde(skip)]
-    tick: usize
+    pub(crate) tick: usize
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]

@@ -3,28 +3,14 @@ import * as _ from "lodash";
 import {CellData, Color, TileEnum, TileEnum_type, Universe, UniverseData, Van} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
-/*
-import loadWasm from '../../../rgb-solver/src/lib.rs';
-console.log('I am alive!!!');
-loadWasm().then(result => {
-  const {add, subtract, multiply} = result.instance.exports;
-  console.log('4 + 2 = ', add(4, 2));
-  console.log('4 - 2 = ', subtract(4, 2));
-  console.log('4 * 2 = ', multiply(4, 2));
-});
-*/
 
-/*
 
-*/
-
-/*
-const wasm = import("../../../rgb-solver/pkg/rgb_solver");
-
-wasm.then(module => {
-  // won't typecheck if yourlib does not expose the run function
-  module.greet();
-});*/
+interface DirectionMarker {
+  text: string,
+  x_offset: number,
+  y_offset: number,
+  mask: number
+}
 
 
 type Thing = "Van" | "Block" | "Clear";
@@ -37,6 +23,38 @@ type Thing = "Van" | "Block" | "Clear";
 export class AppComponent implements OnInit {
   title = 'grid-editor';
   readonly GRID_SIZE = 40;
+
+  readonly DIRECTION_MARKERS: Array<DirectionMarker> = [
+    //north
+    {
+      text: "|",
+      x_offset: this.GRID_SIZE /2 ,
+      y_offset: this.GRID_SIZE * 0.25,
+      mask: 1
+    },
+    //south
+    {
+      text: "|",
+      x_offset: this.GRID_SIZE /2 ,
+      y_offset: this.GRID_SIZE * 0.8,
+      mask: 4
+    },
+    //east
+    {
+      text: "-",
+      x_offset: this.GRID_SIZE * 0.8 ,
+      y_offset: this.GRID_SIZE * 0.5,
+      mask: 2
+    },
+    //west
+    {
+      text: "-",
+      x_offset: this.GRID_SIZE * 0.25 ,
+      y_offset: this.GRID_SIZE * 0.5,
+      mask: 8
+    },
+
+    ];
 
   num_cols: number = null;
   num_rows: number = null;
@@ -161,7 +179,7 @@ export class AppComponent implements OnInit {
 
     let calcResult: UniverseData = this.universe.calculate();
     if (!_.isNil(calcResult)) {
-      this.loadGridJsonData(calcResult);
+      this.universeData = calcResult;
     }
   }
 
@@ -307,5 +325,13 @@ export class AppComponent implements OnInit {
         return "rgb(200,200,200)";
     }
 
+  }
+
+  isDirectionMarkerVisible(cell: CellData, dm: DirectionMarker) : boolean {
+    if (cell.tile.type != "TileRoad") {
+      return false;
+    }
+
+    return ( (cell.tile.used_mask & dm.mask) > 0 );
   }
 }

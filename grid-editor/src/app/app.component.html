@@ -79,6 +79,22 @@
           [attr.fill]="getCellColor(cell)"
           class="grid_text">{{cell.tile.type[0]}}</text>
 
+
+    <text *ngIf="cell.tile.type == 'TileRoad'"
+          (click)="handleClickSvgText()"
+          [attr.x]="cell.col_index * GRID_SIZE + 5" [attr.y]="cell.row_index * GRID_SIZE + 35"
+          (click)="handleClickSvgText()"
+           class="used_mask_text">{{cell.tile.used_mask}}</text>
+
+    <!--south-->
+    <ng-container *ngFor="let dm of DIRECTION_MARKERS">
+      <text *ngIf="isDirectionMarkerVisible(cell, dm)"
+          (click)="handleClickSvgText()"
+          [attr.x]="cell.col_index * GRID_SIZE + dm.x_offset" [attr.y]="cell.row_index * GRID_SIZE + dm.y_offset"
+          (click)="handleClickSvgText()"
+           class="used_mask_text">{{dm.text}}</text>
+    </ng-container>
+
     <text *ngIf="cell.tile.van" [attr.x]="cell.col_index * GRID_SIZE + 5" [attr.y]="cell.row_index * GRID_SIZE + 35"
           (click)="handleClickSvgText()"
           [attr.fill]="getCssForColor(cell.tile.van.color)"

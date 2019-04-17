@@ -8,12 +8,24 @@ use std::collections::vec_deque::VecDeque;
 
 //use crate::solver::utils::VAN_LABEL;
 
+#[derive(Clone, Copy, Debug)]
 enum Directions {
-    NORTH = 0,
-    EAST = 1,
-    SOUTH = 2,
-    WEST = 4
+    NORTH = 1,
+    EAST = 2,
+    SOUTH = 4,
+    WEST = 8
 
+}
+
+impl Directions {
+    fn opposite(&self) -> Directions {
+        match self {
+            NORTH => SOUTH,
+            EAST => WEST,
+            SOUTH => NORTH,
+            WEST => EAST
+        }
+    }
 }
 
 //use Directions::*;
@@ -72,6 +84,57 @@ impl TileEnum {
 }
 
 impl Universe {
+
+    fn get_adjacent_square_indexes(&self, cell_index: usize,
+                                   cell: &CellData,
+                                   used_dir_mask: u8) -> Vec<(Directions,usize)> {
+        ALL_DIRECTIONS.iter().filter_map( |dir| {
+
+            //first check the mask
+            if used_dir_mask & *dir as u8 > 0 {
+                return None;
+            }
+
+            let adj_index : Option<usize> = match dir {
+                NORTH => {
+                    if cell.row_index == 0 {
+                        None
+                    } else {
+                        Some( cell_index - self.data.width)
+                    }
+                },
+                SOUTH => {
+                    if cell.row_index >= self.data.height {
+                        None
+                    } else {
+                        Some(cell_index + self.data.width)
+                    }
+                },
+                EAST => {
+                    if cell.col_index >= self.data.width {
+                        None
+                    } else {
+                        Some(cell_index + 1)
+                    }
+                },
+                WEST => {
+                    if cell.col_index == 0 {
+                        None
+                    } else {
+                        Some(cell_index - 1)
+                    }
+                }
+            };
+
+            if let Some( adj_index )= adj_index {
+                Some( (*dir, adj_index) )
+            } else {
+                None
+            }
+
+        }).collect()
+    }
+
     fn private_calculate(&self) -> Option<UniverseData> {
 
         let mut seen = HashSet::new();
@@ -109,6 +172,8 @@ impl Universe {
                 return Some(cur_state);
             }
 
+            let mut any_moved = false;
+
             //find all the cars
             for cell in cur_state.cells.iter() {
 
@@ -127,6 +192,10 @@ impl Universe {
 
                         if van.is_done {
                             continue;
+                        }
+
+                        if van.tick > cur_state.tick {
+                            continue
                         }
 
                         //pick up a block if it exists
@@ -159,6 +228,49 @@ impl Universe {
                         }
 
 
+                        //now attempt to move
+                        let adj_square_indexes = self.get_adjacent_square_indexes(
+                            cell_index,cell, cur_road.used_mask);
+
+                        log!("Adj squares: {:?}", adj_square_indexes);
+
+                        for adj_square_index in adj_square_indexes.iter().enumerate().filter_map(
+                            | (adj_square_index,& (dir,adj_cell_index)) | {
+                            if let TileRoad(road) = &cur_state.cells[adj_cell_index].tile {
+
+                                if road.van.is_none() {
+                                    Some( adj_square_index )
+                                } else {
+                                    None
+                                }
+                            } else {
+                                //not a road
+                                None
+                            }
+                        }) {
+
+                            //now we have checked it is a road without a van in it, the mask is ok, etc.
+
+                            //make the move
+                            let mut next_state = cur_state.clone();
+
+                            let adj_info = &adj_square_indexes[adj_square_index];
+
+                            //remove van & set used mask
+                            next_state.cells[cell_index].tile.mut_road().van = None;
+                            next_state.cells[cell_index].tile.mut_road().used_mask |= adj_info.0 as  u8;
+
+
+                            //add van to next square
+                            next_state.cells[adj_info.1].tile.mut_road().van = cur_state.cells[cell_index].tile.road().van.clone();
+                            next_state.cells[adj_info.1].tile.mut_road().van.as_mut().unwrap().tick += 1;
+                            //we cant do a U turn
+                            next_state.cells[adj_info.1].tile.mut_road().used_mask |= adj_info.0.opposite() as u8;
+
+
+                            queue.push_back(next_state);
+                            any_moved = true;
+                        }
 
 
 
@@ -168,7 +280,15 @@ impl Universe {
 
             }
 
-            if iter_count > 3 {
+
+            //if nothing has moved, lets move  time forward
+            if !any_moved {
+                let mut next_state = cur_state.clone();
+                next_state.tick += 1;
+                queue.push_back(next_state);
+            }
+
+            if iter_count > 10 {
                 return Some(cur_state);
             }
         }
