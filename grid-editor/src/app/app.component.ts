@@ -230,10 +230,10 @@ export class AppComponent implements OnInit {
             tile.van = {boxes: [null, null, null], color: this.selectedColor, is_done: false};
             break;
           case "Block":
-            tile.box = this.selectedColor;
+            tile.block = this.selectedColor;
             break;
           case "Clear":
-            tile.box = null;
+            tile.block = null;
             tile.van = null;
             break;
         }
