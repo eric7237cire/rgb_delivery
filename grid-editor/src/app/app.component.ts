@@ -1,6 +1,6 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {CellData, Color, TileEnum_type, Universe, UniverseData, Van} from "../../../rgb-solver/pkg";
+import {CellData, Color, TileEnum, TileEnum_type, Universe, UniverseData, Van} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 /*
@@ -43,7 +43,7 @@ export class AppComponent implements OnInit {
 
   colors: Array<Color> = [];
 
-  readonly tiles: Array<TileEnum_type> = ["Road", "Empty", "Warehouse"];
+  readonly tiles: Array<TileEnum_type> = ["TileRoad", "Empty", "Warehouse"];
 
   universe: Universe = null;
 
@@ -221,35 +221,39 @@ export class AppComponent implements OnInit {
 
     if (isRightClick) {
       let cellIndex = row_index * this.num_cols + col_index;
-      let tile = this.universeData.cells[cellIndex].tile;
+      let tile : TileEnum = this.universeData.cells[cellIndex].tile;
 
-      if (tile.type == "Road") {
+      switch (tile.type) {
+        case "TileRoad": {
 
-        switch (this.selectedThing) {
-          case "Van":
-            tile.van = {boxes: [null, null, null], color: this.selectedColor, is_done: false};
-            break;
-          case "Block":
-            tile.block = this.selectedColor;
-            break;
-          case "Clear":
-            tile.block = null;
-            tile.van = null;
-            break;
+          switch (this.selectedThing) {
+            case "Van":
+              tile.van = {boxes: [null, null, null], color: this.selectedColor, is_done: false};
+              break;
+            case "Block":
+              tile.block = this.selectedColor;
+              break;
+            case "Clear":
+              tile.block = null;
+              tile.van = null;
+              break;
+          }
+
+          this.setGridSquare({row_index, col_index, tile});
+          break;
         }
-
-        this.setGridSquare({row_index, col_index, tile});
-      } else {
-        console.log("Not a road");
+        default: {
+          console.log("Not a road");
+          break;
+        }
       }
-
 
     } else {
       switch (this.selectedTile) {
         case "Empty":
           this.setGridSquare({row_index, col_index, "tile": {type: this.selectedTile}});
           break;
-        case "Road":
+        case "TileRoad":
           this.setGridSquare({
             row_index, col_index, "tile": {
               type: this.selectedTile,

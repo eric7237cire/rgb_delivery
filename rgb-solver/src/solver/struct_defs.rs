@@ -23,17 +23,21 @@ pub struct Van {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
+pub struct Road {
+    pub used_mask: u8,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "block")]
+    pub block: Option<Color>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub van: Option<Van>,
+}
+
+
+#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 #[serde(tag = "type")]
 pub enum TileEnum {
-    Road {
-        used_mask: u8,
-        #[serde(skip_serializing_if = "Option::is_none")]
-        #[serde(rename = "block")]
-        block: Option<Color>,
-
-        #[serde(skip_serializing_if = "Option::is_none")]
-        van: Option<Van>,
-    },
+    TileRoad(Road),
     Warehouse { color: Color, is_filled: bool },
     Empty,
 }

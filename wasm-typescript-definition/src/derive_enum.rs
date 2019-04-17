@@ -1,8 +1,7 @@
 use ::{quote, derive_field_str};
 use serde_derive_internals::{ast, attr};
-use collapse_list_bracket;
+use ::{collapse_list_bracket, type_to_ts_string};
 
-use type_to_ts;
 use super::{derive_element};
 
 pub fn derive_enum(
@@ -29,7 +28,7 @@ pub fn derive_enum(
                 ast::Style::Struct => {
                     derive_struct_variant(&variant_name, variant_idx, &variant.fields).to_string()
                 }
-                ast::Style::Newtype => derive_newtype_variant(&variant_name, variant_idx, &variant.fields[0]).to_string(),
+                ast::Style::Newtype => derive_new_type_variant(&variant_name, variant_idx, &variant.fields).to_string(),
                 ast::Style::Tuple => derive_tuple_variant(&variant_name, variant_idx, &variant.fields).to_string(),
                 ast::Style::Unit => derive_unit_variant(&variant_name),
             }
@@ -44,14 +43,19 @@ fn derive_unit_variant<'a>(variant_name: &str) -> String {
     format!("export type {} = {{type: \"{0}\" }}", variant_name)
 }
 
-fn derive_newtype_variant<'a>(
-    variant_name: &str, _variant_idx: usize, 
-    field: &ast::Field<'a>
-) -> quote::Tokens {
-    let (ty, _is_opt) = type_to_ts(&field.ty);
-    quote!{
-        | { "tag": #variant_name, "fields": #ty, }
-    }
+fn derive_new_type_variant<'a>(
+    variant_name: &str, _variant_idx: usize,
+    fields: &Vec<ast::Field<'a>>,
+) -> String {
+    /*
+    let contents = fields.into_iter().enumerate()
+        .map(|(field_idx, field)| derive_field_str(variant_idx, field_idx, field))
+        .collect::<Vec<_>>().join(", ");*/
+
+    let (ty, _is_opt) = type_to_ts_string(&fields[0].ty);
+    //export type TileRoad = {type: "TileRoad"} & Road
+    //Use intersection types to combine the 2
+    format!("export type {} = {{type: \"{0}\"}} & {}", variant_name, ty)
 }
 
 fn derive_struct_variant<'a>(

@@ -149,7 +149,7 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
                         .join(", "))
         },
 
-        _  => format!("any 3").to_string()
+        _  => format!("any no match ty 3").to_string()
     };
 
         (q_tokens, is_optional)

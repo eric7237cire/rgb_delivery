@@ -69,7 +69,7 @@
 
   <ng-container *ngFor="let cell of universeData?.cells">
 
-    <rect *ngIf="cell.tile.type == 'Road'"
+    <rect *ngIf="cell.tile.type == 'TileRoad'"
           (click)="handleClickSvgText()"
           fill="rgb(70,70,70)" [attr.x]="cell.col_index * GRID_SIZE " [attr.y]="cell.row_index * GRID_SIZE"
           [attr.width]="GRID_SIZE" [attr.height]="GRID_SIZE"></rect>

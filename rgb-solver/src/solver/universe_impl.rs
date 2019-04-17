@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use crate::solver::struct_defs::*;
 use super::utils;
-use crate::solver::struct_defs::TileEnum::{Road, Warehouse,Empty};
+use crate::solver::struct_defs::TileEnum::{TileRoad, Warehouse,Empty};
 use std::collections::HashSet;
 use std::collections::vec_deque::VecDeque;
 //use crate::solver::public_func::build_color_list;
@@ -49,7 +49,27 @@ impl Van {
         return None;
     }
 }
+impl TileEnum {
 
+    fn mut_road(&mut self) -> &mut Road {
+        match self {
+            TileRoad(inner_road) => {
+                return inner_road;
+            },
+            _ => panic!()
+        }
+
+    }
+    fn road(&self) -> &Road {
+        match self {
+            TileRoad(inner_road) => {
+                return inner_road;
+            },
+            _ => panic!()
+        }
+
+    }
+}
 
 impl Universe {
     fn private_calculate(&self) -> Option<UniverseData> {
@@ -76,18 +96,32 @@ impl Universe {
 
             let mut next_state = cur_state.clone();
 
+            //check success, where all warehouses are filled
+            if cur_state.cells.iter().all( |cell| {
+               match cell.tile {
+                   Warehouse {is_filled, ..} => {
+                       is_filled
+                   },
+                   _ =>  true
+               }
+            }) {
+                log!("Success!");
+                return Some(cur_state);
+            }
+
             //find all the cars
             for cell in cur_state.cells.iter() {
 
                 let cell_index = cell.row_index * self.data.width + cell.col_index;
 
                 match &cell.tile {
-                    Road{
-                        van: Some(van),
-                        block: block_opt,
-                        used_mask
-                    }
-                    => {
+                    TileRoad(cur_road) => {
+
+                        if cur_road.van.is_none() {
+                            continue;
+                        }
+
+                        let van = cur_road.van.as_ref().unwrap();
 
                         log!("Found a van at {}, {}.  Van: {:?}", cell.row_index, cell.col_index, van);
 
@@ -96,18 +130,14 @@ impl Universe {
                         }
 
                         //pick up a block if it exists
-                        if let Some(block) = block_opt {
+                        if let Some(block) = &cur_road.block {
                             if let Some(i) = van.get_empty_slot() {
-                                match &mut next_state.cells[cell_index].tile {
-                                    Road{ van: Some(next_van) ,..} => {
-                                        next_van.boxes[i] = Some(block.clone());
-                                    },
-                                    _ => panic!()
-                                }
+                                next_state.cells[cell_index].tile.mut_road().van.as_mut().unwrap().boxes[i] = Some(block.clone());
                             }
                         }
 
 
+                        //check if we can drop this guy off
                         if cell.row_index > 0 {
                             let north_tile = &cur_state.cells[ (cell.row_index-1) * self.data.width + cell.col_index ].tile;
                             if let Warehouse {color: warehouse_color, is_filled} = north_tile {
@@ -116,17 +146,18 @@ impl Universe {
                                      //drop off block at warehouse
                                     if let Some(top_block) = van.get_top_box() {
                                         if top_block == warehouse_color {
-                                            match &mut next_state.cells[cell_index].tile {
-                                                Road { van: Some(next_van), .. } => {
-                                                    next_van.clear_top_box();
-                                                },
-                                                _ => panic!()
-                                            }
+                                            next_state.cells[cell_index].tile.mut_road().van.as_mut().unwrap().clear_top_box();
+
+                                            //test what happens if we stop
+                                            let mut if_van_stops_state = next_state.clone();
+                                            if_van_stops_state.cells[cell_index].tile.mut_road().van.as_mut().unwrap().is_done = true;
+                                            queue.push_back(if_van_stops_state);
                                         }
                                     }
                                 }
                             }
                         }
+
 
 
 
@@ -165,7 +196,7 @@ impl Universe {
         let height = h;
 
 
-        let cells: Vec<CellData> = (0..width * height)
+        let mut cells: Vec<CellData> = (0..width * height)
             .map(|idx| {
                 CellData{row_index: idx / width, col_index: idx % width,
                      ..Default::default()}
@@ -174,7 +205,9 @@ impl Universe {
 
         //let cl = build_color_list();
 
-        //cells[0] =  CellData{row_index: 0, col_index: 0, tile: Road {used_mask: 45, _box: None}, van: None});
+        cells[0] =  CellData{row_index: 0, col_index: 0, tile: TileRoad(
+            Road {used_mask: 45, block: None, van: None})
+        };
         /*cells[1] =  CellData{row_index: 0, col_index: 0, tile: Warehouse {color: cl[2].clone(), is_filled: true},
             van: Some( Van{ boxes: [None, Some(cl[0].clone()), Some(cl[3].clone())] } ) } );*/
 
