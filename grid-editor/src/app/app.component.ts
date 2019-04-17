@@ -77,7 +77,7 @@ export class AppComponent implements OnInit {
 
   wasm: typeof import('../../../rgb-solver/pkg');
 
-  numCalcSteps=9;
+  numCalcSteps=7;
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
@@ -171,17 +171,16 @@ export class AppComponent implements OnInit {
     console.log("Color", this.colors);
     console.log("Tiles", this.tiles);
 
+    this.initCalculations();
 
   }
 
   handleWasmLoaded(mymod: typeof import('rgb-solver')) {
     console.log("All modules loaded");
     this.wasm = mymod;
-    //mymod.greet();
+
     this.updateDim();
 
-
-    this.initCalculations();
 
     //this.nextCalculateStep(this.numCalcSteps);
 
@@ -354,6 +353,10 @@ export class AppComponent implements OnInit {
 
   initCalculations() {
     this.universe.init_calculate();
+
+    let data: UniverseData = this.universe.get_data();
+
+    this.universeData = data;
   }
 
   nextCalculateStep(numStepsParam: number) {
@@ -364,6 +367,8 @@ export class AppComponent implements OnInit {
 
       this.universeData = data;
     }
+
+    console.log("After calculations", this.universeData);
   }
 
 }

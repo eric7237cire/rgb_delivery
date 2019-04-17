@@ -63,10 +63,10 @@ pub struct UniverseData {
 
     pub cells: Vec<CellData>,
 
-    #[serde(skip)]
+    #[serde(skip_deserializing)]
     pub(crate) tick: usize,
 
-    #[serde(skip)]
+    #[serde(skip_deserializing)]
     pub(crate) vans: Vec<Van>,
     #[serde(skip)]
     pub(crate) current_van_index: usize
@@ -82,7 +82,8 @@ pub struct Universe {
     pub(crate) seen:  HashSet<UniverseData>,
     pub(crate) queue: VecDeque<UniverseData>,
 
-
+    pub(crate) success: Option<UniverseData>,
+    pub(crate) current_calc_state: Option<UniverseData>,
     pub(crate) iter_count: usize
 }
 

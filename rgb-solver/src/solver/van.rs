@@ -29,8 +29,12 @@ impl Van {
         for i in (0..=2).rev() {
             if !self.boxes[i].is_none() {
                 self.boxes[i] = None;
+                return;
             }
         }
+
+        //did not clear a box
+        panic!();
     }
 
     pub(crate) fn get_empty_slot(&self) -> Option<usize> {

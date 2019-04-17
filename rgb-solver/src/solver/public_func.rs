@@ -100,6 +100,8 @@ impl Universe {
 
         self.iter_count = 0;
 
+        self.success = None;
+
         self.data.vans = self.initial_van_list();
         //we increment on pop, so...
         self.data.current_van_index = self.initial_van_list().len() - 1;

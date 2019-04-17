@@ -159,7 +159,12 @@ impl Universe {
     }
 
 
-    pub(crate) fn process_queue_item(&mut self) -> Option<UniverseData> {
+    pub(crate) fn process_queue_item(&mut self) -> &Option<UniverseData> {
+
+        if self.success.is_some() {
+            return &self.success;
+        }
+
         'main_queue_loop:
             while let Some(mut cur_state) = self.queue.pop_front() {
 
@@ -196,7 +201,8 @@ impl Universe {
                 }
             }) {
                 log!("Success!");
-                return Some(cur_state);
+                self.success = Some(cur_state);
+                return &self.success;
             }
 
 
@@ -248,13 +254,15 @@ impl Universe {
                         }
                     };
 
-                if top_block_color_index == warehouse_color_index {
+                if top_block_color_index == warehouse_color_index && (
+                    cur_state.vans[cur_state.current_van_index].color.color_index == 0
+                || cur_state.vans[cur_state.current_van_index].color.color_index == warehouse_color_index)
+                {
 
                     //pop the box
-                    {
-                        let cur_road = cur_state.cells[van_cell_index].tile.mut_road();
-                        cur_road.van.as_mut().unwrap().clear_top_box();
-                    }
+                    cur_state.vans[cur_state.current_van_index].clear_top_box();
+
+
                     //set warehouse to filled
                     {
                         cur_state.cells[van_cell_index - self.data.width].tile.mut_warehouse().is_filled = true;
@@ -263,7 +271,7 @@ impl Universe {
 
                     //test what happens if we stop
                     let mut if_van_stops_state = cur_state.clone();
-                    if_van_stops_state.cells[van_cell_index].tile.mut_road().van.as_mut().unwrap().is_done = true;
+                    if_van_stops_state.vans[if_van_stops_state.current_van_index].is_done = true;
                     self.queue.push_back(if_van_stops_state);
 
                     able_to_drop_off = true;
@@ -347,10 +355,11 @@ impl Universe {
                 continue;
             }
 
-            return Some(cur_state);
+            self.current_calc_state = Some(cur_state);
+            return &self.current_calc_state;
 
         }
 
-        return None;
+        return &None;
     }
 }
