@@ -20,6 +20,9 @@ pub struct Van {
     pub boxes: [Option<Color>; 3],
     pub color: Color,
     pub is_done: bool,
+
+    #[serde(skip)]
+    tick: usize
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -63,6 +66,9 @@ pub struct UniverseData {
     pub height: usize,
 
     pub cells: Vec<CellData>,
+
+    #[serde(skip)]
+    pub(crate) tick: usize
 }
 
 #[wasm_bindgen()]

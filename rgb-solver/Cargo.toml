@@ -12,8 +12,8 @@ default = ["console_error_panic_hook"]
 
 [dependencies]
 # see https://github.com/rustwasm/wasm_game_of_life/issues/22
-serde = "^1.0.59"
-serde_derive = "^1.0.59"
+serde = "^1.0.90"
+serde_derive = "^1.0.90"
 wasm-typescript-definition = { path = "../wasm-typescript-definition" }
 
 # The `console_error_panic_hook` crate provides better debugging of panics by

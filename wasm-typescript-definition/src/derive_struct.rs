@@ -41,13 +41,19 @@ fn derive_struct_named_fields(
     fields: Vec<ast::Field>,
     _attr_container: &attr::Container,
 ) -> String {
-    fields.into_iter().enumerate()
-        .map(|(field_idx, field)| derive_field_str(0, field_idx, &field))
+    fields.into_iter()
+        .filter_map(| field| {
+            if field.attrs.skip_deserializing() || field.attrs.skip_serializing()  {
+                None
+            } else {
+                Some(derive_field_str(&field))
+            }
+        })
         .collect::<Vec<_>>().join(", ")
 }
 
-fn derive_struct_tuple<'a>(
-    fields: Vec<ast::Field<'a>>,
+fn derive_struct_tuple(
+    fields: Vec<ast::Field>,
     _attr_container: &attr::Container,
 ) -> quote::Tokens {
     collapse_list_bracket(fields.into_iter()

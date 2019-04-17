@@ -196,7 +196,7 @@ impl Universe {
         let height = h;
 
 
-        let mut cells: Vec<CellData> = (0..width * height)
+        let cells: Vec<CellData> = (0..width * height)
             .map(|idx| {
                 CellData{row_index: idx / width, col_index: idx % width,
                      ..Default::default()}
@@ -204,17 +204,17 @@ impl Universe {
             .collect();
 
         //let cl = build_color_list();
-
+/*
         cells[0] =  CellData{row_index: 0, col_index: 0, tile: TileRoad(
             Road {used_mask: 45, block: None, van: None})
-        };
+        };*/
         /*cells[1] =  CellData{row_index: 0, col_index: 0, tile: Warehouse {color: cl[2].clone(), is_filled: true},
             van: Some( Van{ boxes: [None, Some(cl[0].clone()), Some(cl[3].clone())] } ) } );*/
 
         Universe {
             data: UniverseData { width,
             height,
-            cells }
+            cells,  ..Default::default() }
         }
     }
 

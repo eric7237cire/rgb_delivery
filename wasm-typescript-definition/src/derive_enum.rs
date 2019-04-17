@@ -26,7 +26,7 @@ pub fn derive_enum(
             let variant_name = variant.attrs.name().serialize_name();
             match variant.style {
                 ast::Style::Struct => {
-                    derive_struct_variant(&variant_name, variant_idx, &variant.fields).to_string()
+                    derive_struct_variant(&variant_name,  &variant.fields).to_string()
                 }
                 ast::Style::Newtype => derive_new_type_variant(&variant_name, variant_idx, &variant.fields).to_string(),
                 ast::Style::Tuple => derive_tuple_variant(&variant_name, variant_idx, &variant.fields).to_string(),
@@ -60,11 +60,17 @@ fn derive_new_type_variant<'a>(
 
 fn derive_struct_variant<'a>(
     variant_name: &str,
-    variant_idx: usize,
+
     fields: &Vec<ast::Field<'a>>,
 ) -> String {
-    let contents = fields.into_iter().enumerate()
-        .map(|(field_idx, field)| derive_field_str(variant_idx, field_idx, field))
+    let contents = fields.into_iter()
+        .filter_map(|field| {
+            if field.attrs.skip_deserializing() || field.attrs.skip_serializing()  {
+                None
+            } else {
+                Some(derive_field_str( field))
+            }
+        })
         .collect::<Vec<_>>().join(", ");
 
     format!("export type {0} = {{type: \"{0}\", {1}}};", variant_name, contents)

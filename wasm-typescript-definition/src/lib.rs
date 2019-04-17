@@ -193,7 +193,7 @@ fn type_to_ts(ty: &syn::Type) -> (quote::Tokens, bool) {
         (q_tokens, is_optional)
 }
 
-fn derive_field_str(_variant_idx: usize, _field_idx: usize, field: &ast::Field) -> String {
+fn derive_field_str(field: &ast::Field) -> String {
     let field_name = field.attrs.name().serialize_name();
     let (ty, is_opt) = type_to_ts_string(&field.ty);
 
