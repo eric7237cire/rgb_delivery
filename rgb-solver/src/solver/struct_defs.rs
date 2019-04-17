@@ -36,12 +36,17 @@ pub struct Road {
     pub van: Option<Van>,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
+pub struct Warehouse {
+    pub color: Color,
+    pub is_filled: bool
+}
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 #[serde(tag = "type")]
 pub enum TileEnum {
     TileRoad(Road),
-    Warehouse { color: Color, is_filled: bool },
+    TileWarehouse (Warehouse),
     Empty,
 }
 

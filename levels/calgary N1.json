@@ -114,7 +114,7 @@
     },
     {
       "tile": {
-        "type": "Warehouse",
+        "type": "TileWarehouse",
         "color": {
           "label": "Yellow",
           "red": 255,
@@ -551,7 +551,7 @@
     },
     {
       "tile": {
-        "type": "Warehouse",
+        "type": "TileWarehouse",
         "color": {
           "label": "Blue",
           "red": 50,
@@ -581,7 +581,7 @@
     },
     {
       "tile": {
-        "type": "Warehouse",
+        "type": "TileWarehouse",
         "color": {
           "label": "Red",
           "red": 255,

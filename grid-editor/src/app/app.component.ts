@@ -61,7 +61,7 @@ export class AppComponent implements OnInit {
 
   colors: Array<Color> = [];
 
-  readonly tiles: Array<TileEnum_type> = ["TileRoad", "Empty", "Warehouse"];
+  readonly tiles: Array<TileEnum_type> = ["TileRoad", "Empty", "TileWarehouse"];
 
   universe: Universe = null;
 
@@ -178,9 +178,16 @@ export class AppComponent implements OnInit {
     console.log("Running calculate");
 
     let calcResult: UniverseData = this.universe.calculate();
+
+
+
     if (!_.isNil(calcResult)) {
       this.universeData = calcResult;
+
+      console.log("Done calculate", this.universeData);
     }
+
+
   }
 
   async load() {
@@ -279,7 +286,7 @@ export class AppComponent implements OnInit {
             }
           });
           break;
-        case "Warehouse":
+        case "TileWarehouse":
           this.setGridSquare({
             row_index, col_index, "tile": {
               type: this.selectedTile,
@@ -314,7 +321,7 @@ export class AppComponent implements OnInit {
 
   getCellColor(cell: CellData): string {
     switch (cell.tile.type) {
-      case "Warehouse":
+      case "TileWarehouse":
         let w = cell.tile;
         return this.getCssForColor(w.color);
 

@@ -74,7 +74,7 @@
           fill="rgb(70,70,70)" [attr.x]="cell.col_index * GRID_SIZE " [attr.y]="cell.row_index * GRID_SIZE"
           [attr.width]="GRID_SIZE" [attr.height]="GRID_SIZE"></rect>
 
-    <text *ngIf="cell.tile.type == 'Warehouse'" [attr.x]="cell.col_index * GRID_SIZE + 15" [attr.y]="cell.row_index * GRID_SIZE + 25"
+    <text *ngIf="cell.tile.type == 'TileWarehouse'" [attr.x]="cell.col_index * GRID_SIZE + 15" [attr.y]="cell.row_index * GRID_SIZE + 25"
           (click)="handleClickSvgText()"
           [attr.fill]="getCellColor(cell)"
           class="grid_text">{{cell.tile.type[0]}}</text>
