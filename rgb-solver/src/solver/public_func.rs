@@ -95,6 +95,15 @@ impl Universe {
         JsValue::from_serde(&self.data).unwrap()
     }
 
+
+    pub fn set_overrides(&mut self, choice_override_list: &JsValue) {
+        let lo : Vec<ChoiceOverride> = choice_override_list.into_serde().unwrap();
+
+        self.choice_override_list = lo.clone();
+
+        log!("Set override list {:?}", lo);
+    }
+
     pub fn init_calculate(&mut self) {
         self.seen = HashSet::new();
         self.queue = VecDeque::new();
@@ -132,16 +141,15 @@ impl Universe {
     pub fn set_square(&mut self, tile_val: &JsValue) {
         let tile: CellData = tile_val.into_serde().unwrap();
 
-
         let idx: usize = tile.row_index * self.data.width + tile.col_index;
 
-        log!(
+        /*log!(
             "Received Row/Col [{}, {}] = idx [{}].  Tile {:?}",
             tile.row_index,
             tile.col_index,
             idx,
             tile
-        );
+        );*/
 
         if idx < self.data.cells.len() {
             self.data.cells[idx] = tile;

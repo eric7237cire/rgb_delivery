@@ -1,6 +1,16 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {CellData, Color, TileEnum, TileEnum_type, TileRoad, Universe, UniverseData, Van} from "../../../rgb-solver/pkg";
+import {
+  CellData,
+  ChoiceOverride,
+  Color,
+  TileEnum,
+  TileEnum_type,
+  TileRoad,
+  Universe,
+  UniverseData,
+  Van
+} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 
@@ -13,6 +23,13 @@ interface DirectionMarker {
   annotation_y_offset: number,
   mask: number,
   dir_index: number
+}
+
+enum DIRECTION_INDEX {
+    NORTH=0,
+    EAST=1,
+    SOUTH=2,
+    WEST=3
 }
 
 
@@ -96,7 +113,7 @@ export class AppComponent implements OnInit {
 
   wasm: typeof import('../../../rgb-solver/pkg');
 
-  numCalcSteps=700;
+  numCalcSteps=29;
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
@@ -200,6 +217,57 @@ export class AppComponent implements OnInit {
 
     this.updateDim();
 
+
+    let overRideList: Array<ChoiceOverride> = [
+
+     /* {
+        row_index: 6,
+        col_index: 7,
+        van_index: 1,
+        direction_index: DIRECTION_INDEX.WEST
+      },
+      {
+        row_index: 6,
+        col_index: 5,
+        van_index: 1,
+        direction_index: DIRECTION_INDEX.NORTH
+      },
+      {
+        row_index: 4,
+        col_index: 5,
+        van_index: 1,
+        direction_index: DIRECTION_INDEX.NORTH
+      },
+      {
+        row_index: 2,
+        col_index: 5,
+        van_index: 1,
+        direction_index: DIRECTION_INDEX.WEST
+      },
+      {
+        row_index: 2,
+        col_index: 3,
+        van_index: 1,
+        direction_index: DIRECTION_INDEX.NORTH
+      },
+
+
+      {
+        row_index: 8,
+        col_index: 5,
+        van_index: 0,
+        direction_index: DIRECTION_INDEX.NORTH
+      },
+      {
+        row_index: 6,
+        col_index: 3,
+        van_index: 0,
+        direction_index: DIRECTION_INDEX.SOUTH,
+        tick: 8
+      },*/
+      ];
+
+    this.universe.set_overrides(overRideList);
 
     this.nextCalculateStep(this.numCalcSteps);
 
@@ -423,9 +491,11 @@ export class AppComponent implements OnInit {
     }
 
     //strip out empty cells
-    this.universeData.cells  = this.universeData.cells.filter(
-      cell => cell.tile.type != "Empty"
-    ) ;
+    if (!_.isNil(this.universeData)) {
+      this.universeData.cells = this.universeData.cells.filter(
+        cell => cell.tile.type != "Empty"
+      )
+    };
 
     console.log("After calculations", this.universeData);
   }

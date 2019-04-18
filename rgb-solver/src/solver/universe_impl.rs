@@ -6,13 +6,7 @@ use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse};
 
 //use crate::solver::utils::VAN_LABEL;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-enum Directions {
-    NORTH = 1,
-    EAST = 2,
-    SOUTH = 4,
-    WEST = 8,
-}
+
 
 impl Directions {
     fn opposite(&self) -> Directions {
@@ -25,8 +19,8 @@ impl Directions {
     }
 }
 
-//use Directions::*;
-use crate::solver::universe_impl::Directions::*;
+
+use crate::solver::struct_defs::Directions::*;
 
 use crate::solver::struct_defs::Warehouse;
 use crate::solver::van::Van;
@@ -60,11 +54,7 @@ impl TileEnum {
         }
     }
 }
-struct AdjSquareInfo {
-    direction: Directions,
-    cell_index: usize,
-    direction_index: usize
-}
+
 
 impl Universe {
     fn get_adjacent_square_indexes(&self, cell_index: usize,
@@ -173,6 +163,8 @@ impl Universe {
         'main_queue_loop:
             while let Some(mut cur_state) = self.queue.pop_front() {
 
+            self.current_calc_state = Some(cur_state.clone());
+
             //Have we seen this node yet?  Probably not needed
             /*if self.seen.contains(&cur_state) {
                 log!("Already seen");
@@ -193,7 +185,7 @@ impl Universe {
 
             self.iter_count += 1;
 
-            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index", self.iter_count, self.queue.len(), cur_state.current_van_index);
+            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index: {}", self.iter_count, self.queue.len(), cur_state.current_van_index);
 
 
             //check success, where all warehouses are filled
@@ -214,6 +206,9 @@ impl Universe {
             if cur_state.vans[cur_state.current_van_index].is_done {
                 log_trace!("Van #{}: {:?} is done, skipping", cur_state.current_van_index,
                 cur_state.vans[cur_state.current_van_index]);
+
+                //need to requeue
+                self.queue.push_back(cur_state);
                 continue;
             }
 
@@ -301,8 +296,30 @@ impl Universe {
             log_trace!("Adj squares: {:?}", adj_square_indexes);
             let mut any_moved = false;
 
+            let fixed_choice_opt = self.choice_override_list.iter().find( |co| {
+
+                if let Some(forced_tick) = co.tick {
+                    if forced_tick != cur_state.tick {
+                        return false;
+                    }
+                }
+
+                co.van_index == cur_state.current_van_index
+                    && cur_row_index == co.row_index
+                    && cur_col_index == co.col_index
+                }
+            );
+
             for adj_square_index in adj_square_indexes.iter().enumerate().filter_map(
-                |(adj_square_index, &AdjSquareInfo{cell_index: adj_cell_index, ..})| {
+                |(adj_square_index, &AdjSquareInfo{cell_index: adj_cell_index, direction_index,direction})| {
+
+                    if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
+                        if *forced_dir_index != direction_index {
+                             log_trace!("Not in the forced direction {:?}", direction);
+                            return None;
+                        }
+                    }
+
                     if let TileRoad(..) = &cur_state.cells[adj_cell_index].tile {
 
                         //Check each van that has already moved.  The ones that have yet to move don't need to be checked
@@ -310,25 +327,30 @@ impl Universe {
                             cur_state.vans.iter().take(cur_state.current_van_index-1).any(
                                 |other_van| adj_cell_index == other_van.cell_index)
                         {
+                            log_trace!("Another van is there {:?}", direction);
                             None
                         } else {
                             //no van
                             Some(adj_square_index)
                         }
                     } else {
-                        //not a road
+                        log_trace!("Rejecting direction {:?}, not a road", direction);
                         None
                     }
                 }) {
 
+
+
                 //now we have checked it is a road without a van in it, the mask is ok, etc.
 
-                log_trace!("Moving to actual road {:?}", adj_square_index);
+
 
                 //make the move
                 let mut next_state = cur_state.clone();
 
                 let adj_info = &adj_square_indexes[adj_square_index];
+
+                log_trace!("Moving to actual road {:?}", adj_info);
 
                 //remove van & set used mask
                 {
@@ -370,10 +392,13 @@ impl Universe {
 
             //we are stuck, nothing else will be queued at this point
             if !any_moved {
+                 log_trace!("NO MOVES {}, {}.  Van: {:?}",
+                     cur_row_index, cur_col_index,
+                     cur_road.van);
                 continue;
             }
 
-            self.current_calc_state = Some(cur_state);
+
             return &self.current_calc_state;
 
         }

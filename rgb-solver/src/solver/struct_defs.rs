@@ -63,6 +63,16 @@ impl Default for CellData {
     }
 }
 
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
+pub struct ChoiceOverride {
+    pub row_index: usize,
+    pub col_index: usize,
+    pub van_index: usize,
+    pub direction_index: usize,
+
+    pub tick: Option<usize>
+}
+
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Eq, PartialEq)]
 pub struct UniverseData {
     pub width: usize,
@@ -86,6 +96,8 @@ pub struct UniverseData {
 pub struct Universe {
     pub(crate) data: UniverseData,
 
+    pub(crate) choice_override_list: Vec<ChoiceOverride>,
+
     //below are used for calculating
     pub(crate) seen:  HashSet<UniverseData>,
     pub(crate) queue: VecDeque<UniverseData>,
@@ -95,3 +107,18 @@ pub struct Universe {
     pub(crate) iter_count: usize
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum Directions {
+    NORTH = 1,
+    EAST = 2,
+    SOUTH = 4,
+    WEST = 8,
+}
+
+//internal helper
+#[derive(Debug)]
+pub(crate) struct AdjSquareInfo {
+    pub(crate) direction: Directions,
+    pub(crate) cell_index: usize,
+    pub(crate) direction_index: usize
+}
