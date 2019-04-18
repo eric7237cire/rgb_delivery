@@ -70,6 +70,7 @@ pub struct UniverseData {
 
     pub cells: Vec<CellData>,
 
+    //Js=>Rust will ignore this
     #[serde(skip_deserializing)]
     pub(crate) tick: usize,
 

@@ -82,7 +82,7 @@ fn parse_non_primitive(s: &str) -> (String, bool) {
     }
     else if s.starts_with("Option <") {
         let rest = &s[9..s.len() - 2];
-        (format!("{}", rest), true)
+        (format_type(rest).0, true )
     }
     else if s.starts_with("Vec <") {
         let rest = &s[5..s.len() - 1];
@@ -94,6 +94,25 @@ fn parse_non_primitive(s: &str) -> (String, bool) {
 
 }
 
+fn format_type(type_string: &str) -> (String,bool) {
+    let mut is_optional = false;
+    let s =
+    match type_string {
+                "u8" | "u16" | "u32" | "u64" | "u128" | "usize" |
+                "i8" | "i16" | "i32" | "i64" | "i128" | "isize" =>
+                    "number".to_string(),
+                "String" | "&str" | "&'static str" =>
+                    "string".to_string(),
+                "bool" => "boolean".to_string(),
+                something_else => {
+                    let (q, is_opt) = parse_non_primitive(something_else);
+                    is_optional = is_opt;
+                    format!("{}", q)
+                },
+            };
+
+    (s, is_optional)
+}
 
 fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
    // println!("Type: ??? {:?}", ty);
@@ -105,19 +124,11 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
         Path(inner) => {
             //let ty_string = format!("{:?}", inner.path);
             let result = quote!{ #inner };
-            match result.to_string().as_ref() {
-                "u8" | "u16" | "u32" | "u64" | "u128" | "usize" |
-                "i8" | "i16" | "i32" | "i64" | "i128" | "isize" =>
-                    "number".to_string(),
-                "String" | "&str" | "&'static str" =>
-                    "string".to_string(),
-                "bool" => "boolean".to_string(),
-                something_else => {
-                    let (q, is_opt) = parse_non_primitive(something_else);
-                    is_optional = is_opt;
-                    q
-                },
-            }
+            let ft = format_type(result.to_string().as_ref());
+
+            is_optional = ft.1;
+
+            ft.0
         },
         Array(array) => {
             let array_len = match array.len {
@@ -144,7 +155,7 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
                         array_type.clone())
                         .collect::<Vec<String>>();
 
-            format!("[{}] ",
+            format!("[{}]",
                     repeated_tuple_strings
                         .join(", "))
         },
@@ -152,7 +163,7 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
         _  => format!("any no match ty 3").to_string()
     };
 
-        (q_tokens, is_optional)
+    (q_tokens, is_optional)
 }
 
 fn type_to_ts(ty: &syn::Type) -> (quote::Tokens, bool) {

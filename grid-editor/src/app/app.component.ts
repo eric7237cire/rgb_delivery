@@ -1,6 +1,6 @@
 import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
 import * as _ from "lodash";
-import {CellData, Color, TileEnum, TileEnum_type, Universe, UniverseData, Van} from "../../../rgb-solver/pkg";
+import {CellData, Color, TileEnum, TileEnum_type, TileRoad, Universe, UniverseData, Van} from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 
@@ -9,7 +9,10 @@ interface DirectionMarker {
   text: string,
   x_offset: number,
   y_offset: number,
-  mask: number
+  annotation_x_offset: number,
+  annotation_y_offset: number,
+  mask: number,
+  dir_index: number
 }
 
 
@@ -30,28 +33,44 @@ export class AppComponent implements OnInit {
       text: "|",
       x_offset: this.GRID_SIZE /2 ,
       y_offset: this.GRID_SIZE * 0.25,
-      mask: 1
+      //north west corner
+      annotation_x_offset: 2,
+      annotation_y_offset: 10,
+      mask: 1,
+      dir_index: 0
     },
     //south
     {
       text: "|",
       x_offset: this.GRID_SIZE /2 ,
       y_offset: this.GRID_SIZE * 0.8,
-      mask: 4
+      //south east corner
+      annotation_x_offset: this.GRID_SIZE /2 + 5,
+      annotation_y_offset: this.GRID_SIZE * 0.8,
+      mask: 4,
+      dir_index: 2
     },
     //east
     {
       text: "-",
       x_offset: this.GRID_SIZE * 0.8 ,
       y_offset: this.GRID_SIZE * 0.5,
-      mask: 2
+      //north/east corner
+      annotation_x_offset: this.GRID_SIZE * 0.8 -10 ,
+      annotation_y_offset: this.GRID_SIZE * 0.25,
+      mask: 2,
+      dir_index: 1
     },
     //west
     {
       text: "-",
       x_offset: this.GRID_SIZE * 0.25 ,
       y_offset: this.GRID_SIZE * 0.5,
-      mask: 8
+      //south west corner
+      annotation_x_offset: 2,
+      annotation_y_offset: this.GRID_SIZE * 0.8,
+      mask: 8,
+      dir_index: 3
     },
 
     ];
@@ -291,7 +310,9 @@ export class AppComponent implements OnInit {
           this.setGridSquare({
             row_index, col_index, "tile": {
               type: this.selectedTile,
-              used_mask: 0
+              used_mask: 0,
+              used_tick: null,
+              used_van_index: null
             }
           });
           break;
@@ -349,6 +370,39 @@ export class AppComponent implements OnInit {
     }
 
     return ( (cell.tile.used_mask & dm.mask) > 0 );
+  }
+
+  readonly DEFAULT_DM_COLOR="rgb(200, 200, 200)";
+  getCssColorForDirectionMarker(cell: CellData, dm: DirectionMarker) : string {
+    //color of the van
+
+
+    if (cell.tile.type != "TileRoad") {
+      return this.DEFAULT_DM_COLOR;
+    }
+    let road: TileRoad = cell.tile;
+    let van_index = road.used_van_index[dm.dir_index];
+
+    if (_.isNil(van_index)) {
+      return this.DEFAULT_DM_COLOR;
+    }
+
+    return this.getCssForColor(this.universeData.vans[van_index].color);
+  }
+
+  getDirectionMarkerAnnotation(cell: CellData, dm: DirectionMarker) : string {
+    if (cell.tile.type != "TileRoad") {
+      return null;
+    }
+    let road: TileRoad = cell.tile;
+    let van_index = road.used_van_index[dm.dir_index];
+
+    if (_.isNil(van_index)) {
+      return null;
+    }
+
+    return `${road.used_tick[dm.dir_index]}`;
+    //return `${van_index}: ${road.used_tick[dm.dir_index]}`;
   }
 
   initCalculations() {

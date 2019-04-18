@@ -193,7 +193,7 @@ impl Universe {
 
             self.iter_count += 1;
 
-            log_trace!("\n\nLoop count: {}  Queue Length: {}", self.iter_count, self.queue.len());
+            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index", self.iter_count, self.queue.len(), cur_state.current_van_index);
 
 
             //check success, where all warehouses are filled

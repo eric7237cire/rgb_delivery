@@ -53,7 +53,7 @@
     <label class="button" (click)="nextCalculateStep(numCalcSteps)">Step N</label>
   </div>
 
-  <div>Current mouse coords: {{mouseMoveRow}}, {{mouseMoveCol}}</div>
+  <div>Current mouse coords: Row {{mouseMoveRow}}, Col {{mouseMoveCol}}</div>
 </div>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * num_cols"
      [attr.height]="GRID_SIZE * num_rows"
@@ -87,20 +87,22 @@
           [attr.fill]="getCellColor(cell)"
           class="grid_text">{{cell.tile.type[0]}}</text>
 
-
-    <text *ngIf="cell.tile.type == 'TileRoad'"
-          (click)="handleClickSvgText()"
-          [attr.x]="cell.col_index * GRID_SIZE + 5" [attr.y]="cell.row_index * GRID_SIZE + 35"
-          (click)="handleClickSvgText()"
-           class="used_mask_text">{{cell.tile.used_mask}}</text>
-
-    <!--south-->
     <ng-container *ngFor="let dm of DIRECTION_MARKERS">
-      <text *ngIf="isDirectionMarkerVisible(cell, dm)"
+      <ng-container *ngIf="isDirectionMarkerVisible(cell, dm)">
+      <text
           (click)="handleClickSvgText()"
           [attr.x]="cell.col_index * GRID_SIZE + dm.x_offset" [attr.y]="cell.row_index * GRID_SIZE + dm.y_offset"
+            [attr.fill]="getCssColorForDirectionMarker(cell, dm)"
           (click)="handleClickSvgText()"
-           class="used_mask_text">{{dm.text}}</text>
+           class="dm_text">{{dm.text}}</text>
+      <text
+          (click)="handleClickSvgText()"
+          [attr.x]="cell.col_index * GRID_SIZE + dm.annotation_x_offset" [attr.y]="cell.row_index * GRID_SIZE + dm.annotation_y_offset"
+
+          (click)="handleClickSvgText()"
+           class="annotation_text">{{getDirectionMarkerAnnotation(cell,dm)}}</text>
+
+      </ng-container>
     </ng-container>
 
     <text *ngIf="cell.tile.van" [attr.x]="cell.col_index * GRID_SIZE + 5" [attr.y]="cell.row_index * GRID_SIZE + 35"

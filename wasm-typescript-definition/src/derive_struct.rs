@@ -43,7 +43,7 @@ fn derive_struct_named_fields(
 ) -> String {
     fields.into_iter()
         .filter_map(| field| {
-            if field.attrs.skip_deserializing() || field.attrs.skip_serializing()  {
+            if field.attrs.skip_serializing()  {
                 None
             } else {
                 Some(derive_field_str(&field))
