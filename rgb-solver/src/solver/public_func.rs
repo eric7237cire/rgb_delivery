@@ -7,6 +7,7 @@ use std::collections::HashSet;
 use std::collections::vec_deque::VecDeque;
 //use crate::solver::utils::*;
 use super::utils;
+use crate::solver::struct_defs::TileEnum::TileRoad;
 
 #[wasm_bindgen]
     pub fn get_colors() -> JsValue {
@@ -105,6 +106,19 @@ impl Universe {
         self.data.vans = self.initial_van_list();
         //we increment on pop, so...
         self.data.current_van_index = self.initial_van_list().len() - 1;
+
+
+        //reset road history
+        for road in self.data.cells.iter_mut().filter_map( |c| {
+            if let TileRoad(road) = &mut c.tile {
+                Some(road)
+            } else {
+                None
+            }
+        }) {
+            road.used_colors = Default::default();
+            road.used_mask = Default::default();
+        }
 
         self.queue.push_back(self.data.clone());
     }

@@ -63,7 +63,7 @@ cargo install cargo-watch
 cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition -w .
 
 # Running tests
-cargo test --target x86_64-pc-windows-msvc
+cargo test --target x86_64-pc-windows-msvc  -- --nocapture
 
 ## tests in watch mode
-cargo watch -x "test --target x86_64-pc-windows-msvc"
+cargo watch -x "test --target x86_64-pc-windows-msvc --lib -- --nocapture"

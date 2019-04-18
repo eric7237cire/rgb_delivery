@@ -60,14 +60,19 @@ impl TileEnum {
         }
     }
 }
+struct AdjSquareInfo {
+    direction: Directions,
+    cell_index: usize,
+    direction_index: usize
+}
 
 impl Universe {
     fn get_adjacent_square_indexes(&self, cell_index: usize,
-                                   used_dir_mask: u8) -> Vec<(Directions, usize)> {
+                                   used_dir_mask: u8) -> Vec<AdjSquareInfo> {
         let cell_row_index: usize = cell_index / self.data.width;
         let cell_col_index: usize = cell_index % self.data.width;
 
-        ALL_DIRECTIONS.iter().filter_map(|dir| {
+        ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index,dir)| {
 
             //first check the mask
             if used_dir_mask & *dir as u8 > 0 {
@@ -106,7 +111,7 @@ impl Universe {
             };
 
             if let Some(adj_index) = adj_index {
-                Some((*dir, adj_index))
+                Some(AdjSquareInfo{direction:*dir, cell_index: adj_index, direction_index: dir_index})
             } else {
                 None
             }
@@ -326,13 +331,19 @@ impl Universe {
                 let adj_info = &adj_square_indexes[adj_square_index];
 
                 //remove van & set used mask
-                next_state.cells[van_cell_index].tile.mut_road().van = None;
-                next_state.cells[van_cell_index].tile.mut_road().used_mask |= adj_info.0 as u8;
+                {
+                    let current_tile_road = next_state.cells[van_cell_index].tile.mut_road();
+                    current_tile_road.van = None;
+                    current_tile_road.used_mask |= adj_info.direction as u8;
+                    current_tile_road.used_tick[adj_info.direction_index] = Some(cur_state.tick);
+                    current_tile_road.used_van_index[adj_info.direction_index] = Some(cur_state.current_van_index);
+
+                }
 
 
                 //add van to next square
 
-                let moving_to_cell_index =adj_info.1;
+                let moving_to_cell_index =adj_info.ce1;
 
                 {
                     let van = &mut next_state.vans[next_state.current_van_index];

@@ -19,6 +19,13 @@ pub struct Color {
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Road {
     pub used_mask: u8,
+
+    #[serde(default)]
+    pub used_van_index: [Option<usize>; 4],
+
+    #[serde(default)]
+    pub used_tick: [Option<usize>; 4],
+
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "block")]
     pub block: Option<Color>,
@@ -73,7 +80,7 @@ pub struct UniverseData {
 
 }
 
-#[wasm_bindgen()]
+#[cfg_attr( not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
 pub struct Universe {
     pub(crate) data: UniverseData,

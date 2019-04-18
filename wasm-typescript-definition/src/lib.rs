@@ -38,7 +38,7 @@ pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macr
     let typescript_ident = syn::Ident::from(format!("{}___typescript_definition", container.ident));
     let export_ident = syn::Ident::from(format!("TS_EXPORT_{}", container.ident.to_string().to_uppercase()));
 
-    eprintln!("....[typescript] {:?}", typescript_string);
+    //eprintln!("....[typescript] {:?}", typescript_string);
     //eprintln!("........[export_ident] {:?}", export_ident);
    //eprintln!("............[container] {:?}", container);
     // eprintln!();
