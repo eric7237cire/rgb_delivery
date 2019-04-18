@@ -78,14 +78,14 @@ impl Universe {
                     }
                 }
                 SOUTH => {
-                    if cell_row_index >= self.data.height {
+                    if cell_row_index >= self.data.height-1 {
                         None
                     } else {
                         Some(cell_index + self.data.width)
                     }
                 }
                 EAST => {
-                    if cell_col_index >= self.data.width {
+                    if cell_col_index >= self.data.width-1 {
                         None
                     } else {
                         Some(cell_index + 1)
@@ -187,6 +187,9 @@ impl Universe {
 
             log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index: {}", self.iter_count, self.queue.len(), cur_state.current_van_index);
 
+            if self.iter_count % 500 == 0 {
+                 log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {}", self.iter_count, self.queue.len(), cur_state.current_van_index);
+            }
 
             //check success, where all warehouses are filled
             if cur_state.cells.iter().all(|cell| {
@@ -246,8 +249,7 @@ impl Universe {
                 //drop off block at warehouse
                 let top_block_color_index =
                     {
-                        let cur_road = cur_state.cells[van_cell_index].tile.road();
-                        if let Some(color) = cur_road.van.as_ref().unwrap().get_top_box() {
+                        if let Some(color) = cur_state.vans[cur_state.current_van_index].get_top_box() {
                             color.color_index
                         } else {
                             100
@@ -311,7 +313,7 @@ impl Universe {
             );
 
             for adj_square_index in adj_square_indexes.iter().enumerate().filter_map(
-                |(adj_square_index, &AdjSquareInfo{cell_index: adj_cell_index, direction_index,direction})| {
+                |(adj_square_index, &AdjSquareInfo{cell_index: adj_cell_index, direction_index,..})| {
 
                     if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
                         if *forced_dir_index != direction_index {

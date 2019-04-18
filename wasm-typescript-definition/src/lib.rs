@@ -155,6 +155,9 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
                         array_type.clone())
                         .collect::<Vec<String>>();
 
+            //fixed arrays always as we assume its default friendly (array of options)
+            is_optional = true;
+
             format!("[{}]",
                     repeated_tuple_strings
                         .join(", "))

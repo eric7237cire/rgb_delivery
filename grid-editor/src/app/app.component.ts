@@ -379,8 +379,6 @@ export class AppComponent implements OnInit {
             row_index, col_index, "tile": {
               type: this.selectedTile,
               used_mask: 0,
-              used_tick: null,
-              used_van_index: null
             }
           });
           break;
@@ -484,11 +482,7 @@ export class AppComponent implements OnInit {
   nextCalculateStep(numStepsParam: number) {
     let numSteps = _.toNumber(numStepsParam);
 
-    for (let i = 0; i < numSteps; i+=1) {
-      let data: UniverseData = this.universe.next_calculate();
-
-      this.universeData = data;
-    }
+    this.universeData = this.universe.next_batch_calculate(numSteps);
 
     //strip out empty cells
     if (!_.isNil(this.universeData)) {

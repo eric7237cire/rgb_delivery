@@ -34,7 +34,7 @@ impl Van {
         }
 
         //did not clear a box
-        panic!();
+        panic!("Did not clear a box" );
     }
 
     pub(crate) fn get_empty_slot(&self) -> Option<usize> {

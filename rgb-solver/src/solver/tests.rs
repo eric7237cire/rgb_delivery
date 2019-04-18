@@ -10,7 +10,8 @@ mod tests {
         /* [[[cog
 
 from pathlib import Path
-LEVEL_DIR = Path(r'D:\git\rgb_delivery\levels')
+#LEVEL_DIR = Path(r'D:\git\rgb_delivery\levels')
+LEVEL_DIR = Path(r'/mnt/e/git/rgb_delivery/levels')
 
 for json_file in LEVEL_DIR.glob('*.json'):
     with open(json_file, 'r') as f:
@@ -1952,6 +1953,1949 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 #[allow(dead_code)]
+        pub (crate) const TEST_DATA_BOSTON_N5: &str = r#"
+                {
+  "width": 11,
+  "height": 11,
+  "cells": [
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        },
+        "is_filled": false
+      },
+      "row_index": 0,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 1,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 1,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 1,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 2,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 2,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        },
+        "is_filled": false
+      },
+      "row_index": 2,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "block": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        }
+      },
+      "row_index": 3,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "block": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        }
+      },
+      "row_index": 3,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 4,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 4,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        },
+        "is_filled": false
+      },
+      "row_index": 4,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 4,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "block": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        }
+      },
+      "row_index": 5,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 6,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        },
+        "is_filled": false
+      },
+      "row_index": 6,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 6,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 7,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 7,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 7,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "block": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        }
+      },
+      "row_index": 7,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 7,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 8,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 8,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "van": {
+          "boxes": [
+            null,
+            null,
+            null
+          ],
+          "color": {
+            "label": "Red",
+            "red": 255,
+            "green": 0,
+            "blue": 0,
+            "color_index": 1
+          },
+          "is_done": false
+        }
+      },
+      "row_index": 9,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 10
+    }
+  ],
+  "tick": 0,
+  "vans": []
+}
+"#;
+#[allow(dead_code)]
+        pub (crate) const TEST_DATA_BOSTON_N6: &str = r#"
+                {
+  "width": 11,
+  "height": 11,
+  "cells": [
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Blue",
+          "red": 50,
+          "green": 50,
+          "blue": 255,
+          "color_index": 3
+        },
+        "is_filled": false
+      },
+      "row_index": 0,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 1,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "block": {
+          "label": "Blue",
+          "red": 50,
+          "green": 50,
+          "blue": 255,
+          "color_index": 3
+        }
+      },
+      "row_index": 1,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 1,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 1,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 2,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 2,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 3,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 4,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 4,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 4,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 5,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 6,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 6,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 7,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "van": {
+          "boxes": [
+            null,
+            null,
+            null
+          ],
+          "color": {
+            "label": "Blue",
+            "red": 50,
+            "green": 50,
+            "blue": 255,
+            "color_index": 3
+          },
+          "is_done": false
+        }
+      },
+      "row_index": 7,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 7,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "block": {
+          "label": "Blue",
+          "red": 50,
+          "green": 50,
+          "blue": 255,
+          "color_index": 3
+        }
+      },
+      "row_index": 8,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 8,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Blue",
+          "red": 50,
+          "green": 50,
+          "blue": 255,
+          "color_index": 3
+        },
+        "is_filled": false
+      },
+      "row_index": 8,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 8,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0
+      },
+      "row_index": 9,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 10,
+      "col_index": 10
+    }
+  ],
+  "tick": 0,
+  "vans": [
+    {
+      "boxes": [
+        null,
+        null,
+        null
+      ],
+      "color": {
+        "label": "Red",
+        "red": 255,
+        "green": 0,
+        "blue": 0,
+        "color_index": 1
+      },
+      "is_done": false
+    }
+  ]
+}
+"#;
+#[allow(dead_code)]
         pub (crate) const TEST_DATA_CALGARY_N1: &str = r#"
                 {
   "width": 11,
@@ -2921,6 +4865,1864 @@ for json_file in LEVEL_DIR.glob('*.json'):
       "col_index": 10
     }
   ]
+}
+"#;
+#[allow(dead_code)]
+        pub (crate) const TEST_DATA_DALLAS_C10: &str = r#"
+                {
+  "width": 11,
+  "height": 11,
+  "cells": [
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        },
+        "is_filled": false
+      },
+      "row_index": 0,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Green",
+          "red": 0,
+          "green": 255,
+          "blue": 0,
+          "color_index": 4
+        },
+        "is_filled": false
+      },
+      "row_index": 0,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 0,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 1,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 1,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 1,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 2,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 2,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 2,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 2,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 2,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 3,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 3,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 3,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 3,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 3,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "van": {
+          "boxes": [
+            null,
+            null,
+            null
+          ],
+          "color": {
+            "label": "Red",
+            "red": 255,
+            "green": 0,
+            "blue": 0,
+            "color_index": 1
+          },
+          "is_done": false
+        }
+      },
+      "row_index": 4,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "block": {
+          "label": "Yellow",
+          "red": 255,
+          "green": 255,
+          "blue": 0,
+          "color_index": 2
+        }
+      },
+      "row_index": 4,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 4,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "block": {
+          "label": "Red",
+          "red": 255,
+          "green": 0,
+          "blue": 0,
+          "color_index": 1
+        }
+      },
+      "row_index": 5,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 5,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 5,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 5,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 5,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 5,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 6,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 6,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileWarehouse",
+        "color": {
+          "label": "Yellow",
+          "red": 255,
+          "green": 255,
+          "blue": 0,
+          "color_index": 2
+        },
+        "is_filled": false
+      },
+      "row_index": 6,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 6,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 6,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 6,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 6,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "van": {
+          "boxes": [
+            null,
+            null,
+            null
+          ],
+          "color": {
+            "label": "Green",
+            "red": 0,
+            "green": 255,
+            "blue": 0,
+            "color_index": 4
+          },
+          "is_done": false
+        }
+      },
+      "row_index": 7,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "block": {
+          "label": "Green",
+          "red": 0,
+          "green": 255,
+          "blue": 0,
+          "color_index": 4
+        }
+      },
+      "row_index": 7,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 7,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "van": {
+          "boxes": [
+            null,
+            null,
+            null
+          ],
+          "color": {
+            "label": "Yellow",
+            "red": 255,
+            "green": 255,
+            "blue": 0,
+            "color_index": 2
+          },
+          "is_done": false
+        }
+      },
+      "row_index": 7,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 8,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 8,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 8,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 8,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 8,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 8,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 9,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 9,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 9,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 9,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "Empty"
+      },
+      "row_index": 9,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 9,
+      "col_index": 10
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 0
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 1
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 2
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 3
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 4
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 5
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 6
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 7
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 8
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 9
+    },
+    {
+      "tile": {
+        "type": "TileRoad",
+        "used_mask": 0,
+        "used_van_index": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "used_tick": [
+          null,
+          null,
+          null,
+          null
+        ]
+      },
+      "row_index": 10,
+      "col_index": 10
+    }
+  ],
+  "tick": 0,
+  "vans": []
 }
 "#;
 #[allow(dead_code)]
@@ -6929,4 +10731,26 @@ for json_file in LEVEL_DIR.glob('*.json'):
     }
 
 
+    #[test]
+    fn test_dallas_10() {
+        //
+        let universe_data: UniverseData = serde_json::from_str(TEST_DATA_DALLAS_C10).unwrap();
+
+        let mut universe = Universe::new(universe_data.width, universe_data.height);
+
+        universe.data = universe_data;
+
+        universe.init_calculate();
+
+        for i in 0..150000 {
+            let cd = universe.process_queue_item();
+            assert!(cd.is_some(), "Failed after {}", i);
+
+            if universe.success.is_some() {
+                break;
+            }
+        }
+
+        assert!(universe.success.is_some());
+    }
 }

@@ -8,6 +8,7 @@ use std::collections::vec_deque::VecDeque;
 //use crate::solver::utils::*;
 use super::utils;
 use crate::solver::struct_defs::TileEnum::TileRoad;
+use crate::solver::utils::set_panic_hook;
 
 #[wasm_bindgen]
     pub fn get_colors() -> JsValue {
@@ -105,6 +106,9 @@ impl Universe {
     }
 
     pub fn init_calculate(&mut self) {
+
+        set_panic_hook();
+
         self.seen = HashSet::new();
         self.queue = VecDeque::new();
 
@@ -135,6 +139,19 @@ impl Universe {
     pub fn next_calculate(&mut self) -> JsValue {
         let v = self.process_queue_item();
         JsValue::from_serde(&v).unwrap()
+    }
+
+    pub fn next_batch_calculate(&mut self, repeat_count: usize) -> JsValue {
+
+        for _i in 0..repeat_count {
+            self.process_queue_item();
+            if self.success.is_some() {
+                return JsValue::from_serde(&self.success).unwrap()
+            }
+        }
+
+        return self.next_calculate();
+
     }
 
 

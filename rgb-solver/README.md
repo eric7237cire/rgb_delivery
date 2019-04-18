@@ -67,3 +67,7 @@ cargo test --target x86_64-pc-windows-msvc  -- --nocapture
 
 ## tests in watch mode
 cargo watch -x "test --target x86_64-pc-windows-msvc --lib -- --nocapture"
+
+
+## Cog with WSL
+python3 -m cogapp -r "/mnt/e/git/rgb_delivery/rgb-solver/src/solver/tests.rs"
