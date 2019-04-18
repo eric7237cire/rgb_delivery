@@ -51,3 +51,19 @@ wasm-pack publish
   for logging panic messages to the developer console.
 * [`wee_alloc`](https://github.com/rustwasm/wee_alloc), an allocator optimized
   for small code size.
+
+
+
+
+Cargo watch wasm-pack:
+https://github.com/rustwasm/wasm-pack/issues/457
+
+cargo install cargo-watch
+# in rgb-solver
+cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition -w .
+
+# Running tests
+cargo test --target x86_64-pc-windows-msvc
+
+## tests in watch mode
+cargo watch -x "test --target x86_64-pc-windows-msvc"

@@ -44,12 +44,3 @@ https://github.com/rustwasm/rust-webpack-template/issues/43#issuecomment-4265971
 Get typings for serde:
 https://github.com/tcr/wasm-typescript-definition
 
-
-
-Cargo watch wasm-pack:
-https://github.com/rustwasm/wasm-pack/issues/457
-
-cargo install cargo-watch
-# in rgb-solver
-cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition -w .
-

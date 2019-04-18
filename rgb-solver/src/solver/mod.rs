@@ -7,3 +7,4 @@ pub mod public_func;
 
 pub(crate) mod utils;
 pub(crate) mod universe_impl;
+pub(crate) mod tests;
