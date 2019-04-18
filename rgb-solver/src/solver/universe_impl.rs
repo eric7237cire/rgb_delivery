@@ -6,7 +6,7 @@ use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse};
 
 //use crate::solver::utils::VAN_LABEL;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 enum Directions {
     NORTH = 1,
     EAST = 2,
@@ -302,7 +302,7 @@ impl Universe {
             let mut any_moved = false;
 
             for adj_square_index in adj_square_indexes.iter().enumerate().filter_map(
-                |(adj_square_index, &(_dir, adj_cell_index))| {
+                |(adj_square_index, &AdjSquareInfo{cell_index: adj_cell_index, ..})| {
                     if let TileRoad(..) = &cur_state.cells[adj_cell_index].tile {
 
                         //Check each van that has already moved.  The ones that have yet to move don't need to be checked
@@ -343,19 +343,26 @@ impl Universe {
 
                 //add van to next square
 
-                let moving_to_cell_index =adj_info.ce1;
-
+                let moving_to_cell_index =adj_info.cell_index;
                 {
                     let van = &mut next_state.vans[next_state.current_van_index];
                     van.cell_index = moving_to_cell_index;
                     van.tick += 1;
 
                     //keep a history
-                    next_state.cells[moving_to_cell_index].tile.mut_road().van = Some(van.clone());
+                    let next_road =next_state.cells[moving_to_cell_index].tile.mut_road();
+                    next_road.van = Some(van.clone());
+
+                    //we cant do a U turn
+                    next_road.used_mask |= adj_info.direction.opposite() as u8;
+
+                    let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
+
+                    next_road.used_van_index[opp_dir_index] = Some(cur_state.current_van_index);
+                    next_road.used_tick[opp_dir_index] = Some( cur_state.tick );
                 }
 
-                //we cant do a U turn
-                next_state.cells[moving_to_cell_index].tile.mut_road().used_mask |= adj_info.0.opposite() as u8;
+
 
                 self.queue.push_back(next_state);
                 any_moved = true;

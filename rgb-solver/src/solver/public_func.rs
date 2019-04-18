@@ -116,7 +116,7 @@ impl Universe {
                 None
             }
         }) {
-            road.used_colors = Default::default();
+            road.used_van_index = Default::default();
             road.used_mask = Default::default();
         }
 

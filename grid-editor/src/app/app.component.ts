@@ -77,7 +77,7 @@ export class AppComponent implements OnInit {
 
   wasm: typeof import('../../../rgb-solver/pkg');
 
-  numCalcSteps=7;
+  numCalcSteps=700;
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
@@ -182,7 +182,7 @@ export class AppComponent implements OnInit {
     this.updateDim();
 
 
-    //this.nextCalculateStep(this.numCalcSteps);
+    this.nextCalculateStep(this.numCalcSteps);
 
   }
 
@@ -367,6 +367,11 @@ export class AppComponent implements OnInit {
 
       this.universeData = data;
     }
+
+    //strip out empty cells
+    this.universeData.cells  = this.universeData.cells.filter(
+      cell => cell.tile.type != "Empty"
+    ) ;
 
     console.log("After calculations", this.universeData);
   }
