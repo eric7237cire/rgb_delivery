@@ -60,6 +60,9 @@ impl From<VanIndex> for usize {
 pub struct Button  {
     pub is_pressed: bool,
     pub color: ColorIndex,
+
+    //set by the init calc
+    #[serde(skip)]
     pub cell_index: CellIndex,
 
     #[serde(skip)]
@@ -106,6 +109,8 @@ pub struct Bridge {
 
     pub color: ColorIndex,
 
+    //set by init calc
+    #[serde(skip)]
     pub cell_index: CellIndex
 }
 

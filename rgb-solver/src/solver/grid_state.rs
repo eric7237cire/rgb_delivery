@@ -54,7 +54,7 @@ impl GridState {
             if !self.current_van().is_done {
                 return Ok(());
             } else {
-                log_trace!("Van #{}: {:?} is done, skipping", self.current_van_index);
+                log_trace!("Van #{:?}: {:?} is done, skipping", self.current_van_index, self.vans[self.current_van_index.0]);
             }
         }
 
@@ -101,16 +101,14 @@ impl GridState {
     pub(crate) fn pick_up_block_if_exists(&mut self) {
 
 
-        log_trace!("Processing van at {}, {}.  Van: {:?}",
-             cur_row_index, cur_col_index,
-             cur_road.van);
+        log_trace!("pick_up_block_if_exists");
 
         //pick up a block if it exists.  Note a van can pick up a box of any color
         if let Some(block_color) = self.get_current_block_on_road() {
-            log_trace!("Rolled on a block of color {:?}", block);
+            log_trace!("Rolled on a block of color {:?}", block_color);
 
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
-                log_trace!("Van picked up a block of color {:?}", block);
+                log_trace!("Van picked up a block of color {:?}", block_color);
                 self.vans[self.current_van_index.0].boxes[i] = Some(block_color);
                 self.current_cell_mut().mut_road().block = None;
             }
@@ -218,7 +216,7 @@ impl GridState {
 
         if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
             if *forced_dir_index != direction_index {
-                 log_trace!("Not in the forced direction {:?}", direction);
+                 log_trace!("Not in the forced direction {:?}", direction_index);
                 return None;
             }
         }
@@ -238,7 +236,7 @@ impl GridState {
                     self.vans.iter().take(self.current_van_index.0-1).any(
                         |other_van| adj_cell_index == other_van.cell_index)
                 {
-                    log_trace!("Another van is there {:?}", direction);
+                    log_trace!("Another van is there {:?}", direction_index);
                     None
                 } else {
                     //no van, so we are good
@@ -246,14 +244,14 @@ impl GridState {
                 }
             },
             _ => {
-                log_trace!("Rejecting direction {:?}, not a road or bridge", direction);
+                log_trace!("Rejecting direction {:?}, not a road or bridge", direction_index);
                 None
             }
         }
     }
 
     pub(crate) fn handle_move(
-        &mut self, next_state: &mut GridState, 
+        &mut self,
         van_cell_index: CellIndex, 
         adj_info: &AdjSquareInfo) {
         //now we have checked it is a road without a van in it, the mask is ok, etc.
@@ -267,6 +265,7 @@ impl GridState {
             TileRoad( current_tile_road ) => 
             {
                 assert!(current_tile_road.van_snapshot.is_some());
+                assert_eq!(current_tile_road.used_mask & adj_info.direction as u8, 0);
 
                 current_tile_road.van_snapshot = None;
                 current_tile_road.used_mask |= adj_info.direction as u8;
@@ -299,16 +298,16 @@ impl GridState {
         let moving_to_cell_index =adj_info.cell_index;
 
         {
-            let van = next_state.current_van_mut();
+            let van = self.current_van_mut();
             van.cell_index = moving_to_cell_index;
             van.tick += 1;
         }
 
-        match &mut next_state.tiles[van_cell_index.0] {
+        match &mut self.tiles[moving_to_cell_index.0] {
             TileRoad( next_road ) => 
             {
                 //keep a history
-                next_road.van_snapshot = Some(next_state.vans[next_state.current_van_index.0].clone());
+                next_road.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
 
                 //we cant do a U turn
                 next_road.used_mask |= adj_info.direction.opposite() as u8;
@@ -324,10 +323,10 @@ impl GridState {
                 assert!(next_bridge.used_van_index.is_none());
                 assert!(next_bridge.used_tick.is_none());
 
-                next_bridge.van_snapshot = Some(next_state.vans[next_state.current_van_index.0].clone());
+                next_bridge.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
 
                 //we cant do a U turn
-                next_bridge.used_van_index = Some(next_state.current_van_index);
+                next_bridge.used_van_index = Some(self.current_van_index);
 
                 next_bridge.used_tick = Some( self.tick );
             },

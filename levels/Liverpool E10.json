@@ -265,7 +265,7 @@
       "type": "TileBridge",
       "used_van_index": null,
       "used_tick": null,
-      "is_open": true,
+      "is_up": true,
       "color": 5
     },
     {
@@ -287,7 +287,7 @@
       "type": "TileBridge",
       "used_van_index": null,
       "used_tick": null,
-      "is_open": false,
+      "is_up": false,
       "color": 5
     },
     {

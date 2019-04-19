@@ -10,7 +10,9 @@ const EMPTY_GRID_STATE: GridState = {
   vans: [],
   tiles: [],
   tick: -1,
-  warehouses_remaining: 0
+  warehouses_remaining: 0,
+  bridges: [],
+  buttons: []
 };
 
 @Injectable({

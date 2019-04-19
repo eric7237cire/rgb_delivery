@@ -508,7 +508,7 @@ export class AppComponent implements OnInit {
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
 
-              is_open: this.selectedIsOpenOrUp,
+              is_up: this.selectedIsOpenOrUp,
               color: this.selectedColor.color_index
 
             }

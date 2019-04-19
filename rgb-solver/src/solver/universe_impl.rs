@@ -222,7 +222,10 @@ impl Universe {
 
             self.iter_count += 1;
 
-            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
+            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
+                self.iter_count, self.queue.len(), cur_state.current_van_index,
+                cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
+            );
 
             if self.iter_count % 500 == 0 {
                  log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
@@ -264,6 +267,8 @@ impl Universe {
 
             let cur_used_mask = cur_state.get_cur_used_mask();
 
+            log_trace!("Current used mask: {:#07b}", cur_used_mask);
+
             //now attempt to move 
 
             //Where could we move?  (looks at mask & grid)
@@ -275,19 +280,19 @@ impl Universe {
 
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
-            let adj_info_filted_list : Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
+            let adj_info_filtered_list : Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
                 |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt, a_info)).collect();
 
-            for adj_info in adj_info_filted_list.iter() {
+            log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
+
+            for adj_info in adj_info_filtered_list.into_iter() {
 
                 //now we have checked it is a road without a van in it, the mask is ok, etc.
 
                 //make the move
                 let mut next_state = cur_state.clone();
 
-                log_trace!("Moving to actual road {:?}", adj_info);
-
-                cur_state.handle_move(&mut next_state, van_cell_index, adj_info);
+                next_state.handle_move(van_cell_index, adj_info);
 
                 self.queue.push_back(next_state);
                 any_moved = true;
@@ -295,9 +300,8 @@ impl Universe {
 
             //we are stuck, nothing else will be queued at this point
             if !any_moved {
-                 log_trace!("NO MOVES {}, {}.  Van: {:?}",
-                     cur_row_index, cur_col_index,
-                     cur_road.van);
+                 log_trace!("NO MOVES  Van: {:?}",                     
+                     cur_state.current_van_index);
                 continue;
             }
 
