@@ -217,9 +217,7 @@ fn derive_field_str(field: &ast::Field) -> String {
 }
 
 
-fn derive_element(_variant_idx: usize, _element_idx: usize, field: &ast::Field) -> quote::Tokens {
-    let (ty, _is_opt) = type_to_ts(&field.ty);
-    quote!{
-        #ty
-    }
+fn derive_element_str(field: &ast::Field) -> String {
+    let (ty, _is_opt) = type_to_ts_string(&field.ty);
+    ty
 }

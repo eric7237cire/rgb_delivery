@@ -66,11 +66,13 @@
         "serve": {
           "builder": "@angular-builders/dev-server:generic",
           "options": {
-            "browserTarget": "grid-editor:build"
+            "browserTarget": "grid-editor:build",
+            "host": "0.0.0.0"
           },
           "configurations": {
             "production": {
-              "browserTarget": "grid-editor:build:production"
+              "browserTarget": "grid-editor:build:production",
+
             }
           }
         },

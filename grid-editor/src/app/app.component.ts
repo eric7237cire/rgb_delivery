@@ -8,8 +8,8 @@ import {
   TileEnum_type,
   TileRoad,
   Universe,
-  UniverseData,
-  Van
+  GridState,
+  Van, ColorIndex
 } from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
@@ -101,7 +101,7 @@ export class AppComponent implements OnInit {
 
   universe: Universe = null;
 
-  universeData: UniverseData = null;
+  universeData: GridState = null;
 
   selectedColor = this.colors[0];
   selectedThing: Thing = "Van";
@@ -122,7 +122,45 @@ export class AppComponent implements OnInit {
   }
 
   setGridSquare(cellData: CellData) {
-    this.universe.set_square(cellData);
+
+    //Correct colors
+    if (cellData.tile.type == "TileRoad") {
+      if (!_.isNil(cellData.tile.block) && !_.isNumber(cellData.tile.block)) {
+        //assume its a color
+        cellData.tile.block = (<Color><any> cellData.tile.block ).color_index;
+      }
+
+      if (!_.isNil(cellData.tile.van) ) {
+
+        if ( !_.isNumber(cellData.tile.van.color)) {
+          //assume its a color
+          cellData.tile.van.color = (<Color><any> cellData.tile.van.color ).color_index;
+        }
+
+        cellData.tile.van.boxes.map(box => {
+          if (_.isNil(box) || _.isNumber(box)) {
+            return box;
+          } else {
+            //assume its a color
+            (<Color><any> box ).color_index;
+          }
+
+
+
+        });
+      }
+    } else if (cellData.tile.type == "TileWarehouse") {
+      if (!_.isNil(cellData.tile.color) && !_.isNumber(cellData.tile.color)) {
+        //assume its a color
+        cellData.tile.color = (<Color><any> cellData.tile.color ).color_index;
+      }
+    }
+
+    try {
+      this.universe.set_square(cellData);
+    } catch (e) {
+      console.log("Error with", cellData);
+    }
 
 
   }
@@ -140,7 +178,7 @@ export class AppComponent implements OnInit {
     reader.onload = () => {
       let fileTextData: string = reader.result as string;
 
-      let data: UniverseData = JSON.parse(fileTextData);
+      let data: GridState = JSON.parse(fileTextData);
 
       this.num_rows = data.height;
       this.num_cols = data.width;
@@ -172,7 +210,7 @@ export class AppComponent implements OnInit {
     this.loadGridJsonData(savedData);
   }
 
-  loadGridJsonData(jsonData: UniverseData) {
+  loadGridJsonData(jsonData: GridState) {
 
     console.log("Loading json data", jsonData);
 
@@ -312,6 +350,9 @@ export class AppComponent implements OnInit {
     }
     return `rgb(${c.red}, ${c.green}, ${c.blue})`;
   }
+  getCssForColorIndex(ci: ColorIndex) {
+    return this.getCssForColor(this.colors[ci]);
+  }
 
   handleMouseMove(moveEvent: MouseEvent) {
     const rect = (<any>moveEvent.target).getBoundingClientRect();
@@ -349,10 +390,10 @@ export class AppComponent implements OnInit {
 
           switch (this.selectedThing) {
             case "Van":
-              tile.van = {boxes: [null, null, null], color: this.selectedColor, is_done: false};
+              tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false};
               break;
             case "Block":
-              tile.block = this.selectedColor;
+              tile.block = this.selectedColor.color_index;
               break;
             case "Clear":
               tile.block = null;
@@ -386,7 +427,7 @@ export class AppComponent implements OnInit {
           this.setGridSquare({
             row_index, col_index, "tile": {
               type: this.selectedTile,
-              color: this.selectedColor,
+              color: this.selectedColor.color_index,
               is_filled: false
             }
           });
@@ -419,7 +460,7 @@ export class AppComponent implements OnInit {
     switch (cell.tile.type) {
       case "TileWarehouse":
         let w = cell.tile;
-        return this.getCssForColor(w.color);
+        return this.getCssForColorIndex(w.color);
 
       case "Empty":
         return "rgb(100,100,100)";
@@ -453,7 +494,7 @@ export class AppComponent implements OnInit {
       return this.DEFAULT_DM_COLOR;
     }
 
-    return this.getCssForColor(this.universeData.vans[van_index].color);
+    return this.getCssForColorIndex(this.universeData.vans[van_index].color);
   }
 
   getDirectionMarkerAnnotation(cell: CellData, dm: DirectionMarker) : string {
@@ -474,7 +515,7 @@ export class AppComponent implements OnInit {
   initCalculations() {
     this.universe.init_calculate();
 
-    let data: UniverseData = this.universe.get_data();
+    let data: GridState = this.universe.get_data();
 
     this.universeData = data;
   }

@@ -1,11 +1,11 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::struct_defs::Color;
+use crate::solver::struct_defs::{ ColorIndex};
 
 #[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Van {
-    pub boxes: [Option<Color>; 3],
-    pub color: Color,
+    pub boxes: [Option<ColorIndex>; 3],
+    pub color: ColorIndex,
     pub is_done: bool,
 
     #[serde(skip)]
@@ -16,13 +16,13 @@ pub struct Van {
 
 
 impl Van {
-    pub(crate) fn get_top_box(&self) -> &Option<Color> {
+    pub(crate) fn get_top_box(&self) -> Option<ColorIndex> {
         for i in (0..=2).rev() {
             if !self.boxes[i].is_none() {
-                return &self.boxes[i];
+                return self.boxes[i];
             }
         }
-        return &None;
+        return None;
     }
 
     pub(crate) fn clear_top_box(&mut self) {

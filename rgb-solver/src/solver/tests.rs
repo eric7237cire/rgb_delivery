@@ -10696,7 +10696,8 @@ for json_file in LEVEL_DIR.glob('*.json'):
 "#;
 // --[[[end]]]
     }
-    use crate::solver::struct_defs::{UniverseData, Universe};
+    use crate::solver::struct_defs::{ Universe};
+    use crate::solver::grid_state:: {GridState};
     use self::test_data::*;
     use serde_json;
 
@@ -10710,7 +10711,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 
     #[test]
     fn test_easy1() {
-        let universe_data: UniverseData = serde_json::from_str(TEST_DATA_EASY1).unwrap();
+        let universe_data: GridState = serde_json::from_str(TEST_DATA_EASY1).unwrap();
 
         let mut universe = Universe::new(universe_data.width, universe_data.height);
 
@@ -10731,10 +10732,10 @@ for json_file in LEVEL_DIR.glob('*.json'):
     }
 
 
-    #[test]
+    //#[test]
     fn test_dallas_10() {
         //
-        let universe_data: UniverseData = serde_json::from_str(TEST_DATA_DALLAS_C10).unwrap();
+        let universe_data: GridState = serde_json::from_str(TEST_DATA_DALLAS_C10).unwrap();
 
         let mut universe = Universe::new(universe_data.width, universe_data.height);
 

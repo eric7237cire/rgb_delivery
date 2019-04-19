@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {UniverseData} from "rgb-solver";
+import {GridState} from "rgb-solver";
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +12,7 @@ export class GridStorageService {
 
   }
 
-  public storeGrid(data: UniverseData) {
+  public storeGrid(data: GridState) {
 
 
     // Put the object into storage
@@ -20,7 +20,7 @@ export class GridStorageService {
 
   }
 
-  public loadGrid() : UniverseData {
+  public loadGrid() : GridState {
     // Retrieve the object from storage
     var retrievedObject = localStorage.getItem(this.STORAGE_KEY);
 

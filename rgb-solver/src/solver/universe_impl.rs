@@ -24,12 +24,13 @@ use crate::solver::struct_defs::Directions::*;
 
 use crate::solver::struct_defs::Warehouse;
 use crate::solver::van::Van;
+use crate::solver::grid_state::{GridState, CanDropOff};
 
 const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];
 
 
 impl TileEnum {
-    fn mut_warehouse(&mut self) -> &mut Warehouse {
+    pub(crate) fn mut_warehouse(&mut self) -> &mut Warehouse {
         match self {
             TileWarehouse(inner) => {
                 return inner;
@@ -37,7 +38,7 @@ impl TileEnum {
             _ => panic!()
         }
     }
-    fn mut_road(&mut self) -> &mut Road {
+    pub(crate) fn mut_road(&mut self) -> &mut Road {
         match self {
             TileRoad(inner_road) => {
                 return inner_road;
@@ -45,7 +46,7 @@ impl TileEnum {
             _ => panic!()
         }
     }
-    fn road(&self) -> &Road {
+    pub(crate) fn road(&self) -> &Road {
         match self {
             TileRoad(inner_road) => {
                 return inner_road;
@@ -108,24 +109,7 @@ impl Universe {
         }).collect()
     }
 
-    ///
-    /// Returns the color_index
-    fn empty_warehouse_color(&self, cur_row_index: usize, cur_col_index: usize, cur_state: &UniverseData) -> Option<usize> {
-        if cur_row_index == 0 {
-            return None;
-        }
 
-        let north_tile = &cur_state.cells[(cur_row_index - 1) * self.data.width + cur_col_index].tile;
-        if let TileWarehouse(Warehouse { color: warehouse_color, is_filled }) = north_tile {
-            if *is_filled {
-                return None;
-            } else {
-                return Some(warehouse_color.color_index);
-            }
-        }
-
-        None
-    }
 
     pub(crate) fn initial_van_list(&self) -> Vec<Van> {
 
@@ -154,34 +138,17 @@ impl Universe {
     }
 
 
-    pub(crate) fn process_queue_item(&mut self) -> &Option<UniverseData> {
+    pub(crate) fn process_queue_item(&mut self) -> &Option<GridState> {
 
         if self.success.is_some() {
             return &self.success;
         }
-
-        'main_queue_loop:
-            while let Some(mut cur_state) = self.queue.pop_front() {
+        while let Some(mut cur_state) = self.queue.pop_front() {
 
             self.current_calc_state = Some(cur_state.clone());
 
-            //Have we seen this node yet?  Probably not needed
-            /*if self.seen.contains(&cur_state) {
-                log!("Already seen");
-                continue;
-            }
-
-            self.seen.insert(cur_state.clone());*/
-
             //change current_van_index in one place
-            if cur_state.current_van_index == cur_state.vans.len() - 1 {
-                log_trace!("Advancing a tick {} => {}", cur_state.tick, cur_state.tick + 1);
-                //let mut next_state = cur_state.clone();
-                cur_state.tick += 1;
-                cur_state.current_van_index = 0;
-            } else {
-                cur_state.current_van_index += 1;
-            }
+            cur_state.increment_current_van_index();
 
             self.iter_count += 1;
 
@@ -192,20 +159,14 @@ impl Universe {
             }
 
             //check success, where all warehouses are filled
-            if cur_state.cells.iter().all(|cell| {
-                match cell.tile {
-                    TileWarehouse(Warehouse { is_filled, .. }) => {
-                        is_filled
-                    }
-                    _ => true
-                }
-            }) {
+            if cur_state.check_success() {
                 log!("Success!");
                 self.success = Some(cur_state);
                 return &self.success;
             }
 
 
+            //TODO what if all vans are done?
             if cur_state.vans[cur_state.current_van_index].is_done {
                 log_trace!("Van #{}: {:?} is done, skipping", cur_state.current_van_index,
                 cur_state.vans[cur_state.current_van_index]);
@@ -223,69 +184,20 @@ impl Universe {
                 (c.row_index, c.col_index)
             };
 
-            {
-                let cur_road = cur_state.cells[van_cell_index].tile.mut_road();
-
-                log_trace!("Processing van at {}, {}.  Van: {:?}",
-                     cur_row_index, cur_col_index,
-                     cur_road.van);
-
-                //pick up a block if it exists.  Note a van can pick up a box of any color
-                if let Some(block) = &cur_road.block {
-                    log_trace!("Rolled on a block of color {:?}", block);
-                    if let Some(i) = cur_state.vans[cur_state.current_van_index].get_empty_slot() {
-                        log_trace!("Rolled on a block of color {:?}", block);
-                        cur_state.vans[cur_state.current_van_index].boxes[i] = Some(block.clone());
-                        cur_road.block = None;
-                    }
-                }
-            }
+            cur_state.pick_up_block_if_exists();
 
             //check if we can drop a block off
-            if let Some(warehouse_color_index) = self.empty_warehouse_color(cur_row_index, cur_col_index, &cur_state) {
-                let mut able_to_drop_off = false;
-
-
-                //drop off block at warehouse
-                let top_block_color_index =
-                    {
-                        if let Some(color) = cur_state.vans[cur_state.current_van_index].get_top_box() {
-                            color.color_index
-                        } else {
-                            100
-                        }
-                    };
-
-                if top_block_color_index == warehouse_color_index && (
-                    cur_state.vans[cur_state.current_van_index].color.color_index == 0
-                || cur_state.vans[cur_state.current_van_index].color.color_index == warehouse_color_index)
-                {
-
-                    //pop the box
-                    cur_state.vans[cur_state.current_van_index].clear_top_box();
-
-
-                    //set warehouse to filled
-                    {
-                        cur_state.cells[van_cell_index - self.data.width].tile.mut_warehouse().is_filled = true;
-                    }
-
-
+            match cur_state.can_drop_off_block() {
+                Err(_) => continue,
+                Ok(CanDropOff::YesOK) => {
                     //test what happens if we stop
                     let mut if_van_stops_state = cur_state.clone();
                     if_van_stops_state.vans[if_van_stops_state.current_van_index].is_done = true;
                     self.queue.push_back(if_van_stops_state);
 
-                    able_to_drop_off = true;
-                }
-
-
-                //we failed
-                if !able_to_drop_off {
-                    continue 'main_queue_loop;
-                }
-            }
-
+                },
+                _ => ()
+            };
 
             let cur_road = cur_state.cells[van_cell_index].tile.road();
 

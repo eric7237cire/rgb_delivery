@@ -1,9 +1,9 @@
-use quote;
+use ::{quote, type_to_ts_string};
 use serde_derive_internals::{ast, attr};
 use type_to_ts;
 use collapse_list_bracket;
 
-use super::{derive_element, derive_field_str};
+use super::{derive_element_str, derive_field_str};
 
 pub fn derive_struct(
     style: ast::Style,
@@ -12,24 +12,27 @@ pub fn derive_struct(
 ) -> String {
     let tokens = match style {
         ast::Style::Struct => derive_struct_named_fields(fields, attr_container),
-        ast::Style::Newtype => derive_struct_newtype(fields, attr_container).to_string(),
-        ast::Style::Tuple => derive_struct_tuple(fields, attr_container).to_string(),
+        ast::Style::Newtype => {
+            //assume its one field, create direct alias
+            return format!( "export type {} = {};", attr_container.name().serialize_name(),
+                         type_to_ts_string(&fields[0].ty).0);
+
+        },
+        ast::Style::Tuple => {
+
+            derive_struct_tuple(fields, attr_container).to_string()
+
+        },
         ast::Style::Unit => derive_struct_unit(attr_container).to_string(),
     };
 
 
-   format!( "export type {} = {{ {} }};", attr_container.name().serialize_name(), tokens)
+   format!( "//derive struct 3\nexport type {} = {{ {} }};", attr_container.name().serialize_name(), tokens)
 
 
 
 }
 
-fn derive_struct_newtype<'a>(
-    fields: Vec<ast::Field<'a>>,
-    _attr_container: &attr::Container,
-) -> quote::Tokens {
-    derive_element(0, 0, &fields[0])
-}
 
 fn derive_struct_unit(_attr_container: &attr::Container) -> quote::Tokens {
     quote!{

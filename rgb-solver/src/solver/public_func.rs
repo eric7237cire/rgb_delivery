@@ -1,14 +1,11 @@
 use wasm_bindgen::prelude::*;
 
-
-
 use crate::solver::struct_defs::*;
-use std::collections::HashSet;
 use std::collections::vec_deque::VecDeque;
-//use crate::solver::utils::*;
 use super::utils;
 use crate::solver::struct_defs::TileEnum::TileRoad;
 use crate::solver::utils::set_panic_hook;
+use crate::solver::grid_state::GridState;
 
 #[wasm_bindgen]
     pub fn get_colors() -> JsValue {
@@ -20,10 +17,10 @@ use crate::solver::utils::set_panic_hook;
 
 pub(crate) fn build_color_list() -> [Color; 5] {
     let mut color_list = [
-                Color{ label: "White".to_string(), red: 230, green: 230, blue: 230, ..Default::default()},
-                Color{ label: "Red".to_string(), red: 255, green: 0, blue: 0, ..Default::default()},
-                Color{ label: "Yellow".to_string(), red: 255, green: 255, blue: 0, ..Default::default()},
-                Color{ label: "Blue".to_string(), red: 50, green: 50, blue: 255, ..Default::default()},
+        Color{ label: "White".to_string(), red: 230, green: 230, blue: 230, ..Default::default()},
+        Color{ label: "Red".to_string(), red: 255, green: 0, blue: 0, ..Default::default()},
+        Color{ label: "Yellow".to_string(), red: 255, green: 255, blue: 0, ..Default::default()},
+        Color{ label: "Blue".to_string(), red: 50, green: 50, blue: 255, ..Default::default()},
         Color{ label: "Green".to_string(), red: 0, green: 255, blue: 0, ..Default::default()},
 
 /*
@@ -33,7 +30,7 @@ pub(crate) fn build_color_list() -> [Color; 5] {
                 ];
 
     for (idx, c) in color_list.iter_mut().enumerate() {
-        c.color_index = idx;
+        c.color_index = ColorIndex(idx);
     }
 
     color_list
@@ -77,7 +74,7 @@ impl Universe {
             van: Some( Van{ boxes: [None, Some(cl[0].clone()), Some(cl[3].clone())] } ) } );*/
 
         Universe {
-            data: UniverseData {
+            data: GridState {
                 width,
                 height,
                 cells,
@@ -109,7 +106,7 @@ impl Universe {
 
         set_panic_hook();
 
-        self.seen = HashSet::new();
+
         self.queue = VecDeque::new();
 
         self.iter_count = 0;

@@ -2,6 +2,7 @@
 #[macro_use]
 pub mod macros;
 pub mod struct_defs;
+pub mod grid_state;
 pub mod van;
 pub mod public_func;
 

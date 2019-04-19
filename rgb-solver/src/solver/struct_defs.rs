@@ -1,9 +1,10 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use std::collections::HashSet;
+
 use std::collections::vec_deque::VecDeque;
 
 use super::van::Van;
+use crate::solver::grid_state::GridState;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
@@ -12,9 +13,17 @@ pub struct Color {
     pub green: u8,
     pub blue: u8,
 
-    pub color_index: usize,
+    pub color_index: ColorIndex,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
+pub struct ColorIndex(pub usize);
+
+impl ColorIndex {
+    pub fn is_white(&self) -> bool {
+        return self.0 == 0
+    }
+}
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Road {
@@ -28,7 +37,7 @@ pub struct Road {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "block")]
-    pub block: Option<Color>,
+    pub block: Option<ColorIndex>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub van: Option<Van>,
@@ -36,7 +45,7 @@ pub struct Road {
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Warehouse {
-    pub color: Color,
+    pub color: ColorIndex,
     pub is_filled: bool
 }
 
@@ -73,37 +82,19 @@ pub struct ChoiceOverride {
     pub tick: Option<usize>
 }
 
-#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Eq, PartialEq)]
-pub struct UniverseData {
-    pub width: usize,
-    pub height: usize,
-
-    pub cells: Vec<CellData>,
-
-    //Js=>Rust will ignore this
-    #[serde(skip_deserializing)]
-    pub(crate) tick: usize,
-
-    #[serde(skip_deserializing)]
-    pub(crate) vans: Vec<Van>,
-    #[serde(skip)]
-    pub(crate) current_van_index: usize
-
-}
 
 #[cfg_attr( not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
 pub struct Universe {
-    pub(crate) data: UniverseData,
+    pub(crate) data: GridState,
 
     pub(crate) choice_override_list: Vec<ChoiceOverride>,
 
     //below are used for calculating
-    pub(crate) seen:  HashSet<UniverseData>,
-    pub(crate) queue: VecDeque<UniverseData>,
+    pub(crate) queue: VecDeque<GridState>,
 
-    pub(crate) success: Option<UniverseData>,
-    pub(crate) current_calc_state: Option<UniverseData>,
+    pub(crate) success: Option<GridState>,
+    pub(crate) current_calc_state: Option<GridState>,
     pub(crate) iter_count: usize
 }
 

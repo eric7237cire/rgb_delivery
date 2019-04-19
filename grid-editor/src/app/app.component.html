@@ -107,12 +107,12 @@
 
     <text *ngIf="cell.tile.van" [attr.x]="cell.col_index * GRID_SIZE + 5" [attr.y]="cell.row_index * GRID_SIZE + 35"
           (click)="handleClickSvgText()"
-          [attr.fill]="getCssForColor(cell.tile.van.color)"
+          [attr.fill]="getCssForColorIndex(cell.tile.van.color)"
           class="van_text">V</text>
 
     <text *ngIf="cell.tile.block" [attr.x]="cell.col_index * GRID_SIZE + 7" [attr.y]="cell.row_index * GRID_SIZE + 35"
           (click)="handleClickSvgText()"
-          [attr.fill]="getCssForColor(cell.tile.block)"
+          [attr.fill]="getCssForColorIndex(cell.tile.block)"
           class="van_text">B</text>
 
   </ng-container>

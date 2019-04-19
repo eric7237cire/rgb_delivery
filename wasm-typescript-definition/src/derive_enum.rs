@@ -2,7 +2,7 @@ use ::{quote, derive_field_str};
 use serde_derive_internals::{ast, attr};
 use ::{collapse_list_bracket, type_to_ts_string};
 
-use super::{derive_element};
+use super::{derive_element_str};
 
 pub fn derive_enum(
     variants: Vec<ast::Variant>,
@@ -29,7 +29,10 @@ pub fn derive_enum(
                     derive_struct_variant(&variant_name,  &variant.fields).to_string()
                 }
                 ast::Style::Newtype => derive_new_type_variant(&variant_name, variant_idx, &variant.fields).to_string(),
-                ast::Style::Tuple => derive_tuple_variant(&variant_name, variant_idx, &variant.fields).to_string(),
+                ast::Style::Tuple => {
+                    format!("Todo enum tuple")
+                    //derive_tuple_variant(&variant_name, variant_idx, &variant.fields).to_string()
+                },
                 ast::Style::Unit => derive_unit_variant(&variant_name),
             }
         }).collect::<Vec<String>>().join("\n");
@@ -76,6 +79,7 @@ fn derive_struct_variant<'a>(
     format!("export type {0} = {{type: \"{0}\", {1}}};", variant_name, contents)
 }
 
+/*
 fn derive_tuple_variant<'a>(
     variant_name: &str,
     _variant_idx: usize,
@@ -88,3 +92,4 @@ fn derive_tuple_variant<'a>(
         | {"tag": #variant_name, "fields": #contents, }
     }
 }
+*/
