@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::struct_defs::{CellData, Warehouse, ColorIndex, VanIndex};
+use crate::solver::struct_defs::{ Warehouse, ColorIndex, VanIndex,TileEnum};
 use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::TileWarehouse;
 
@@ -9,7 +9,7 @@ pub struct GridState {
     pub width: usize,
     pub height: usize,
 
-    pub cells: Vec<CellData>,
+    pub tiles: Vec<TileEnum>,
 
     //Js=>Rust will ignore this
     #[serde(skip_deserializing)]
@@ -17,6 +17,10 @@ pub struct GridState {
 
     #[serde(skip_deserializing)]
     pub(crate) vans: Vec<Van>,
+
+    #[serde(skip_deserializing)]
+    pub(crate) warehouses_remaining: usize,
+
     #[serde(skip)]
     pub(crate) current_van_index: VanIndex,
 }
@@ -52,24 +56,27 @@ impl GridState {
     }
 
     pub(crate) fn check_success(&self) -> bool {
-        self.cells.iter().all(|cell| {
-            match cell.tile {
+
+        self.warehouses_remaining == 0
+
+        /*self.tiles.iter().all(|tile| {
+            match tile {
                 TileWarehouse(Warehouse { is_filled, .. }) => {
-                    is_filled
+                    *is_filled
                 }
                 _ => true
             }
-        })
+        })*/
     }
 
     pub(crate) fn current_cell_index(&self) -> usize {
         self.vans[self.current_van_index.0].cell_index
     }
-    pub(crate) fn current_cell_mut(&mut self) -> &mut CellData {
-        &mut self.cells[ self.vans[self.current_van_index.0].cell_index ]
+    pub(crate) fn current_cell_mut(&mut self) -> &mut TileEnum {
+        &mut self.tiles[ self.vans[self.current_van_index.0].cell_index ]
     }
-    pub(crate) fn current_cell(&self) -> &CellData {
-        &self.cells[ self.vans[self.current_van_index.0].cell_index ]
+    pub(crate) fn current_cell(&self) -> &TileEnum {
+        &self.tiles[ self.vans[self.current_van_index.0].cell_index ]
     }
 
     pub(crate) fn current_van(&self) -> &Van {
@@ -82,7 +89,7 @@ impl GridState {
     }
 
     fn get_current_block_on_road(&self) -> Option<ColorIndex> {
-        self.current_cell().tile.road().block
+        self.current_cell().road().block
     }
 
     pub(crate) fn pick_up_block_if_exists(&mut self) {
@@ -99,7 +106,7 @@ impl GridState {
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
                 log_trace!("Van picked up a block of color {:?}", block);
                 self.vans[self.current_van_index.0].boxes[i] = Some(block_color);
-                self.current_cell_mut().tile.mut_road().block = None;
+                self.current_cell_mut().mut_road().block = None;
             }
         }
     }
@@ -113,7 +120,7 @@ impl GridState {
             return None;
         }
 
-        let north_tile = &self.cells[current_cell_index - self.width].tile;
+        let north_tile = &self.tiles[current_cell_index - self.width];
         if let TileWarehouse(Warehouse { color: warehouse_color, is_filled }) = north_tile {
             if *is_filled {
                 return None;
@@ -152,7 +159,7 @@ impl GridState {
                 //set warehouse to filled
                 {
                     let north_index = self.current_cell_index() - self.width;
-                    self.cells[ north_index ].tile.mut_warehouse().is_filled = true;
+                    self.tiles[ north_index ].mut_warehouse().is_filled = true;
                 }
 
                 able_to_drop_off = true;

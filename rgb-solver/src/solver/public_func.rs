@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use crate::solver::struct_defs::*;
 use std::collections::vec_deque::VecDeque;
 use super::utils;
-use crate::solver::struct_defs::TileEnum::TileRoad;
+use crate::solver::struct_defs::TileEnum::{TileRoad,TileWarehouse};
 use crate::solver::utils::set_panic_hook;
 use crate::solver::grid_state::GridState;
 
@@ -56,13 +56,9 @@ impl Universe {
         let height = h;
 
 
-        let cells: Vec<CellData> = (0..width * height)
-            .map(|idx| {
-                CellData {
-                    row_index: idx / width,
-                    col_index: idx % width,
-                    ..Default::default()
-                }
+        let tiles: Vec<TileEnum> = (0..width * height)
+            .map(|_| {
+                TileEnum::Empty
             })
             .collect();
 
@@ -78,7 +74,7 @@ impl Universe {
             data: GridState {
                 width,
                 height,
-                cells,
+                tiles,
                 ..Default::default()
             },
             ..Default::default()
@@ -115,13 +111,22 @@ impl Universe {
         self.success = None;
 
         self.data.vans = self.initial_van_list();
+
+        self.data.warehouses_remaining = self.data.tiles.iter().filter( |t| {
+            if let TileWarehouse(_) = t {
+                true
+            } else {
+                false 
+            }
+        }).count();
+
         //we increment on pop, so...
         self.data.current_van_index = VanIndex( self.initial_van_list().len() - 1 );
 
 
         //reset road history
-        for road in self.data.cells.iter_mut().filter_map( |c| {
-            if let TileRoad(road) = &mut c.tile {
+        for road in self.data.tiles.iter_mut().filter_map( |t| {
+            if let TileRoad(road) = t {
                 Some(road)
             } else {
                 None
@@ -160,9 +165,9 @@ impl Universe {
 
 
     pub fn set_square(&mut self, tile_val: &JsValue) {
-        let tile: CellData = tile_val.into_serde().unwrap();
+        let cell: CellData = tile_val.into_serde().unwrap();
 
-        let idx: usize = tile.row_index * self.data.width + tile.col_index;
+        let idx: usize = cell.row_index * self.data.width + cell.col_index;
 
         /*log!(
             "Received Row/Col [{}, {}] = idx [{}].  Tile {:?}",
@@ -172,8 +177,8 @@ impl Universe {
             tile
         );*/
 
-        if idx < self.data.cells.len() {
-            self.data.cells[idx] = tile;
+        if idx < self.data.tiles.len() {
+            self.data.tiles[idx] = cell.tile;
         } else {
             log!(
                 "Out of bounds, ignoring"

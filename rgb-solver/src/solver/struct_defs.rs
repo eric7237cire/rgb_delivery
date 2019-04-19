@@ -78,7 +78,9 @@ pub struct Bridge {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub van: Option<Van>,
 
-    pub is_open: bool
+    pub is_open: bool,
+
+    pub color: ColorIndex
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]

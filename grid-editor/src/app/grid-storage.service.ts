@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {GridState} from "rgb-solver";
+import * as _ from "lodash";
 
 @Injectable({
   providedIn: 'root'
@@ -20,20 +21,26 @@ export class GridStorageService {
 
   }
 
-  public loadGrid() : GridState {
+  public loadGrid(): GridState | null {
     // Retrieve the object from storage
-    var retrievedObject = localStorage.getItem(this.STORAGE_KEY);
+    const retrievedObject = localStorage.getItem(this.STORAGE_KEY);
 
-    let obj = null;
+    if (_.isNil(retrievedObject)) {
+      console.log("local storage is empty");
+      return null;
+    }
+
     try {
-      obj = JSON.parse(retrievedObject);
-    } catch(e) {
+      const obj = JSON.parse(retrievedObject);
+      console.log("Loaded", obj);
+
+      return obj;
+    } catch (e) {
       console.log("Unable to load", e);
     }
 
-    console.log("Loaded",obj);
+    return null;
 
-    return obj;
   }
 
 

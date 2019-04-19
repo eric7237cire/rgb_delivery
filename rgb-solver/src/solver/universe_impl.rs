@@ -114,12 +114,9 @@ impl Universe {
     pub(crate) fn initial_van_list(&self) -> Vec<Van> {
 
 
-        self.data.cells.iter().enumerate().filter_map(|(cell_index, cell)| {
-            let cell_index_check = cell.row_index * self.data.width + cell.col_index;
-
-            assert_eq!(cell_index, cell_index_check);
-
-            if let TileRoad(road) = &cell.tile {
+        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
+           
+            if let TileRoad(road) = &tile {
                 if let Some(van) = &road.van {
 
                     //found a van
@@ -175,11 +172,7 @@ impl Universe {
 
             let van_cell_index = cur_state.vans[cur_state.current_van_index.0].cell_index;
 
-            let (cur_row_index, cur_col_index) = {
-                let c = &cur_state.cells[van_cell_index];
-
-                (c.row_index, c.col_index)
-            };
+            let (cur_row_index, cur_col_index) = ( van_cell_index / self.data.width, van_cell_index % self.data.width );
 
             cur_state.pick_up_block_if_exists();
 
@@ -190,6 +183,9 @@ impl Universe {
                     Ok(CanDropOff::YesOK) => {
 
                         assert!(cur_state.empty_warehouse_color().is_none());
+                        assert!(cur_state.warehouses_remaining > 0);
+
+                        cur_state.warehouses_remaining -= 1;
 
                         //test what happens if we stop
                         let mut if_van_stops_state = cur_state.clone();
@@ -200,7 +196,7 @@ impl Universe {
                 };
             }
 
-            let cur_road = cur_state.cells[van_cell_index].tile.road();
+            let cur_road = cur_state.tiles[van_cell_index].road();
 
             //now attempt to move 
 
@@ -235,7 +231,7 @@ impl Universe {
                         }
                     }
 
-                    if let TileRoad(..) = &cur_state.cells[adj_cell_index].tile {
+                    if let TileRoad(..) = &cur_state.tiles[adj_cell_index] {
 
                         //Check each van that has already moved.  The ones that have yet to move don't need to be checked
                         if cur_state.current_van_index.0 > 0 &&
@@ -269,7 +265,7 @@ impl Universe {
 
                 //remove van & set used mask
                 {
-                    let current_tile_road = next_state.cells[van_cell_index].tile.mut_road();
+                    let current_tile_road = next_state.tiles[van_cell_index].mut_road();
                     current_tile_road.van = None;
                     current_tile_road.used_mask |= adj_info.direction as u8;
                     current_tile_road.used_tick[adj_info.direction_index] = Some(cur_state.tick);
@@ -290,7 +286,7 @@ impl Universe {
                 }
                 {
                     //keep a history
-                    let next_road =next_state.cells[moving_to_cell_index].tile.mut_road();
+                    let next_road =next_state.tiles[moving_to_cell_index].mut_road();
                     next_road.van = Some(next_state.vans[next_state.current_van_index.0].clone());
 
                     //we cant do a U turn
