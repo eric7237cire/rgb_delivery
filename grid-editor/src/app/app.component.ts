@@ -156,7 +156,7 @@ export class AppComponent implements OnInit {
     const savedData = this.gridStorageService.loadGrid();
 
     if (!_.isNil(savedData)) {
-      console.log("Loading saved grid", savedData);
+      console.log("Loading saved grid from local storage", savedData);
       this.gridStateService.loadGridState(savedData, this.wasm);
       this.numRows = savedData.height;
       this.numCols = savedData.width;
@@ -263,14 +263,19 @@ export class AppComponent implements OnInit {
     reader.onload = () => {
       const fileTextData: string = reader.result as string;
 
-      const data: GridState = JSON.parse(fileTextData);
+      const savedData: GridState = JSON.parse(fileTextData);
 
-      this.numRows = data.height;
-      this.numCols = data.width;
+      //convert cells to tiles
+      if (_.isArray( (savedData as any).cells )) {
+        savedData.tiles = ( (savedData as any).cells as Array<CellData> ).map(c => c.tile);
+      }
 
-      this.gridStorageService.storeGrid(data);
+      console.log("Loading saved grid from File", savedData);
+      this.gridStateService.loadGridState(savedData, this.wasm);
+      this.numRows = savedData.height;
+      this.numCols = savedData.width;
 
-      this.loadGridJsonData(data);
+
     };
 
 
@@ -304,7 +309,7 @@ export class AppComponent implements OnInit {
     this.gridStateService.loadGridState(jsonData, this.wasm);
 
 
-    this.initCalculations();
+
 
   }
 
@@ -604,7 +609,13 @@ export class AppComponent implements OnInit {
   nextCalculateStep(numStepsParam: number) {
     const numSteps = _.toNumber(numStepsParam);
 
-    this.gridStateService.gridState$.next(this.gridStateService.universe.next_batch_calculate(numSteps));
+    const gs = this.gridStateService.universe.next_batch_calculate(numSteps);
+
+    if (_.isNil(gs)) {
+      console.log("Null grid state after batch");
+    } else {
+      this.gridStateService.gridState$.next(gs);
+    }
 
 
   }

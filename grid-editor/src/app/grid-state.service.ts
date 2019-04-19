@@ -45,6 +45,12 @@ export class GridStateService {
     return this.gridState$.getValue();
   }
 
+  /**
+   * Loads from local storage / file.
+   *
+   * Not for calculations
+   *
+   */
   loadGridState(jsonData: GridState, wasm: WASM_TYPE) {
     console.log("Loading json data", jsonData);
 
@@ -63,6 +69,8 @@ export class GridStateService {
       });
     }
 
+    this.universe.init_calculate();
+
     //get correct form back from wasm
     this.reloadGridData();
   }
@@ -70,8 +78,16 @@ export class GridStateService {
 
 
   reloadGridData() {
-      this.gridState$.next(this.universe.get_data() );
+    const data = this.universe.get_data();
+
+    if (_.isNil(data)) {
+      console.log("Data is null");
+    } else {
+
+      this.gridState$.next(data);
+
     }
+  }
 
   /**
    * Cleans data (colors), then transfers to WASM

@@ -26,6 +26,23 @@ impl ColorIndex {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
+pub struct CellIndex(pub usize);
+
+impl From<usize> for CellIndex {
+    fn from(index: usize) -> Self {
+        CellIndex(index)
+    }
+}
+
+impl CellIndex {
+    pub(crate) fn to_row_col(&self, width: usize) -> (usize,usize) {
+        ( self.0 / width,
+            self.0 % width )
+    }
+}
+
+//If 3 vats, indexes will be 0,1,2
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct VanIndex(pub usize);
 
 impl From<usize> for VanIndex {
@@ -42,7 +59,11 @@ impl From<VanIndex> for usize {
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Button  {
     pub is_pressed: bool,
-    pub color: ColorIndex
+    pub color: ColorIndex,
+    pub cell_index: CellIndex,
+
+    #[serde(skip)]
+    pub(crate) was_pressed_this_tick: bool
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -60,15 +81,18 @@ pub struct Road {
     pub block: Option<ColorIndex>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub van: Option<Van>,
+    #[serde(rename = "van")]
+    pub van_snapshot: Option<Van>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub button: Option<Button>
+    #[serde(rename = "button")]
+    pub button_snapshot: Option<Button>
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Bridge {
 
+    //once van leaves, is set to the van that used this bridge
     #[serde(default)]
     pub used_van_index: Option<VanIndex>,
 
@@ -76,11 +100,13 @@ pub struct Bridge {
     pub used_tick: Option<usize>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub van: Option<Van>,
+    pub van_snapshot: Option<Van>,
 
-    pub is_open: bool,
+    pub is_up: bool,
 
-    pub color: ColorIndex
+    pub color: ColorIndex,
+
+    pub cell_index: CellIndex
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -151,6 +177,6 @@ pub(crate) enum Directions {
 #[derive(Debug)]
 pub(crate) struct AdjSquareInfo {
     pub(crate) direction: Directions,
-    pub(crate) cell_index: usize,
+    pub(crate) cell_index: CellIndex,
     pub(crate) direction_index: usize
 }

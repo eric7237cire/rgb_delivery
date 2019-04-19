@@ -1,6 +1,6 @@
 use crate::solver::struct_defs::*;
 
-use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse};
+use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse, TileBridge};
 
 //use crate::solver::public_func::build_color_list;
 
@@ -9,7 +9,7 @@ use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse};
 
 
 impl Directions {
-    fn opposite(&self) -> Directions {
+    pub(crate) fn opposite(&self) -> Directions {
         match self {
             NORTH => SOUTH,
             EAST => WEST,
@@ -26,7 +26,7 @@ use crate::solver::struct_defs::Warehouse;
 use crate::solver::van::Van;
 use crate::solver::grid_state::{GridState, CanDropOff};
 
-const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];
+pub (crate) const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];
 
 
 impl TileEnum {
@@ -58,10 +58,12 @@ impl TileEnum {
 
 
 impl Universe {
-    fn get_adjacent_square_indexes(&self, cell_index: usize,
+
+    /// Gets adj indexes, checking grid limits
+    fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
                                    used_dir_mask: u8) -> Vec<AdjSquareInfo> {
-        let cell_row_index: usize = cell_index / self.data.width;
-        let cell_col_index: usize = cell_index % self.data.width;
+        let cell_row_index: usize = cell_index.0 / self.data.width;
+        let cell_col_index: usize = cell_index.0 % self.data.width;
 
         ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index,dir)| {
 
@@ -75,40 +77,68 @@ impl Universe {
                     if cell_row_index == 0 {
                         None
                     } else {
-                        Some(cell_index - self.data.width)
+                        Some(cell_index.0 - self.data.width)
                     }
                 }
                 SOUTH => {
                     if cell_row_index >= self.data.height-1 {
                         None
                     } else {
-                        Some(cell_index + self.data.width)
+                        Some(cell_index.0 + self.data.width)
                     }
                 }
                 EAST => {
                     if cell_col_index >= self.data.width-1 {
                         None
                     } else {
-                        Some(cell_index + 1)
+                        Some(cell_index.0 + 1)
                     }
                 }
                 WEST => {
                     if cell_col_index == 0 {
                         None
                     } else {
-                        Some(cell_index - 1)
+                        Some(cell_index.0 - 1)
                     }
                 }
             };
 
             if let Some(adj_index) = adj_index {
-                Some(AdjSquareInfo{direction:*dir, cell_index: adj_index, direction_index: dir_index})
+                Some(AdjSquareInfo{direction:*dir, cell_index: adj_index.into(), direction_index: dir_index})
             } else {
                 None
             }
         }).collect()
     }
 
+    /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
+    /// same cell 2x
+    fn get_fixed_choice(&self, cur_state: &GridState) -> Option<ChoiceOverride> {
+
+        let (cur_row_index, cur_col_index) = cur_state.current_cell_index().to_row_col(cur_state.width);
+
+        let o = self.choice_override_list.iter().find( |co| {
+
+            if let Some(forced_tick) = co.tick {
+                if forced_tick != cur_state.tick {
+                    return false;
+                }
+            }
+
+            co.van_index == cur_state.current_van_index
+                && cur_row_index == co.row_index
+                && cur_col_index == co.col_index
+            }
+
+            
+        );
+
+        if let Some(o) = o {
+            Some(o.clone())
+        } else {
+            None
+        }
+    }
 
 
     pub(crate) fn initial_van_list(&self) -> Vec<Van> {
@@ -117,14 +147,47 @@ impl Universe {
         self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
            
             if let TileRoad(road) = &tile {
-                if let Some(van) = &road.van {
+                if let Some(van) = &road.van_snapshot {
 
                     //found a van
                     let mut m_van = van.clone();
                     m_van.tick = 0;
                     m_van.is_done = false;
-                    m_van.cell_index = cell_index;
+                    m_van.cell_index = cell_index.into();
                     Some(m_van)
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        }).collect()
+    }
+
+    pub(crate) fn initial_bridge_list(&self) -> Vec<Bridge> {
+       self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
+
+            if let TileBridge(bridge) = &tile {
+                let mut m_bridge = bridge.clone();
+                m_bridge.cell_index = cell_index.into();
+                Some(m_bridge)
+            } else {
+                None
+            }
+        }).collect()
+    }
+
+    pub(crate) fn initial_button_list(&self) -> Vec<Button> {
+       self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
+
+            if let TileRoad(road) = &tile {
+                if let Some(button) = &road.button_snapshot {
+
+                    //found a van
+                    let mut m_button = button.clone();
+                    m_button.cell_index = cell_index.into();
+                    m_button.was_pressed_this_tick = false;
+                    Some(m_button)
                 } else {
                     None
                 }
@@ -172,9 +235,11 @@ impl Universe {
 
             let van_cell_index = cur_state.vans[cur_state.current_van_index.0].cell_index;
 
-            let (cur_row_index, cur_col_index) = ( van_cell_index / self.data.width, van_cell_index % self.data.width );
+            //let (cur_row_index, cur_col_index) = van_cell_index.to_row_col(self.data.width);
 
             cur_state.pick_up_block_if_exists();
+
+            cur_state.press_button_if_exists();
 
             //check if we can drop a block off
             if cur_state.empty_warehouse_color().is_some() {
@@ -196,109 +261,33 @@ impl Universe {
                 };
             }
 
-            let cur_road = cur_state.tiles[van_cell_index].road();
+
+            let cur_used_mask = cur_state.get_cur_used_mask();
 
             //now attempt to move 
 
             //Where could we move?  (looks at mask & grid)
             let adj_square_indexes = self.get_adjacent_square_indexes(
-                van_cell_index, cur_road.used_mask);
+                van_cell_index, cur_used_mask);
 
             log_trace!("Adj squares: {:?}", adj_square_indexes);
             let mut any_moved = false;
 
-            let fixed_choice_opt = self.choice_override_list.iter().find( |co| {
+            let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
-                if let Some(forced_tick) = co.tick {
-                    if forced_tick != cur_state.tick {
-                        return false;
-                    }
-                }
+            let adj_info_filted_list : Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
+                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt, a_info)).collect();
 
-                co.van_index == cur_state.current_van_index
-                    && cur_row_index == co.row_index
-                    && cur_col_index == co.col_index
-                }
-            );
-
-            for adj_square_index in adj_square_indexes.iter().enumerate().filter_map(
-                |(adj_square_index, &AdjSquareInfo{cell_index: adj_cell_index, direction_index,..})| {
-
-                    if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
-                        if *forced_dir_index != direction_index {
-                             log_trace!("Not in the forced direction {:?}", direction);
-                            return None;
-                        }
-                    }
-
-                    if let TileRoad(..) = &cur_state.tiles[adj_cell_index] {
-
-                        //Check each van that has already moved.  The ones that have yet to move don't need to be checked
-                        if cur_state.current_van_index.0 > 0 &&
-                            cur_state.vans.iter().take(cur_state.current_van_index.0-1).any(
-                                |other_van| adj_cell_index == other_van.cell_index)
-                        {
-                            log_trace!("Another van is there {:?}", direction);
-                            None
-                        } else {
-                            //no van
-                            Some(adj_square_index)
-                        }
-                    } else {
-                        log_trace!("Rejecting direction {:?}, not a road", direction);
-                        None
-                    }
-                }) {
-
-
+            for adj_info in adj_info_filted_list.iter() {
 
                 //now we have checked it is a road without a van in it, the mask is ok, etc.
-
-
 
                 //make the move
                 let mut next_state = cur_state.clone();
 
-                let adj_info = &adj_square_indexes[adj_square_index];
-
                 log_trace!("Moving to actual road {:?}", adj_info);
 
-                //remove van & set used mask
-                {
-                    let current_tile_road = next_state.tiles[van_cell_index].mut_road();
-                    current_tile_road.van = None;
-                    current_tile_road.used_mask |= adj_info.direction as u8;
-                    current_tile_road.used_tick[adj_info.direction_index] = Some(cur_state.tick);
-                    current_tile_road.used_van_index[adj_info.direction_index] = Some(cur_state.current_van_index);
-
-                }
-
-
-                //add van to next square
-
-                let moving_to_cell_index =adj_info.cell_index;
-
-                {
-                        let van = next_state.current_van_mut();
-                    van.cell_index = moving_to_cell_index;
-                    van.tick += 1;
-                    
-                }
-                {
-                    //keep a history
-                    let next_road =next_state.tiles[moving_to_cell_index].mut_road();
-                    next_road.van = Some(next_state.vans[next_state.current_van_index.0].clone());
-
-                    //we cant do a U turn
-                    next_road.used_mask |= adj_info.direction.opposite() as u8;
-
-                    let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
-
-                    next_road.used_van_index[opp_dir_index] = Some(cur_state.current_van_index);
-                    next_road.used_tick[opp_dir_index] = Some( cur_state.tick );
-                }
-
-
+                cur_state.handle_move(&mut next_state, van_cell_index, adj_info);
 
                 self.queue.push_back(next_state);
                 any_moved = true;

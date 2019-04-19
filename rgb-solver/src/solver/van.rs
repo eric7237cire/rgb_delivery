@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::struct_defs::{ ColorIndex};
+use crate::solver::struct_defs::{ColorIndex, CellIndex};
 
 #[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Van {
@@ -11,7 +11,7 @@ pub struct Van {
     #[serde(skip)]
     pub(crate) tick: usize,
     #[serde(skip)]
-    pub(crate) cell_index: usize
+    pub(crate) cell_index: CellIndex 
 }
 
 

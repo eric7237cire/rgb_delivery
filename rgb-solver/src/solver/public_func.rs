@@ -111,6 +111,8 @@ impl Universe {
         self.success = None;
 
         self.data.vans = self.initial_van_list();
+        self.data.buttons = self.initial_button_list();
+        self.data.bridges = self.initial_bridge_list();
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter( |t| {
             if let TileWarehouse(_) = t {

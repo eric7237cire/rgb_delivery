@@ -1,8 +1,9 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::struct_defs::{ Warehouse, ColorIndex, VanIndex,TileEnum};
+use crate::solver::struct_defs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
 use crate::solver::van::Van;
-use crate::solver::struct_defs::TileEnum::TileWarehouse;
+use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
+use crate::solver::universe_impl::ALL_DIRECTIONS;
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Eq, PartialEq)]
 pub struct GridState {
@@ -17,6 +18,11 @@ pub struct GridState {
 
     #[serde(skip_deserializing)]
     pub(crate) vans: Vec<Van>,
+
+    //What the bridges will be after the current time tick
+    #[serde(skip_deserializing)]
+    pub(crate) bridges: Vec<Bridge>,
+    pub(crate) buttons: Vec<Button>,
 
     #[serde(skip_deserializing)]
     pub(crate) warehouses_remaining: usize,
@@ -69,14 +75,14 @@ impl GridState {
         })*/
     }
 
-    pub(crate) fn current_cell_index(&self) -> usize {
+    pub(crate) fn current_cell_index(&self) -> CellIndex {
         self.vans[self.current_van_index.0].cell_index
     }
     pub(crate) fn current_cell_mut(&mut self) -> &mut TileEnum {
-        &mut self.tiles[ self.vans[self.current_van_index.0].cell_index ]
+        &mut self.tiles[ self.vans[self.current_van_index.0].cell_index.0 ]
     }
     pub(crate) fn current_cell(&self) -> &TileEnum {
-        &self.tiles[ self.vans[self.current_van_index.0].cell_index ]
+        &self.tiles[ self.vans[self.current_van_index.0].cell_index.0 ]
     }
 
     pub(crate) fn current_van(&self) -> &Van {
@@ -111,16 +117,30 @@ impl GridState {
         }
     }
 
+    pub(crate) fn press_button_if_exists(&mut self) {
+
+        if let Road{ button_snapshot: Some(button), ..} = self.current_cell_mut().mut_road()
+        {
+            log_trace!("Van on a button {:?}", button);
+            if !button.is_pressed  {                
+
+                assert!(!button.was_pressed_this_tick);
+
+                button.was_pressed_this_tick = true;
+            }
+        }
+    }
+
     ///
     pub(crate) fn empty_warehouse_color(&self) -> Option<ColorIndex> {
         let current_cell_index = self.current_cell_index();
 
         //on first row
-        if current_cell_index < self.width {
+        if current_cell_index.0 < self.width {
             return None;
         }
 
-        let north_tile = &self.tiles[current_cell_index - self.width];
+        let north_tile = &self.tiles[current_cell_index.0 - self.width];
         if let TileWarehouse(Warehouse { color: warehouse_color, is_filled }) = north_tile {
             if *is_filled {
                 return None;
@@ -158,7 +178,7 @@ impl GridState {
 
                 //set warehouse to filled
                 {
-                    let north_index = self.current_cell_index() - self.width;
+                    let north_index = self.current_cell_index().0 - self.width;
                     self.tiles[ north_index ].mut_warehouse().is_filled = true;
                 }
 
@@ -177,4 +197,146 @@ impl GridState {
             Ok(CanDropOff::NoOk)
         }
     }
+
+    pub (crate) fn get_cur_used_mask(&self) -> u8 {
+        match self.tiles[self.current_cell_index().0] {
+            TileRoad( Road{ used_mask, .. } ) => used_mask,
+            TileBridge( Bridge{ used_van_index, .. } ) => if used_van_index.is_some() { (1 << 4) - 1} else {0},
+            _ => panic!("Van not on road or bridge")
+        }
+    }
+
+    pub (crate) fn filter_map_by_can_have_van<'a>(
+        &self,
+        fixed_choice_opt: &Option<ChoiceOverride>,
+        adj_square_info: &'a AdjSquareInfo) -> Option<&'a AdjSquareInfo> 
+        
+    {
+
+        let direction_index = adj_square_info.direction_index;
+        let adj_cell_index = adj_square_info.cell_index;
+
+        if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
+            if *forced_dir_index != direction_index {
+                 log_trace!("Not in the forced direction {:?}", direction);
+                return None;
+            }
+        }
+
+        //for bridges, also need to check if its up
+        if let TileBridge( Bridge {is_up, ..}) = &self.tiles[adj_cell_index.0] {
+            if *is_up {
+                return None;
+            }
+        }
+
+        match &self.tiles[adj_cell_index.0] {
+            TileRoad(..) | TileBridge(..) => {
+
+                //Check each van that has already moved.  The ones that have yet to move don't need to be checked
+                if self.current_van_index.0 > 0 &&
+                    self.vans.iter().take(self.current_van_index.0-1).any(
+                        |other_van| adj_cell_index == other_van.cell_index)
+                {
+                    log_trace!("Another van is there {:?}", direction);
+                    None
+                } else {
+                    //no van, so we are good
+                    Some(adj_square_info)
+                }
+            },
+            _ => {
+                log_trace!("Rejecting direction {:?}, not a road or bridge", direction);
+                None
+            }
+        }
+    }
+
+    pub(crate) fn handle_move(
+        &mut self, next_state: &mut GridState, 
+        van_cell_index: CellIndex, 
+        adj_info: &AdjSquareInfo) {
+        //now we have checked it is a road without a van in it, the mask is ok, etc.
+
+
+
+        log_trace!("Moving to actual road {:?}", adj_info);
+
+        //remove van & set used mask
+        match &mut self.tiles[van_cell_index.0] {
+            TileRoad( current_tile_road ) => 
+            {
+                assert!(current_tile_road.van_snapshot.is_some());
+
+                current_tile_road.van_snapshot = None;
+                current_tile_road.used_mask |= adj_info.direction as u8;
+                current_tile_road.used_tick[adj_info.direction_index] = Some(self.tick);
+                current_tile_road.used_van_index[adj_info.direction_index] = Some(self.current_van_index);
+
+            },
+            TileBridge(current_tile_bridge) => 
+            {
+                assert!(!current_tile_bridge.is_up);
+                
+                //These are set when moved to
+                assert_eq!(current_tile_bridge.used_van_index, Some(self.current_van_index));
+                assert_eq!(current_tile_bridge.used_tick, Some(self.tick - 1));
+
+                assert!(current_tile_bridge.van_snapshot.is_some());
+
+                //current_tile_bridge.used_van_index = Some(self.current_van_index);
+                //current_tile_bridge.used_tick = Some(self.tick);
+                current_tile_bridge.van_snapshot = None;
+            },
+            _ => {
+                panic!("Not a road or bridge");
+            }
+        }
+
+
+        //add van to next square
+
+        let moving_to_cell_index =adj_info.cell_index;
+
+        {
+            let van = next_state.current_van_mut();
+            van.cell_index = moving_to_cell_index;
+            van.tick += 1;
+        }
+
+        match &mut next_state.tiles[van_cell_index.0] {
+            TileRoad( next_road ) => 
+            {
+                //keep a history
+                next_road.van_snapshot = Some(next_state.vans[next_state.current_van_index.0].clone());
+
+                //we cant do a U turn
+                next_road.used_mask |= adj_info.direction.opposite() as u8;
+
+                let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
+
+                next_road.used_van_index[opp_dir_index] = Some(self.current_van_index);
+                next_road.used_tick[opp_dir_index] = Some( self.tick );
+            },
+            TileBridge( next_bridge) => 
+            {
+                assert!(next_bridge.van_snapshot.is_none());
+                assert!(next_bridge.used_van_index.is_none());
+                assert!(next_bridge.used_tick.is_none());
+
+                next_bridge.van_snapshot = Some(next_state.vans[next_state.current_van_index.0].clone());
+
+                //we cant do a U turn
+                next_bridge.used_van_index = Some(next_state.current_van_index);
+
+                next_bridge.used_tick = Some( self.tick );
+            },
+            _ => panic!("not a road or bridge")
+        }
+    }
+
+
+
+
+
 }
