@@ -1,6 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import * as _ from "lodash";
 import {
+  Button,
   CellData,
   ChoiceOverride,
   Color,
@@ -550,6 +551,9 @@ export class AppComponent implements OnInit {
     });
   }
 
+  getCssColorForButton(button: Button) {
+    return this.getCssForColorIndex(button.color);
+  }
   getCssColorForDirectionMarker(cell: CellData, dm: DirectionMarker): string | null {
     //color of the van
 
