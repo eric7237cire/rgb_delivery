@@ -1,37 +1,40 @@
-import {Component, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import * as _ from "lodash";
 import {
   CellData,
   ChoiceOverride,
   Color,
+  ColorIndex,
+  GridState,
   TileEnum,
   TileEnum_type,
-  TileRoad,
-  Universe,
-  GridState,
-  Van, ColorIndex
+  TileRoad
 } from "../../../rgb-solver/pkg";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
+import {GridStateService} from "./grid-state.service";
 
 
 interface DirectionMarker {
-  text: string,
-  x_offset: number,
-  y_offset: number,
-  annotation_x_offset: number,
-  annotation_y_offset: number,
-  mask: number,
-  dir_index: number
+  text: string;
+  x_offset: number;
+  y_offset: number;
+  annotation_x_offset: number;
+  annotation_y_offset: number;
+  mask: number;
+  dir_index: number;
 }
 
 enum DIRECTION_INDEX {
-    NORTH=0,
-    EAST=1,
-    SOUTH=2,
-    WEST=3
+  NORTH = 0,
+  EAST = 1,
+  SOUTH = 2,
+  WEST = 3
 }
 
+const DEFAULT_DM_COLOR = "rgb(200, 200, 200)";
+
+export type WASM_TYPE = typeof import ('../../../rgb-solver/pkg');
 
 type Thing = "Van" | "Block" | "Clear";
 
@@ -48,7 +51,7 @@ export class AppComponent implements OnInit {
     //north
     {
       text: "|",
-      x_offset: this.GRID_SIZE /2 ,
+      x_offset: this.GRID_SIZE / 2,
       y_offset: this.GRID_SIZE * 0.25,
       //north west corner
       annotation_x_offset: 2,
@@ -59,10 +62,10 @@ export class AppComponent implements OnInit {
     //south
     {
       text: "|",
-      x_offset: this.GRID_SIZE /2 ,
+      x_offset: this.GRID_SIZE / 2,
       y_offset: this.GRID_SIZE * 0.8,
       //south east corner
-      annotation_x_offset: this.GRID_SIZE /2 + 5,
+      annotation_x_offset: this.GRID_SIZE / 2 + 5,
       annotation_y_offset: this.GRID_SIZE * 0.8,
       mask: 4,
       dir_index: 2
@@ -70,10 +73,10 @@ export class AppComponent implements OnInit {
     //east
     {
       text: "-",
-      x_offset: this.GRID_SIZE * 0.8 ,
+      x_offset: this.GRID_SIZE * 0.8,
       y_offset: this.GRID_SIZE * 0.5,
       //north/east corner
-      annotation_x_offset: this.GRID_SIZE * 0.8 -10 ,
+      annotation_x_offset: this.GRID_SIZE * 0.8 - 10,
       annotation_y_offset: this.GRID_SIZE * 0.25,
       mask: 2,
       dir_index: 1
@@ -81,7 +84,7 @@ export class AppComponent implements OnInit {
     //west
     {
       text: "-",
-      x_offset: this.GRID_SIZE * 0.25 ,
+      x_offset: this.GRID_SIZE * 0.25,
       y_offset: this.GRID_SIZE * 0.5,
       //south west corner
       annotation_x_offset: 2,
@@ -90,18 +93,14 @@ export class AppComponent implements OnInit {
       dir_index: 3
     },
 
-    ];
+  ];
 
-  num_cols: number = null;
-  num_rows: number = null;
+  numCols: number = 3;
+  numRows: number = 3;
 
   colors: Array<Color> = [];
 
   readonly tiles: Array<TileEnum_type> = ["TileRoad", "Empty", "TileWarehouse"];
-
-  universe: Universe = null;
-
-  universeData: GridState = null;
 
   selectedColor = this.colors[0];
   selectedThing: Thing = "Van";
@@ -111,127 +110,23 @@ export class AppComponent implements OnInit {
 
   jsonSaveAs: SafeUrl;
 
-  wasm: typeof import('../../../rgb-solver/pkg');
+  wasm: typeof import ('../../../rgb-solver/pkg');
 
-  numCalcSteps=300;
+  numCalcSteps = 300;
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
 
-  constructor(private gridStorageService: GridStorageService, private sanitizer: DomSanitizer) {
+  constructor(
+    private gridStorageService: GridStorageService,
+    private sanitizer: DomSanitizer,
+    public gridStateService: GridStateService
+  ) {
   }
 
-  setGridSquare(cellData: CellData) {
+  handleWasmLoaded(newWasm: WASM_TYPE) {
+    this.wasm = newWasm;
 
-    //Correct colors
-    if (cellData.tile.type == "TileRoad") {
-      if (!_.isNil(cellData.tile.block) && !_.isNumber(cellData.tile.block)) {
-        //assume its a color
-        cellData.tile.block = (<Color><any> cellData.tile.block ).color_index;
-      }
-
-      if (!_.isNil(cellData.tile.van) ) {
-
-        if ( !_.isNumber(cellData.tile.van.color)) {
-          //assume its a color
-          cellData.tile.van.color = (<Color><any> cellData.tile.van.color ).color_index;
-        }
-
-        cellData.tile.van.boxes.map(box => {
-          if (_.isNil(box) || _.isNumber(box)) {
-            return box;
-          } else {
-            //assume its a color
-            (<Color><any> box ).color_index;
-          }
-
-
-
-        });
-      }
-    } else if (cellData.tile.type == "TileWarehouse") {
-      if (!_.isNil(cellData.tile.color) && !_.isNumber(cellData.tile.color)) {
-        //assume its a color
-        cellData.tile.color = (<Color><any> cellData.tile.color ).color_index;
-      }
-    }
-
-    try {
-      this.universe.set_square(cellData);
-    } catch (e) {
-      console.log("Error with", cellData);
-    }
-
-
-  }
-
-  handleFileSelect(evt) {
-    const files = evt.target.files; // FileList object
-
-    // files is a FileList of File objects. List some properties.
-    var output = [];
-    let file: File = files[0];
-
-
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      let fileTextData: string = reader.result as string;
-
-      let data: GridState = JSON.parse(fileTextData);
-
-      this.num_rows = data.height;
-      this.num_cols = data.width;
-
-      this.gridStorageService.storeGrid(data);
-
-      this.loadGridJsonData(data);
-    };
-
-
-    reader.readAsText(file);
-
-
-  }
-
-  updateDim() {
-    //if (!_.isNil(changes.num_cols) || !_.isNil(changes.num_rows) ) {
-
-    let savedData = this.gridStorageService.loadGrid();
-
-    this.num_rows = _.toNumber(this.num_rows);
-    this.num_cols = _.toNumber(this.num_cols);
-
-    if (!_.isNil(savedData) && _.isArray(savedData.cells) && this.num_cols * this.num_rows == 0) {
-      this.num_rows = savedData.height;
-      this.num_cols = savedData.width;
-    }
-
-    this.loadGridJsonData(savedData);
-  }
-
-  loadGridJsonData(jsonData: GridState) {
-
-    console.log("Loading json data", jsonData);
-
-    this.universe = this.wasm.Universe.new(this.num_rows, this.num_cols);
-
-    console.log("Universe initial data", this.universe.get_data());
-
-    //Giving web assembly the loaded data
-    if (!_.isNil(jsonData) && _.isArray(jsonData.cells)) {
-      jsonData.cells.forEach((cellData: CellData) => {
-
-
-        this.setGridSquare(cellData);
-
-
-      });
-    }
-
-    console.log("My universe", this.universe.render());
-
-    this.universeData = this.universe.get_data();
     this.colors = this.wasm.get_colors();
 
 
@@ -245,67 +140,156 @@ export class AppComponent implements OnInit {
     console.log("Color", this.colors);
     console.log("Tiles", this.tiles);
 
+    console.log("All modules loaded");
+
+
+    //see if we have one from local storage
+    const savedData = this.gridStorageService.loadGrid();
+
+    if (!_.isNil(savedData)) {
+      this.gridStateService.loadGridState(savedData, this.wasm);
+      this.numRows = savedData.height;
+      this.numCols = savedData.width;
+
+      this.initCalculations();
+    }
+    //this.nextCalculateStep(this.numCalcSteps);
+
+    this.gridStateService.gridState$.subscribe(newVal => {
+      this.handleGridStateChanged();
+    });
+
+  }
+
+  handleGridStateChanged() {
+    console.log("Data is now", this.gridStateService.gridState);
+
+    let nonEmptyCells: Array<CellData> = [];
+    //strip out empty cells
+    if (!_.isNil(this.gridStateService.gridState)) {
+      nonEmptyCells = this.gridStateService.gridState.cells.filter(
+        cell => cell.tile.type !== "Empty"
+      );
+    }
+
+    console.log("Non empty cells", nonEmptyCells);
+
+    //Only continue processing on initial tick/load
+    if (this.gridStateService.gridState.tick > 0) {
+      return;
+    }
+
+    const overRideList: Array<ChoiceOverride> = [
+
+
+      /*
+       {
+         row_index: 6,
+         col_index: 5,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+       {
+         row_index: 4,
+         col_index: 5,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+       {
+         row_index: 2,
+         col_index: 5,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+       {
+         row_index: 2,
+         col_index: 3,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+
+
+       {
+         row_index: 8,
+         col_index: 5,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+       {
+         row_index: 6,
+         col_index: 3,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.SOUTH,
+         tick: 8
+       },*/
+    ];
+
+    this.gridStateService.universe.set_overrides(overRideList);
+
+    this.gridStorageService.storeGrid(this.gridStateService.gridState);
+
+    const theJSON = JSON.stringify(this.gridStateService.gridState, null, 2);
+    this.jsonSaveAs = this.sanitizer.bypassSecurityTrustUrl(
+      "data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
+
+
+  }
+
+
+  handleFileSelect(evt) {
+    const files = evt.target.files; // FileList object
+
+    // files is a FileList of File objects. List some properties.
+    const output = [];
+    const file: File = files[0];
+
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const fileTextData: string = reader.result as string;
+
+      const data: GridState = JSON.parse(fileTextData);
+
+      this.numRows = data.height;
+      this.numCols = data.width;
+
+      this.gridStorageService.storeGrid(data);
+
+      this.loadGridJsonData(data);
+    };
+
+
+    reader.readAsText(file);
+
+
+  }
+
+  /**
+   * From UI
+   */
+  handleWidthHeightChange() {
+
+
+    this.numRows = _.toNumber(this.numRows);
+    this.numCols = _.toNumber(this.numCols);
+
+    this.gridStateService.gridState.width = this.numCols;
+    this.gridStateService.gridState.height = this.numRows;
+
+    this.loadGridJsonData(this.gridStateService.gridState);
+  }
+
+  loadGridJsonData(jsonData: GridState) {
+
+
+    this.gridStateService.loadGridState(jsonData, this.wasm);
+
+
     this.initCalculations();
 
   }
 
-  handleWasmLoaded(mymod: typeof import('rgb-solver')) {
-    console.log("All modules loaded");
-    this.wasm = mymod;
-
-    this.updateDim();
-
-
-    let overRideList: Array<ChoiceOverride> = [
-
-
-     /*
-      {
-        row_index: 6,
-        col_index: 5,
-        van_index: 1,
-        direction_index: DIRECTION_INDEX.NORTH
-      },
-      {
-        row_index: 4,
-        col_index: 5,
-        van_index: 1,
-        direction_index: DIRECTION_INDEX.NORTH
-      },
-      {
-        row_index: 2,
-        col_index: 5,
-        van_index: 1,
-        direction_index: DIRECTION_INDEX.WEST
-      },
-      {
-        row_index: 2,
-        col_index: 3,
-        van_index: 1,
-        direction_index: DIRECTION_INDEX.NORTH
-      },
-
-
-      {
-        row_index: 8,
-        col_index: 5,
-        van_index: 0,
-        direction_index: DIRECTION_INDEX.NORTH
-      },
-      {
-        row_index: 6,
-        col_index: 3,
-        van_index: 0,
-        direction_index: DIRECTION_INDEX.SOUTH,
-        tick: 8
-      },*/
-      ];
-
-    this.universe.set_overrides(overRideList);
-
-    this.nextCalculateStep(this.numCalcSteps);
-
-  }
 
   async load() {
     this.handleWasmLoaded(await import('rgb-solver'));
@@ -317,7 +301,11 @@ export class AppComponent implements OnInit {
 
     //RustRGBProject/pkg works but not in PyCharm
 
-    this.load();
+
+    this.load().then(() => {
+      console.log("Load done");
+    });
+
     /*
     syntax when using wasm plugin
     import("../../../rgb-solver/pkg").then(module => {
@@ -346,40 +334,41 @@ export class AppComponent implements OnInit {
     }
     return `rgb(${c.red}, ${c.green}, ${c.blue})`;
   }
+
   getCssForColorIndex(ci: ColorIndex) {
     return this.getCssForColor(this.colors[ci]);
   }
 
   handleMouseMove(moveEvent: MouseEvent) {
-    const rect = (<any>moveEvent.target).getBoundingClientRect();
+    const rect = (moveEvent.target as any).getBoundingClientRect();
 
     const x = moveEvent.clientX - rect.left; //x position within the element.
     const y = moveEvent.clientY - rect.top;  //y position within the element.
 
-    const col_index = _.floor(x / this.GRID_SIZE);
-    const row_index = _.floor(y / this.GRID_SIZE);
+    const colIndex = _.floor(x / this.GRID_SIZE);
+    const rowIndex = _.floor(y / this.GRID_SIZE);
 
-    this.mouseMoveRow = row_index;
-    this.mouseMoveCol = col_index;
+    this.mouseMoveRow = rowIndex;
+    this.mouseMoveCol = colIndex;
   }
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
     console.log(clickEvent);
     console.log(clickEvent.target);
 
-    const rect = (<any>clickEvent.target).getBoundingClientRect();
+    const rect = (clickEvent.target as any).getBoundingClientRect();
 
     const x = clickEvent.clientX - rect.left; //x position within the element.
     const y = clickEvent.clientY - rect.top;  //y position within the element.
 
-    const col_index = _.floor(x / this.GRID_SIZE);
-    const row_index = _.floor(y / this.GRID_SIZE);
+    const colIndex = _.floor(x / this.GRID_SIZE);
+    const rowIndex = _.floor(y / this.GRID_SIZE);
 
-    console.log(`Clicked on row ${row_index}, col ${col_index}.  Right click? ${isRightClick}`);
+    console.log(`Clicked on row ${rowIndex}, col ${colIndex}.  Right click? ${isRightClick}`);
 
     if (isRightClick) {
-      let cellIndex = row_index * this.num_cols + col_index;
-      let tile : TileEnum = this.universeData.cells[cellIndex].tile;
+      const cellIndex = rowIndex * this.numCols + colIndex;
+      const tile: TileEnum = this.gridStateService.gridState.cells[cellIndex].tile;
 
       switch (tile.type) {
         case "TileRoad": {
@@ -392,12 +381,12 @@ export class AppComponent implements OnInit {
               tile.block = this.selectedColor.color_index;
               break;
             case "Clear":
-              tile.block = null;
-              tile.van = null;
+              delete tile.block;
+              delete tile.van;
               break;
           }
 
-          this.setGridSquare({row_index, col_index, tile});
+          this.gridStateService.setGridSquare({row_index: rowIndex, col_index: colIndex, tile});
           break;
         }
         default: {
@@ -409,19 +398,23 @@ export class AppComponent implements OnInit {
     } else {
       switch (this.selectedTile) {
         case "Empty":
-          this.setGridSquare({row_index, col_index, "tile": {type: this.selectedTile}});
+          this.gridStateService.setGridSquare({
+            row_index: rowIndex,
+            col_index: colIndex,
+            tile: {type: this.selectedTile}
+          });
           break;
         case "TileRoad":
-          this.setGridSquare({
-            row_index, col_index, "tile": {
+          this.gridStateService.setGridSquare({
+            row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               used_mask: 0,
             }
           });
           break;
         case "TileWarehouse":
-          this.setGridSquare({
-            row_index, col_index, "tile": {
+          this.gridStateService.setGridSquare({
+            row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               color: this.selectedColor.color_index,
               is_filled: false
@@ -431,16 +424,6 @@ export class AppComponent implements OnInit {
       }
       //this.universe.set_square(rowIndex, colIndex, this.selectedColor, this.selectedTile);
     }
-
-    this.universeData = this.universe.get_data();
-
-    console.log("Data is now", this.universeData);
-
-    this.gridStorageService.storeGrid(this.universeData);
-
-    var theJSON = JSON.stringify(this.universeData, null, 2);
-    this.jsonSaveAs = this.sanitizer.bypassSecurityTrustUrl(
-      "data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
 
 
     return false;
@@ -455,7 +438,7 @@ export class AppComponent implements OnInit {
   getCellColor(cell: CellData): string {
     switch (cell.tile.type) {
       case "TileWarehouse":
-        let w = cell.tile;
+        const w = cell.tile;
         return this.getCssForColorIndex(w.color);
 
       case "Empty":
@@ -467,40 +450,50 @@ export class AppComponent implements OnInit {
 
   }
 
-  isDirectionMarkerVisible(cell: CellData, dm: DirectionMarker) : boolean {
-    if (cell.tile.type != "TileRoad") {
+  isDirectionMarkerVisible(cell: CellData, dm: DirectionMarker): boolean {
+    if (cell.tile.type !== "TileRoad") {
       return false;
     }
 
-    return ( (cell.tile.used_mask & dm.mask) > 0 );
+    return ((cell.tile.used_mask & dm.mask) > 0);
   }
 
-  readonly DEFAULT_DM_COLOR="rgb(200, 200, 200)";
-  getCssColorForDirectionMarker(cell: CellData, dm: DirectionMarker) : string {
+
+  getCssColorForDirectionMarker(cell: CellData, dm: DirectionMarker): string | null {
     //color of the van
 
 
-    if (cell.tile.type != "TileRoad") {
-      return this.DEFAULT_DM_COLOR;
+    if (cell.tile.type !== "TileRoad") {
+      return DEFAULT_DM_COLOR;
     }
-    let road: TileRoad = cell.tile;
-    let van_index = road.used_van_index[dm.dir_index];
+    const road: TileRoad = cell.tile;
 
-    if (_.isNil(van_index)) {
-      return this.DEFAULT_DM_COLOR;
-    }
-
-    return this.getCssForColorIndex(this.universeData.vans[van_index].color);
-  }
-
-  getDirectionMarkerAnnotation(cell: CellData, dm: DirectionMarker) : string {
-    if (cell.tile.type != "TileRoad") {
+    if (_.isNil(road.used_van_index)) {
       return null;
     }
-    let road: TileRoad = cell.tile;
-    let van_index = road.used_van_index[dm.dir_index];
 
-    if (_.isNil(van_index)) {
+    const vanIndex = road.used_van_index[dm.dir_index];
+
+    if (_.isNil(vanIndex)) {
+      return DEFAULT_DM_COLOR;
+    }
+
+    return this.getCssForColorIndex(this.gridStateService.gridState.vans[vanIndex].color);
+  }
+
+  getDirectionMarkerAnnotation(cell: CellData, dm: DirectionMarker): string | null {
+    if (cell.tile.type !== "TileRoad") {
+      return null;
+    }
+    const road: TileRoad = cell.tile;
+
+    if (_.isNil(road.used_van_index)) {
+      return null;
+    }
+
+    const vanIndex = road.used_van_index[dm.dir_index];
+
+    if (_.isNil(vanIndex) || _.isNil(road.used_tick)) {
       return null;
     }
 
@@ -509,26 +502,16 @@ export class AppComponent implements OnInit {
   }
 
   initCalculations() {
-    this.universe.init_calculate();
-
-    let data: GridState = this.universe.get_data();
-
-    this.universeData = data;
+    this.gridStateService.universe.init_calculate();
+    this.gridStateService.reloadGridData();
   }
 
   nextCalculateStep(numStepsParam: number) {
-    let numSteps = _.toNumber(numStepsParam);
+    const numSteps = _.toNumber(numStepsParam);
 
-    this.universeData = this.universe.next_batch_calculate(numSteps);
+    this.gridStateService.gridState$.next(this.gridStateService.universe.next_batch_calculate(numSteps));
 
-    //strip out empty cells
-    if (!_.isNil(this.universeData)) {
-      this.universeData.cells = this.universeData.cells.filter(
-        cell => cell.tile.type != "Empty"
-      )
-    };
 
-    console.log("After calculations", this.universeData);
   }
 
 }

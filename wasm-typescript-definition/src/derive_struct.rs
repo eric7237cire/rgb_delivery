@@ -3,7 +3,7 @@ use serde_derive_internals::{ast, attr};
 use type_to_ts;
 use collapse_list_bracket;
 
-use super::{derive_element_str, derive_field_str};
+use super::{ derive_field_str};
 
 pub fn derive_struct(
     style: ast::Style,
@@ -27,7 +27,7 @@ pub fn derive_struct(
     };
 
 
-   format!( "//derive struct 3\nexport type {} = {{ {} }};", attr_container.name().serialize_name(), tokens)
+   format!( "//derive struct\nexport type {} = {{\n    {}\n}};", attr_container.name().serialize_name(), tokens)
 
 
 
@@ -52,7 +52,7 @@ fn derive_struct_named_fields(
                 Some(derive_field_str(&field))
             }
         })
-        .collect::<Vec<_>>().join(", ")
+        .collect::<Vec<_>>().join(",\n    ")
 }
 
 fn derive_struct_tuple(

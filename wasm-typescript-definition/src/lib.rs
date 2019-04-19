@@ -149,10 +149,11 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
                 }
             };
 
-            let array_type : String = type_to_ts_string(array.elem.as_ref()).0;
+            let array_type_info = type_to_ts_string(array.elem.as_ref());
+
 
             let repeated_tuple_strings = (0..array_len).map(|_|
-                        array_type.clone())
+                        format!("{}{}", array_type_info.0, if array_type_info.1 {" | null"} else { "" } ))
                         .collect::<Vec<String>>();
 
             //fixed arrays always as we assume its default friendly (array of options)
@@ -214,10 +215,4 @@ fn derive_field_str(field: &ast::Field) -> String {
     format! ("{}{}: {}", field_name, if is_opt { "?" } else { ""}, ty)
 
 
-}
-
-
-fn derive_element_str(field: &ast::Field) -> String {
-    let (ty, _is_opt) = type_to_ts_string(&field.ty);
-    ty
 }

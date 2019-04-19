@@ -40,6 +40,12 @@ impl From<VanIndex> for usize {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
+pub struct Button  {
+    pub is_pressed: bool,
+    pub color: ColorIndex
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Road {
     pub used_mask: u8,
 
@@ -55,6 +61,9 @@ pub struct Road {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub van: Option<Van>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub button: Option<Button>
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -83,7 +92,8 @@ pub struct Warehouse {
 pub enum TileEnum {
     TileRoad(Road),
     TileWarehouse (Warehouse),
-    Empty,
+    TileBridge(Bridge),
+    Empty
 }
 
 

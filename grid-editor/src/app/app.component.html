@@ -4,9 +4,9 @@
   <input type="file" id="files" accept=".json" (change)="handleFileSelect($event)"/>
 
   <label>Number of Rows</label>
-  <input type=text [(ngModel)]="num_rows" (ngModelChange)="updateDim()">
+  <input type=text [(ngModel)]="numRows" (ngModelChange)="handleWidthHeightChange()">
   <label>Number of Columns</label>
-  <input type=text [(ngModel)]="num_cols" (ngModelChange)="updateDim()">
+  <input type=text [(ngModel)]="numCols" (ngModelChange)="handleWidthHeightChange()">
 
   <label>Color</label>
   <div class="colors">
@@ -55,8 +55,8 @@
 
   <div>Current mouse coords: Row {{mouseMoveRow}}, Col {{mouseMoveCol}}</div>
 </div>
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * num_cols"
-     [attr.height]="GRID_SIZE * num_rows"
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * numCols"
+     [attr.height]="GRID_SIZE * numRows"
      (click)="handleGridClick($event, false)"
      (mousemove)="handleMouseMove($event)"
      (contextmenu)="handleGridClick($event, true)"
@@ -75,7 +75,7 @@
 
 
 
-  <ng-container *ngFor="let cell of universeData?.cells">
+  <ng-container *ngFor="let cell of this.gridStateService.gridState?.cells">
 
     <rect *ngIf="cell.tile.type == 'TileRoad'"
           (click)="handleClickSvgText()"

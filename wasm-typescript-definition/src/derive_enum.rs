@@ -1,8 +1,7 @@
-use ::{quote, derive_field_str};
+use ::{ derive_field_str};
 use serde_derive_internals::{ast, attr};
-use ::{collapse_list_bracket, type_to_ts_string};
+use ::{ type_to_ts_string};
 
-use super::{derive_element_str};
 
 pub fn derive_enum(
     variants: Vec<ast::Variant>,
