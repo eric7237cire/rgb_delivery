@@ -138,6 +138,7 @@ impl Universe {
                     bridge.used_tick = None;
                     bridge.used_van_index = None;
                     bridge.van_snapshot = None;
+                    bridge.used_mask = 0;
                 },
                 _ => {}
             }

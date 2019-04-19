@@ -13176,7 +13176,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 
     }
 
-    //#[test]
+    #[test]
     fn test_easy1() {
         let universe_data: GridState = serde_json::from_str(TEST_DATA_EASY1).unwrap();
 
@@ -13198,7 +13198,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
         assert!(universe.success.is_some());
     }
 
-    //#[test]
+    #[test]
     fn test_boston_n10() {
         //
         let universe_data: GridState = serde_json::from_str(TEST_DATA_BOSTON_N10).unwrap();
@@ -13221,7 +13221,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
         assert!(universe.success.is_some());
     }
 
-    //#[test]
+    #[test]
     fn test_dallas_10() {
         //
         let universe_data: GridState = serde_json::from_str(TEST_DATA_DALLAS_C10).unwrap();

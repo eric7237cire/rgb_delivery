@@ -99,6 +99,9 @@ pub struct Bridge {
     #[serde(default)]
     pub used_van_index: Option<VanIndex>,
 
+    #[serde(skip_deserializing)]
+    pub used_mask: u8,
+
     #[serde(default)]
     pub used_tick: Option<usize>,
 

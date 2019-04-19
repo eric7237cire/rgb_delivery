@@ -64,7 +64,24 @@ impl GridState {
         Err(())
     }
 
-    pub(crate) fn toggle_bridges_and_buttons(&mut self) {
+
+    pub(crate) fn check_bridges_and_buttons(&self) {
+        for b in self.bridges.iter() {
+            if let TileBridge(check_b) = &self.tiles[b.cell_index.0] {
+                assert_eq!(b.color, check_b.color);
+                assert_eq!(b.is_up, check_b.is_up);
+            }
+        }
+
+        for b in self.buttons.iter() {
+            if let TileRoad( Road {button_snapshot:Some(check_b),..}) = &self.tiles[b.cell_index.0] {
+                assert_eq!(check_b.color, b.color);
+                assert_eq!(check_b.is_pressed, b.is_pressed);
+            }
+        }
+    }
+
+    pub(crate) fn toggle_bridges_and_buttons(&mut self) -> Result<(),()> {
 
         log_trace!("Toggling bridges & buttons");
 
@@ -73,10 +90,24 @@ impl GridState {
 
         for color_to_toggle in pressed_buttons.into_iter() {
 
-            //buttons were synced on press
-            for b in self.buttons.iter_mut().filter(|b| b.color == color_to_toggle) {
-                b.was_pressed_this_tick=false;
-                b.is_pressed = !b.is_pressed;
+
+            let button_cells: Vec<CellIndex> = self.buttons.iter_mut().filter_map(
+                |b| {
+                    if b.color != color_to_toggle {
+                        None
+                    } else {
+                        b.was_pressed_this_tick=false;
+                        b.is_pressed = !b.is_pressed;
+                        Some(b.cell_index)
+                    }
+                }).collect();
+
+            for bc in button_cells {
+                if let TileRoad(r) = &mut self.tiles[bc.0] {
+                    r.button_snapshot.as_mut().unwrap().is_pressed = !r.button_snapshot.as_mut().unwrap().is_pressed;
+                } else {
+                    panic!("Inconsistent");
+                }
             }
 
             let bridge_cells : Vec<CellIndex> = self.bridges.iter_mut().filter_map(
@@ -90,7 +121,7 @@ impl GridState {
                 }).collect();
 
             //also update bridge in tile (use reference, hmmm)
-            for bc in bridge_cells {
+            for bc in bridge_cells.iter() {
 
                 if let TileBridge(tb) = &mut self.tiles[bc.0] {
                     tb.is_up = !tb.is_up;
@@ -98,7 +129,21 @@ impl GridState {
                     panic!("Inconsistent");
                 }
             }
+
+            //if any vans are on down(passable) bridges, we fail
+            for bc in bridge_cells {
+
+                let has_van = self.vans.iter().any( |v|
+                    v.cell_index == bc );
+
+                if has_van {
+                    return Err(());
+                }
+                //may be worth checking a van wasn't on an open/up bridge...
+            }
         }
+
+        Ok(())
     }
 
     pub(crate) fn check_success(&self) -> bool {
@@ -167,35 +212,22 @@ impl GridState {
 
         let current_cell_index = self.vans[self.current_van_index.0].cell_index;
 
-        //buttons list is "authoritative, may get rid of tile non static info
         let btn_opt = self.buttons.iter_mut().find( |b| b.cell_index ==
             current_cell_index);
 
         if let Some(btn) = btn_opt {
 
+            log_trace!("Van on a button {:?}", btn);
+
             if btn.is_pressed {
                 return;
             }
 
+            log_trace!("Van pressing button {:?}", btn);
+
+            assert!(!btn.was_pressed_this_tick);
             btn.was_pressed_this_tick = true;
 
-            match self.current_cell_mut() {
-                TileRoad(Road { button_snapshot: Some(button),.. }) =>
-                    {
-                        log_trace!("Van on a button {:?}", button);
-                        if !button.is_pressed {
-                            log_trace!("Van pressing button {:?}", button);
-                            assert!(!button.was_pressed_this_tick);
-
-                            button.was_pressed_this_tick = true;
-                        } else {
-                            panic!("Expected un pressed button")
-                        }
-                    },
-                _ => {
-                    panic!("Expected un pressed button")
-                }
-            }
         }
     }
 
@@ -268,11 +300,8 @@ impl GridState {
 
     pub (crate) fn get_cur_used_mask(&self) -> u8 {
         match &self.tiles[self.current_cell_index().0] {
-            TileRoad( Road{ used_mask, van_snapshot, .. } ) => {
-                assert!(van_snapshot.is_some());
-                *used_mask
-            },
-            TileBridge( Bridge{ used_van_index, .. } ) => if used_van_index.is_some() { (1 << 4) - 1} else {0},
+            TileRoad( Road{ used_mask, .. } ) => *used_mask,
+            TileBridge( Bridge{ used_mask,  .. } ) => *used_mask,
             _ => panic!("Van not on road or bridge")
         }
     }
@@ -353,8 +382,11 @@ impl GridState {
                 //These are set when moved to
                 assert_eq!(current_tile_bridge.used_van_index, Some(self.current_van_index));
                 assert_eq!(current_tile_bridge.used_tick, Some(self.tick - 1));
+                assert_eq!(current_tile_bridge.used_mask & adj_info.direction as u8, 0);
 
                 assert!(current_tile_bridge.van_snapshot.is_some());
+
+                current_tile_bridge.used_mask |= adj_info.direction as u8;
 
                 //current_tile_bridge.used_van_index = Some(self.current_van_index);
                 //current_tile_bridge.used_tick = Some(self.tick);
@@ -398,8 +430,13 @@ impl GridState {
 
                 next_bridge.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
 
+                next_bridge.used_mask |= adj_info.direction.opposite() as u8;
+
                 //we cant do a U turn
                 next_bridge.used_van_index = Some(self.current_van_index);
+
+                //let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
+
 
                 next_bridge.used_tick = Some( self.tick );
             },

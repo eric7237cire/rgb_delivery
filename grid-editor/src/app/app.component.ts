@@ -120,7 +120,7 @@ export class AppComponent implements OnInit {
 
   cells: Array<CellData> = [];
 
-  numCalcSteps = 7;
+  numCalcSteps = 14;
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
@@ -221,14 +221,14 @@ export class AppComponent implements OnInit {
          van_index: 1,
          direction_index: DIRECTION_INDEX.WEST
        },
-      /*
+
        {
-         row_index: 2,
-         col_index: 3,
+         row_index: 5,
+         col_index: 2,
          van_index: 1,
          direction_index: DIRECTION_INDEX.NORTH
        },
-
+/*
 
        {
          row_index: 8,

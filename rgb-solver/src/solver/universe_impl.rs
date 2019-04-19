@@ -154,6 +154,7 @@ impl Universe {
             if let TileBridge(bridge) = &tile {
                 let mut m_bridge = bridge.clone();
                 m_bridge.cell_index = cell_index.into();
+                m_bridge.used_mask = 0;
                 Some(m_bridge)
             } else {
                 None
@@ -204,8 +205,17 @@ impl Universe {
                 Ok(b) => b
             };
 
+            cur_state.check_bridges_and_buttons();
+
             if did_tick_advance {
-                cur_state.toggle_bridges_and_buttons();
+                match cur_state.toggle_bridges_and_buttons() {
+                    Err(_) => {
+                        log_trace!("Van caught on open bridge");
+                        continue;
+                    },
+                    Ok(_) => {}
+                };
+                cur_state.check_bridges_and_buttons();
             } else {
                 log_trace!("Tick did not advance");
             }
@@ -234,7 +244,7 @@ impl Universe {
 
             cur_state.pick_up_block_if_exists();
 
-            cur_state.press_button_if_exists();
+            //cur_state.press_button_if_exists();
 
             //check if we can drop a block off
             if cur_state.empty_warehouse_color().is_some() {
@@ -300,6 +310,7 @@ impl Universe {
                     }
                 }
 
+                next_state.press_button_if_exists();
 
                 self.queue.push_back(next_state);
                 any_moved = true;
