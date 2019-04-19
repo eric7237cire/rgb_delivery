@@ -147,17 +147,6 @@ impl Universe {
 
             self.current_calc_state = Some(cur_state.clone());
 
-            //change current_van_index in one place
-            cur_state.increment_current_van_index();
-
-            self.iter_count += 1;
-
-            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index: {}", self.iter_count, self.queue.len(), cur_state.current_van_index);
-
-            if self.iter_count % 500 == 0 {
-                 log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {}", self.iter_count, self.queue.len(), cur_state.current_van_index);
-            }
-
             //check success, where all warehouses are filled
             if cur_state.check_success() {
                 log!("Success!");
@@ -165,18 +154,26 @@ impl Universe {
                 return &self.success;
             }
 
+            //change current_van_index in one place
+            match cur_state.increment_current_van_index() {
+                Err(_) => continue,
+                _ => ()
+            };
 
-            //TODO what if all vans are done?
-            if cur_state.vans[cur_state.current_van_index].is_done {
-                log_trace!("Van #{}: {:?} is done, skipping", cur_state.current_van_index,
-                cur_state.vans[cur_state.current_van_index]);
+            self.iter_count += 1;
 
-                //need to requeue
-                self.queue.push_back(cur_state);
-                continue;
+            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
+
+            if self.iter_count % 500 == 0 {
+                 log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
             }
 
-            let van_cell_index = cur_state.vans[cur_state.current_van_index].cell_index;
+            if self.iter_count > 300000 {
+                self.queue.clear();
+                break;
+            }
+
+            let van_cell_index = cur_state.vans[cur_state.current_van_index.0].cell_index;
 
             let (cur_row_index, cur_col_index) = {
                 let c = &cur_state.cells[van_cell_index];
@@ -187,21 +184,25 @@ impl Universe {
             cur_state.pick_up_block_if_exists();
 
             //check if we can drop a block off
-            match cur_state.can_drop_off_block() {
-                Err(_) => continue,
-                Ok(CanDropOff::YesOK) => {
-                    //test what happens if we stop
-                    let mut if_van_stops_state = cur_state.clone();
-                    if_van_stops_state.vans[if_van_stops_state.current_van_index].is_done = true;
-                    self.queue.push_back(if_van_stops_state);
+            if cur_state.empty_warehouse_color().is_some() {
+                match cur_state.can_drop_off_block() {
+                    Err(_) => continue,
+                    Ok(CanDropOff::YesOK) => {
 
-                },
-                _ => ()
-            };
+                        assert!(cur_state.empty_warehouse_color().is_none());
+
+                        //test what happens if we stop
+                        let mut if_van_stops_state = cur_state.clone();
+                        if_van_stops_state.current_van_mut().is_done = true;
+                        self.queue.push_back(if_van_stops_state);
+                    },
+                    _ => ()
+                };
+            }
 
             let cur_road = cur_state.cells[van_cell_index].tile.road();
 
-            //now attempt to move
+            //now attempt to move 
 
             //Where could we move?  (looks at mask & grid)
             let adj_square_indexes = self.get_adjacent_square_indexes(
@@ -237,8 +238,8 @@ impl Universe {
                     if let TileRoad(..) = &cur_state.cells[adj_cell_index].tile {
 
                         //Check each van that has already moved.  The ones that have yet to move don't need to be checked
-                        if cur_state.current_van_index > 0 &&
-                            cur_state.vans.iter().take(cur_state.current_van_index-1).any(
+                        if cur_state.current_van_index.0 > 0 &&
+                            cur_state.vans.iter().take(cur_state.current_van_index.0-1).any(
                                 |other_van| adj_cell_index == other_van.cell_index)
                         {
                             log_trace!("Another van is there {:?}", direction);
@@ -280,14 +281,17 @@ impl Universe {
                 //add van to next square
 
                 let moving_to_cell_index =adj_info.cell_index;
+
                 {
-                    let van = &mut next_state.vans[next_state.current_van_index];
+                        let van = next_state.current_van_mut();
                     van.cell_index = moving_to_cell_index;
                     van.tick += 1;
-
+                    
+                }
+                {
                     //keep a history
                     let next_road =next_state.cells[moving_to_cell_index].tile.mut_road();
-                    next_road.van = Some(van.clone());
+                    next_road.van = Some(next_state.vans[next_state.current_van_index.0].clone());
 
                     //we cant do a U turn
                     next_road.used_mask |= adj_info.direction.opposite() as u8;

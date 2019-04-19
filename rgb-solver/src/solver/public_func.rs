@@ -15,13 +15,14 @@ use crate::solver::grid_state::GridState;
 
 
 
-pub(crate) fn build_color_list() -> [Color; 5] {
-    let mut color_list = [
+pub(crate) fn build_color_list() -> Vec<Color> {
+    let mut color_list = vec![
         Color{ label: "White".to_string(), red: 230, green: 230, blue: 230, ..Default::default()},
         Color{ label: "Red".to_string(), red: 255, green: 0, blue: 0, ..Default::default()},
         Color{ label: "Yellow".to_string(), red: 255, green: 255, blue: 0, ..Default::default()},
         Color{ label: "Blue".to_string(), red: 50, green: 50, blue: 255, ..Default::default()},
         Color{ label: "Green".to_string(), red: 0, green: 255, blue: 0, ..Default::default()},
+        Color{ label: "Purple".to_string(), red: 167, green: 152, blue: 253, ..Default::default()},
 
 /*
  colors = [ new Color("rgb(255,0,0)","Red"), new Color("rgb(255,255,0)","Yellow"),
@@ -115,7 +116,7 @@ impl Universe {
 
         self.data.vans = self.initial_van_list();
         //we increment on pop, so...
-        self.data.current_van_index = self.initial_van_list().len() - 1;
+        self.data.current_van_index = VanIndex( self.initial_van_list().len() - 1 );
 
 
         //reset road history
@@ -139,6 +140,12 @@ impl Universe {
     }
 
     pub fn next_batch_calculate(&mut self, repeat_count: usize) -> JsValue {
+
+        log!("Batch calculate, repeat count: {}", repeat_count);
+
+        if repeat_count > 350000 {
+            return JsValue::from_serde(&self.data).unwrap();
+        }
 
         for _i in 0..repeat_count {
             self.process_queue_item();

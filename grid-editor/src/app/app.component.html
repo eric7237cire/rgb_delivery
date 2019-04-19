@@ -85,6 +85,7 @@
     <text *ngIf="cell.tile.type == 'TileWarehouse'" [attr.x]="cell.col_index * GRID_SIZE + 15" [attr.y]="cell.row_index * GRID_SIZE + 25"
           (click)="handleClickSvgText()"
           [attr.fill]="getCellColor(cell)"
+          [class.warehouse_filled] = "cell.tile.is_filled"
           class="grid_text">{{cell.tile.type[0]}}</text>
 
     <ng-container *ngFor="let dm of DIRECTION_MARKERS">

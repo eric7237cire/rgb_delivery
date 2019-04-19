@@ -113,7 +113,7 @@ export class AppComponent implements OnInit {
 
   wasm: typeof import('../../../rgb-solver/pkg');
 
-  numCalcSteps=29;
+  numCalcSteps=300;
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
@@ -258,12 +258,8 @@ export class AppComponent implements OnInit {
 
     let overRideList: Array<ChoiceOverride> = [
 
-     /* {
-        row_index: 6,
-        col_index: 7,
-        van_index: 1,
-        direction_index: DIRECTION_INDEX.WEST
-      },
+
+     /*
       {
         row_index: 6,
         col_index: 5,

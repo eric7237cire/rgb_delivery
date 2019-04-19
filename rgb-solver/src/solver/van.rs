@@ -16,6 +16,9 @@ pub struct Van {
 
 
 impl Van {
+
+    //0 is the bottom of the stack
+
     pub(crate) fn get_top_box(&self) -> Option<ColorIndex> {
         for i in (0..=2).rev() {
             if !self.boxes[i].is_none() {
@@ -38,7 +41,7 @@ impl Van {
     }
 
     pub(crate) fn get_empty_slot(&self) -> Option<usize> {
-        for i in (0..=2).rev() {
+        for i in 0..=2 {
             if self.boxes[i].is_none() {
                 return Some(i);
             }

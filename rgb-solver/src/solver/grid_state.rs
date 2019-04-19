@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::struct_defs::{CellData, Warehouse, ColorIndex};
+use crate::solver::struct_defs::{CellData, Warehouse, ColorIndex, VanIndex};
 use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::TileWarehouse;
 
@@ -18,7 +18,7 @@ pub struct GridState {
     #[serde(skip_deserializing)]
     pub(crate) vans: Vec<Van>,
     #[serde(skip)]
-    pub(crate) current_van_index: usize,
+    pub(crate) current_van_index: VanIndex,
 }
 
 pub enum CanDropOff {
@@ -28,15 +28,27 @@ pub enum CanDropOff {
 }
 
 impl GridState {
-    pub(crate) fn increment_current_van_index(&mut self) {
-        if self.current_van_index == self.vans.len() - 1 {
-            log_trace!("Advancing a tick {} => {}", self.tick, self.tick + 1);
+    pub(crate) fn increment_current_van_index(&mut self) -> Result<(),()> {
 
-            self.tick += 1;
-            self.current_van_index = 0;
-        } else {
-            self.current_van_index += 1;
+        for _ in 0..self.vans.len() {
+            //increment
+            if self.current_van_index.0 == self.vans.len() - 1 {
+                log_trace!("Advancing a tick {} => {}", self.tick, self.tick + 1);
+
+                self.tick += 1;
+                self.current_van_index = 0usize.into();
+            } else {
+                self.current_van_index.0 += 1;
+            }
+
+            if !self.current_van().is_done {
+                return Ok(());
+            } else {
+                log_trace!("Van #{}: {:?} is done, skipping", self.current_van_index);
+            }
         }
+
+        Err(())
     }
 
     pub(crate) fn check_success(&self) -> bool {
@@ -51,13 +63,22 @@ impl GridState {
     }
 
     pub(crate) fn current_cell_index(&self) -> usize {
-        self.vans[self.current_van_index].cell_index
+        self.vans[self.current_van_index.0].cell_index
     }
     pub(crate) fn current_cell_mut(&mut self) -> &mut CellData {
-        &mut self.cells[ self.vans[self.current_van_index].cell_index ]
+        &mut self.cells[ self.vans[self.current_van_index.0].cell_index ]
     }
     pub(crate) fn current_cell(&self) -> &CellData {
-        &self.cells[ self.vans[self.current_van_index].cell_index ]
+        &self.cells[ self.vans[self.current_van_index.0].cell_index ]
+    }
+
+    pub(crate) fn current_van(&self) -> &Van {
+        let i:usize = self.current_van_index.into();
+        &self.vans[ i ]
+    }
+    pub(crate) fn current_van_mut(&mut self) -> &mut Van {
+        let i:usize = self.current_van_index.into();
+        &mut self.vans[ i ]
     }
 
     fn get_current_block_on_road(&self) -> Option<ColorIndex> {
@@ -75,16 +96,16 @@ impl GridState {
         if let Some(block_color) = self.get_current_block_on_road() {
             log_trace!("Rolled on a block of color {:?}", block);
 
-            if let Some(i) = self.vans[self.current_van_index].get_empty_slot() {
+            if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
                 log_trace!("Van picked up a block of color {:?}", block);
-                self.vans[self.current_van_index].boxes[i] = Some(block_color);
+                self.vans[self.current_van_index.0].boxes[i] = Some(block_color);
                 self.current_cell_mut().tile.mut_road().block = None;
             }
         }
     }
 
     ///
-    fn empty_warehouse_color(&self) -> Option<ColorIndex> {
+    pub(crate) fn empty_warehouse_color(&self) -> Option<ColorIndex> {
         let current_cell_index = self.current_cell_index();
 
         //on first row
@@ -111,7 +132,7 @@ impl GridState {
             //drop off block at warehouse
             let top_block_color_index =
                 {
-                    if let Some(color) = self.vans[self.current_van_index].get_top_box() {
+                    if let Some(color) = self.vans[self.current_van_index.0].get_top_box() {
                         color
                     } else {
                         //warehouse would be unfillable
@@ -120,12 +141,12 @@ impl GridState {
                 };
 
             if top_block_color_index == warehouse_color_index && (
-                self.vans[self.current_van_index].color.is_white()
-                    || self.vans[self.current_van_index].color == warehouse_color_index)
+                self.current_van().color.is_white()
+                    || self.current_van().color == warehouse_color_index)
             {
 
                 //pop the box
-                self.vans[self.current_van_index].clear_top_box();
+                self.vans[self.current_van_index.0].clear_top_box();
 
 
                 //set warehouse to filled

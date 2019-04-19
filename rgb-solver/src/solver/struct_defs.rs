@@ -25,12 +25,26 @@ impl ColorIndex {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
+pub struct VanIndex(pub usize);
+
+impl From<usize> for VanIndex {
+    fn from(index: usize) -> Self {
+        VanIndex(index)
+    }
+}
+impl From<VanIndex> for usize {
+    fn from(index: VanIndex) -> Self {
+        index.0 
+    }
+}
+
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Road {
     pub used_mask: u8,
 
     #[serde(default)]
-    pub used_van_index: [Option<usize>; 4],
+    pub used_van_index: [Option<VanIndex>; 4],
 
     #[serde(default)]
     pub used_tick: [Option<usize>; 4],
@@ -41,6 +55,21 @@ pub struct Road {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub van: Option<Van>,
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
+pub struct Bridge {
+
+    #[serde(default)]
+    pub used_van_index: Option<VanIndex>,
+
+    #[serde(default)]
+    pub used_tick: Option<usize>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub van: Option<Van>,
+
+    pub is_open: bool
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -76,7 +105,7 @@ impl Default for CellData {
 pub struct ChoiceOverride {
     pub row_index: usize,
     pub col_index: usize,
-    pub van_index: usize,
+    pub van_index: VanIndex,
     pub direction_index: usize,
 
     pub tick: Option<usize>
