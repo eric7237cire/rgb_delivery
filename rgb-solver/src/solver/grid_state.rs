@@ -197,8 +197,11 @@ impl GridState {
     }
 
     pub (crate) fn get_cur_used_mask(&self) -> u8 {
-        match self.tiles[self.current_cell_index().0] {
-            TileRoad( Road{ used_mask, .. } ) => used_mask,
+        match &self.tiles[self.current_cell_index().0] {
+            TileRoad( Road{ used_mask, van_snapshot, .. } ) => {
+                assert!(van_snapshot.is_some());
+                *used_mask
+            },
             TileBridge( Bridge{ used_van_index, .. } ) => if used_van_index.is_some() { (1 << 4) - 1} else {0},
             _ => panic!("Van not on road or bridge")
         }
@@ -233,7 +236,7 @@ impl GridState {
 
                 //Check each van that has already moved.  The ones that have yet to move don't need to be checked
                 if self.current_van_index.0 > 0 &&
-                    self.vans.iter().take(self.current_van_index.0-1).any(
+                    self.vans.iter().take(self.current_van_index.0).any(
                         |other_van| adj_cell_index == other_van.cell_index)
                 {
                     log_trace!("Another van is there {:?}", direction_index);
@@ -258,7 +261,7 @@ impl GridState {
 
 
 
-        log_trace!("Moving to actual road {:?}", adj_info);
+        log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
 
         //remove van & set used mask
         match &mut self.tiles[van_cell_index.0] {

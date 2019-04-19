@@ -258,6 +258,12 @@ impl Universe {
                         //test what happens if we stop
                         let mut if_van_stops_state = cur_state.clone();
                         if_van_stops_state.current_van_mut().is_done = true;
+
+                         {
+                            if let TileRoad(road) = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0] {
+                                assert!(road.van_snapshot.is_some());
+                            }
+                        }
                         self.queue.push_back(if_van_stops_state);
                     },
                     _ => ()
@@ -293,6 +299,15 @@ impl Universe {
                 let mut next_state = cur_state.clone();
 
                 next_state.handle_move(van_cell_index, adj_info);
+
+                {
+                    for vi in 0..next_state.vans.len() {
+                        if let TileRoad(road) = &next_state.tiles[next_state.vans[vi].cell_index.0] {
+                            assert!(road.van_snapshot.is_some(), "Hey bad vi {} row/col: {:?}", vi, next_state.vans[vi].cell_index.to_row_col(next_state.width));
+                        }
+                    }
+                }
+
 
                 self.queue.push_back(next_state);
                 any_moved = true;
