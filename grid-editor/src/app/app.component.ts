@@ -117,7 +117,10 @@ export class AppComponent implements OnInit {
 
   wasm: typeof import ('../../../rgb-solver/pkg');
 
-  numCalcSteps = 30;
+
+  cells: Array<CellData> = [];
+
+  numCalcSteps = 7;
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
@@ -180,6 +183,10 @@ export class AppComponent implements OnInit {
       return;
     }
 
+    this.cells =  this.gridStateService.gridState.tiles.map((t, index) => {
+      return GridStateService.tileToCellState(this.gridStateService.gridState, t, index);
+    });
+
     const nonEmptyCells: Array<CellData> = this.cells.filter(
       cell => cell.tile.type !== "Empty"
     );
@@ -194,25 +201,27 @@ export class AppComponent implements OnInit {
     const overRideList: Array<ChoiceOverride> = [
 
 
-      /*
+
        {
-         row_index: 6,
-         col_index: 5,
+         row_index: 8,
+         col_index: 2,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+
+       {
+         row_index: 8,
+         col_index: 8,
          van_index: 1,
          direction_index: DIRECTION_INDEX.NORTH
        },
        {
-         row_index: 4,
-         col_index: 5,
-         van_index: 1,
-         direction_index: DIRECTION_INDEX.NORTH
-       },
-       {
-         row_index: 2,
-         col_index: 5,
+         row_index: 5,
+         col_index: 8,
          van_index: 1,
          direction_index: DIRECTION_INDEX.WEST
        },
+      /*
        {
          row_index: 2,
          col_index: 3,
@@ -546,14 +555,6 @@ export class AppComponent implements OnInit {
     }
 
     return ((cell.tile.used_mask & dm.mask) > 0);
-  }
-
-  get cells(): Array<CellData> {
-
-
-    return this.gridStateService.gridState.tiles.map((t, index) => {
-      return GridStateService.tileToCellState(this.gridStateService.gridState, t, index);
-    });
   }
 
   getCssColorForButton(button: Button) {

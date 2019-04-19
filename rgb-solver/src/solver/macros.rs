@@ -17,8 +17,8 @@ macro_rules! log {
 
 macro_rules! log_trace {
      ( $( $t:tt )* ) => {
-        println!( $( $t )* );
-        //web_sys::console::log_1(&format!( $( $t )* ).into());
+        //println!( $( $t )* );
+        web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
 

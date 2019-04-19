@@ -38,7 +38,9 @@ pub enum CanDropOff {
 }
 
 impl GridState {
-    pub(crate) fn increment_current_van_index(&mut self) -> Result<(),()> {
+    pub(crate) fn increment_current_van_index(&mut self) -> Result<bool,()> {
+
+        let mut incremented_tick = false;
 
         for _ in 0..self.vans.len() {
             //increment
@@ -47,18 +49,56 @@ impl GridState {
 
                 self.tick += 1;
                 self.current_van_index = 0usize.into();
+                incremented_tick=true;
             } else {
                 self.current_van_index.0 += 1;
             }
 
             if !self.current_van().is_done {
-                return Ok(());
+                return Ok(incremented_tick);
             } else {
                 log_trace!("Van #{:?}: {:?} is done, skipping", self.current_van_index, self.vans[self.current_van_index.0]);
             }
         }
 
         Err(())
+    }
+
+    pub(crate) fn toggle_bridges_and_buttons(&mut self) {
+
+        log_trace!("Toggling bridges & buttons");
+
+        let pressed_buttons:Vec<ColorIndex> = self.buttons.iter().filter_map(
+            |b| if !b.was_pressed_this_tick { None } else {Some(b.color)}).collect();
+
+        for color_to_toggle in pressed_buttons.into_iter() {
+
+            //buttons were synced on press
+            for b in self.buttons.iter_mut().filter(|b| b.color == color_to_toggle) {
+                b.was_pressed_this_tick=false;
+                b.is_pressed = !b.is_pressed;
+            }
+
+            let bridge_cells : Vec<CellIndex> = self.bridges.iter_mut().filter_map(
+                |b| {
+                    if b.color != color_to_toggle {
+                        None
+                    } else {
+                        b.is_up = !b.is_up;
+                        Some(b.cell_index)
+                    }
+                }).collect();
+
+            //also update bridge in tile (use reference, hmmm)
+            for bc in bridge_cells {
+
+                if let TileBridge(tb) = &mut self.tiles[bc.0] {
+                    tb.is_up = !tb.is_up;
+                } else {
+                    panic!("Inconsistent");
+                }
+            }
+        }
     }
 
     pub(crate) fn check_success(&self) -> bool {
@@ -95,7 +135,12 @@ impl GridState {
     }
 
     fn get_current_block_on_road(&self) -> Option<ColorIndex> {
-        self.current_cell().road().block
+        match self.current_cell() {
+            TileRoad(road) => {
+                road.block
+            },
+            _ => None
+        }
     }
 
     pub(crate) fn pick_up_block_if_exists(&mut self) {
@@ -110,21 +155,46 @@ impl GridState {
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
                 log_trace!("Van picked up a block of color {:?}", block_color);
                 self.vans[self.current_van_index.0].boxes[i] = Some(block_color);
-                self.current_cell_mut().mut_road().block = None;
+                
+                if let TileRoad( road ) = self.current_cell_mut() {
+                    road.block = None;
+                }
             }
         }
     }
 
     pub(crate) fn press_button_if_exists(&mut self) {
 
-        if let Road{ button_snapshot: Some(button), ..} = self.current_cell_mut().mut_road()
-        {
-            log_trace!("Van on a button {:?}", button);
-            if !button.is_pressed  {                
+        let current_cell_index = self.vans[self.current_van_index.0].cell_index;
 
-                assert!(!button.was_pressed_this_tick);
+        //buttons list is "authoritative, may get rid of tile non static info
+        let btn_opt = self.buttons.iter_mut().find( |b| b.cell_index ==
+            current_cell_index);
 
-                button.was_pressed_this_tick = true;
+        if let Some(btn) = btn_opt {
+
+            if btn.is_pressed {
+                return;
+            }
+
+            btn.was_pressed_this_tick = true;
+
+            match self.current_cell_mut() {
+                TileRoad(Road { button_snapshot: Some(button),.. }) =>
+                    {
+                        log_trace!("Van on a button {:?}", button);
+                        if !button.is_pressed {
+                            log_trace!("Van pressing button {:?}", button);
+                            assert!(!button.was_pressed_this_tick);
+
+                            button.was_pressed_this_tick = true;
+                        } else {
+                            panic!("Expected un pressed button")
+                        }
+                    },
+                _ => {
+                    panic!("Expected un pressed button")
+                }
             }
         }
     }

@@ -1,12 +1,13 @@
 <!--The content below is only a placeholder and can be replaced.-->
 
+<!--suppress HtmlUnknownAttribute -->
 <div class="inputs">
   <input type="file" id="files" accept=".json" (change)="handleFileSelect($event)"/>
 
   <label>Number of Rows</label>
-  <input type=text [(ngModel)]="numRows" (ngModelChange)="handleWidthHeightChange()">
-  <label>Number of Columns</label>
-  <input type=text [(ngModel)]="numCols" (ngModelChange)="handleWidthHeightChange()">
+  <input id="numRows" type=text [(ngModel)]="numRows" (ngModelChange)="handleWidthHeightChange()">
+  <label for="numCols">Number of Columns</label>
+  <input id="numCols" type=text [(ngModel)]="numCols" (ngModelChange)="handleWidthHeightChange()">
 
   <label>Color</label>
   <div class="colors">
@@ -19,8 +20,9 @@
   <label>Selected Color</label>
   <div class="color" [style.background-color]="getCssForColor(selectedColor)">{{selectedColor?.label}}</div>
 
-  <label>Is Bridge Open/Button Up</label>
+  <label for="selectedIsOpenOrUp">Is Bridge Open/Button Up</label>
   <div><input
+    id ="selectedIsOpenOrUp"
   type="checkbox"
   [(ngModel)]="selectedIsOpenOrUp"></div>
 
@@ -54,12 +56,14 @@
   <label class="button" (click)="initCalculations()">Restart calculations</label>
   <label class="button" (click)="nextCalculateStep(1)">Step 1</label>
   <div>
-    <input type="text" [(ngModel)]="numCalcSteps">
+    <label for="numCalcSteps">Num steps:</label>
+    <input id="numCalcSteps" type="text" [(ngModel)]="numCalcSteps">
     <label class="button" (click)="nextCalculateStep(numCalcSteps)">Step N</label>
   </div>
 
   <div>Current mouse coords: Row {{mouseMoveRow}}, Col {{mouseMoveCol}}</div>
 </div>
+<!--suppress HtmlUnknownAttribute, HtmlUnknownAttribute, HtmlUnknownAttribute -->
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * numCols"
      [attr.height]="GRID_SIZE * numRows"
 
@@ -83,7 +87,8 @@
 
 
 
-  <ng-container *ngFor="let cell of this.cells">
+  <ng-container *ngFor="let cell of cells">
+
 
     <rect *ngIf="cell.tile.type == 'TileRoad'"
           (click)="handleClickSvgText()"
@@ -95,10 +100,10 @@
     <rect *ngIf="cell.tile.type == 'TileBridge'"
           (click)="handleClickSvgText()"
           [attr.fill]="getCssForColorIndex(cell.tile.color)"
-          [attr.x]="cell.col_index * GRID_SIZE + (cell.tile.is_open ? GRID_SIZE/4 : 0)"
-          [attr.y]="cell.row_index * GRID_SIZE  + (cell.tile.is_open ? GRID_SIZE/4 : 0)"
-          [attr.width]="GRID_SIZE - (cell.tile.is_open ? GRID_SIZE/2 : 0)"
-          [attr.height]="GRID_SIZE - (cell.tile.is_open ? GRID_SIZE/2 : 0)"></rect>
+          [attr.x]="cell.col_index * GRID_SIZE + (cell.tile.is_up ? GRID_SIZE/4 : 0)"
+          [attr.y]="cell.row_index * GRID_SIZE  + (cell.tile.is_up ? GRID_SIZE/4 : 0)"
+          [attr.width]="GRID_SIZE - (cell.tile.is_up ? GRID_SIZE/2 : 0)"
+          [attr.height]="GRID_SIZE - (cell.tile.is_up ? GRID_SIZE/2 : 0)"></rect>
 
 
     <text *ngIf="cell.tile.type == 'TileWarehouse'" [attr.x]="cell.col_index * GRID_SIZE + 15" [attr.y]="cell.row_index * GRID_SIZE + 25"

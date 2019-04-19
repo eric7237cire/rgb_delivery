@@ -986,5 +986,29 @@
       "is_done": false
     }
   ],
+  "bridges": [
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 5
+    }
+  ],
+  "buttons": [
+    {
+      "is_pressed": true,
+      "color": 5
+    },
+    {
+      "is_pressed": false,
+      "color": 5
+    }
+  ],
   "warehouses_remaining": 2
 }

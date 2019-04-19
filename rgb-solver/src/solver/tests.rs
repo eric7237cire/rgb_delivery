@@ -11733,6 +11733,30 @@ for json_file in LEVEL_DIR.glob('*.json'):
       "is_done": false
     }
   ],
+  "bridges": [
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 5
+    }
+  ],
+  "buttons": [
+    {
+      "is_pressed": true,
+      "color": 5
+    },
+    {
+      "is_pressed": false,
+      "color": 5
+    }
+  ],
   "warehouses_remaining": 2
 }
 "#;
@@ -13152,7 +13176,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 
     }
 
-    #[test]
+    //#[test]
     fn test_easy1() {
         let universe_data: GridState = serde_json::from_str(TEST_DATA_EASY1).unwrap();
 
@@ -13174,7 +13198,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
         assert!(universe.success.is_some());
     }
 
-    #[test]
+    //#[test]
     fn test_boston_n10() {
         //
         let universe_data: GridState = serde_json::from_str(TEST_DATA_BOSTON_N10).unwrap();
@@ -13185,7 +13209,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 
         universe.init_calculate();
 
-        for i in 0..150 {
+        for i in 0..15000 {
             let cd = universe.process_queue_item();
             assert!(cd.is_some(), "Failed after {}", i);
 
@@ -13201,6 +13225,29 @@ for json_file in LEVEL_DIR.glob('*.json'):
     fn test_dallas_10() {
         //
         let universe_data: GridState = serde_json::from_str(TEST_DATA_DALLAS_C10).unwrap();
+
+        let mut universe = Universe::new(universe_data.width, universe_data.height);
+
+        universe.data = universe_data;
+
+        universe.init_calculate();
+
+        for i in 0..150000 {
+            let cd = universe.process_queue_item();
+            assert!(cd.is_some(), "Failed after {}", i);
+
+            if universe.success.is_some() {
+                break;
+            }
+        }
+
+        assert!(universe.success.is_some());
+    }
+
+    #[test]
+    fn test_liverpool_10() {
+        //
+        let universe_data: GridState = serde_json::from_str(TEST_DATA_LIVERPOOL_E10).unwrap();
 
         let mut universe = Universe::new(universe_data.width, universe_data.height);
 

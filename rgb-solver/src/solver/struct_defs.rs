@@ -166,7 +166,7 @@ pub struct Universe {
     pub(crate) queue: VecDeque<GridState>,
 
     pub(crate) success: Option<GridState>,
-    pub(crate) current_calc_state: Option<GridState>,
+    //pub(crate) current_calc_state: Option<GridState>,
     pub(crate) iter_count: usize
 }
 

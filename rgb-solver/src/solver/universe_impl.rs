@@ -38,22 +38,6 @@ impl TileEnum {
             _ => panic!()
         }
     }
-    pub(crate) fn mut_road(&mut self) -> &mut Road {
-        match self {
-            TileRoad(inner_road) => {
-                return inner_road;
-            }
-            _ => panic!()
-        }
-    }
-    pub(crate) fn road(&self) -> &Road {
-        match self {
-            TileRoad(inner_road) => {
-                return inner_road;
-            }
-            _ => panic!()
-        }
-    }
 }
 
 
@@ -198,32 +182,40 @@ impl Universe {
     }
 
 
-    pub(crate) fn process_queue_item(&mut self) -> &Option<GridState> {
+    pub(crate) fn process_queue_item(&mut self) -> Option<&GridState> {
 
         if self.success.is_some() {
-            return &self.success;
+            return self.success.as_ref();
         }
         while let Some(mut cur_state) = self.queue.pop_front() {
 
-            self.current_calc_state = Some(cur_state.clone());
+            //self.current_calc_state = Some(cur_state.clone());
 
             //check success, where all warehouses are filled
             if cur_state.check_success() {
                 log!("Success!");
                 self.success = Some(cur_state);
-                return &self.success;
+                return self.success.as_ref();
             }
 
             //change current_van_index in one place
-            match cur_state.increment_current_van_index() {
+            let did_tick_advance = match cur_state.increment_current_van_index() {
                 Err(_) => continue,
-                _ => ()
+                Ok(b) => b
             };
+
+            if did_tick_advance {
+                cur_state.toggle_bridges_and_buttons();
+            } else {
+                log_trace!("Tick did not advance");
+            }
 
             self.iter_count += 1;
 
-            log_trace!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
-                self.iter_count, self.queue.len(), cur_state.current_van_index,
+            log_trace!("\n\nLoop count: {} Tick: {} Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
+                self.iter_count,
+                self.data.tick,
+                self.queue.len(), cur_state.current_van_index,
                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
 
@@ -321,10 +313,14 @@ impl Universe {
             }
 
 
-            return &self.current_calc_state;
+            if let Some(f) = self.queue.front() {
+                return Some(f);
+            } else {
+                return None;
+            }
 
         }
 
-        return &None;
+        return None;
     }
 }
