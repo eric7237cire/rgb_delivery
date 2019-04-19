@@ -3,7 +3,7 @@ use wasm_bindgen::prelude::*;
 use crate::solver::struct_defs::*;
 use std::collections::vec_deque::VecDeque;
 use super::utils;
-use crate::solver::struct_defs::TileEnum::{TileRoad,TileWarehouse};
+use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse, TileBridge};
 use crate::solver::utils::set_panic_hook;
 use crate::solver::grid_state::GridState;
 
@@ -127,15 +127,31 @@ impl Universe {
 
 
         //reset road history
-        for road in self.data.tiles.iter_mut().filter_map( |t| {
-            if let TileRoad(road) = t {
-                Some(road)
-            } else {
-                None
+        for tile in self.data.tiles.iter_mut() {
+            match tile {
+                TileRoad(road) => {
+                    road.used_van_index = Default::default();
+                    road.used_mask = Default::default();
+                    road.van_snapshot = None;
+                },
+                TileBridge(bridge) => {
+                    bridge.used_tick = None;
+                    bridge.used_van_index = None;
+                    bridge.van_snapshot = None;
+                },
+                _ => {}
             }
-        }) {
-            road.used_van_index = Default::default();
-            road.used_mask = Default::default();
+        }
+
+        //vans should start on roads
+        let van_cells: Vec<CellIndex> = self.data.vans.iter().map( |v| v.cell_index).collect();
+
+        for (van_idx, v_cell_index) in van_cells.iter().enumerate() {
+            if let TileRoad(road) = &mut self.data.tiles[v_cell_index.0] {
+                road.van_snapshot = Some(self.data.vans[van_idx].clone());
+            } else {
+                panic!("Van is not on a road");
+            }
         }
 
         self.queue.push_back(self.data.clone());
