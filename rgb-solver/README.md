@@ -67,6 +67,7 @@ cargo test --target x86_64-pc-windows-msvc  -- --nocapture
 
 ## tests in watch mode
 cargo watch -x "test --target x86_64-pc-windows-msvc --lib -- --nocapture"
+# cargo watch -x "test <test name > --target x86_64-pc-windows-msvc --lib -- --nocapture"
 
 
 ## Cog with WSL
