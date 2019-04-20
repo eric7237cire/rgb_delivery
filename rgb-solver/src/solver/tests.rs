@@ -5956,6 +5956,293 @@ for json_file in LEVEL_DIR.glob('*.json'):
   "warehouses_remaining": 5
 }
 "#;
+
+        pub (crate) const TEST_DATA_STARTONLYONE: &str = r#"
+                {
+  "width": 5,
+  "height": 5,
+  "tiles": [
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "van": {
+        "boxes": [
+          null,
+          null,
+          null
+        ],
+        "color": 0,
+        "is_done": false
+      }
+    },
+    {
+      "type": "TileWarehouse",
+      "color": 1,
+      "is_filled": false
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileWarehouse",
+      "color": 1,
+      "is_filled": false
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "block": 1
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "van": {
+        "boxes": [
+          null,
+          null,
+          null
+        ],
+        "color": 1,
+        "is_done": false
+      }
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "block": 1
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "van": {
+        "boxes": [
+          null,
+          null,
+          null
+        ],
+        "color": 1,
+        "is_done": false
+      }
+    },
+    {
+      "type": "Empty"
+    }
+  ],
+  "tick": 0,
+  "vans": [],
+  "bridges": [],
+  "buttons": [],
+  "warehouses_remaining": 0
+}
+"#;
 // --[[[end]]]
     }
     use crate::solver::struct_defs::{ Universe};
@@ -6010,6 +6297,11 @@ for json_file in LEVEL_DIR.glob('*.json'):
     #[test] 
     fn test_london_h10() { 
         run_level(TEST_DATA_LONDON_H10) 
+    } 
+//************************************************************************************************/ 
+    #[test] 
+    fn test_startonlyone() { 
+        run_level(TEST_DATA_STARTONLYONE) 
     }
     // --[[[end]]]
 

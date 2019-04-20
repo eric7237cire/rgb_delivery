@@ -212,10 +212,19 @@ impl Universe {
 
             log_trace!("\n\nLoop count: {} Tick: {} Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
                 self.iter_count,
-                self.data.tick,
+                cur_state.tick,
                 self.queue.len(), cur_state.current_van_index,
                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
+
+            // Also test if starting vans don't move
+            if cur_state.tick == 1 {
+                assert!(!cur_state.vans[cur_state.current_van_index.0].is_done);
+                let mut if_van_stops_state = cur_state.clone();
+                if_van_stops_state.current_van_mut().is_done = true;
+                //push back to calculate last
+                self.queue.push_back(if_van_stops_state);
+            }
 
             cur_state.check_bridges_and_buttons();
 

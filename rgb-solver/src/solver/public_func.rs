@@ -111,6 +111,7 @@ impl Universe {
         self.queue = VecDeque::new();
 
         self.iter_count = 0;
+        self.data.tick = 0;
 
         self.success = None;
 
@@ -160,6 +161,8 @@ impl Universe {
         }
 
         self.queue.push_back(self.data.clone());
+
+
     }
 
     pub fn next_calculate(&mut self) -> JsValue {
