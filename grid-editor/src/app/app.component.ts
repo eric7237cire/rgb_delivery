@@ -185,7 +185,7 @@ export class AppComponent implements OnInit {
   }
 
   handleGridStateChanged() {
-    //console.log("Data is now", this.gridStateService.gridState);
+    console.log("Data is now", this.gridStateService.gridState);
 
 
     //strip out empty cells
@@ -324,6 +324,7 @@ export class AppComponent implements OnInit {
       switch (message.tag) {
         case ResponseTypes.WASM_LOADED: {
           console.log("Angular got web worker load");
+          this.handleWasmLoaded(message);
           break;
         }
         case ResponseTypes.GRID_STATE_LOADED: {
@@ -340,7 +341,9 @@ export class AppComponent implements OnInit {
 
     //submitButton.addEventListener("click", () => worker.postMessage(textBox.value));
 
-    this.gridMouseMove$.subscribe(
+    this.gridMouseMove$.
+      pipe(throttleTime(100)).
+    subscribe(
       (e) => this.handleMouseMove(e)
     );
 
@@ -358,7 +361,7 @@ export class AppComponent implements OnInit {
   }
 
   handleGridMouseEvent(mouseEventType: "down" | "up" | "move" | "right" | "left", mouseEvent: MouseEvent): boolean {
-    console.log("mouse event", mouseEventType);
+    //console.log("mouse event", mouseEventType);
     switch (mouseEventType) {
       case "down":
         this.gridMouseDown$.next(mouseEvent);

@@ -5,7 +5,7 @@ const exec = require('child_process').exec;
 
 const workerConfig = {
   entry: "./worker/worker.ts" ,
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
   target: "webworker",
 
   resolve: {

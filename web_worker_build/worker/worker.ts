@@ -18,6 +18,8 @@ ctx.addEventListener("message", ev => {
 
     let requestMessage: WasmWebWorkerRequest = ev.data;
 
+    console.log("Got message", requestMessage.tag);
+
     switch (requestMessage.tag) {
         case RequestTypes.LOAD_WASM: {
             console.log("Loading wasm");
