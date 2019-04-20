@@ -10,12 +10,25 @@ import {
   TileEnum,
   TileEnum_type,
   TileRoad
-} from "../../../rgb-solver/pkg";
+} from "rgb-solver";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {GridStateService} from "./grid-state.service";
 import {Subject} from "rxjs";
 import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
+
+import {
+  RequestInitCalculations,
+  RequestLoadGridState,
+  RequestRunCalculateSteps,
+  RequestSetGridSquare,
+  RequestSetOverrideList,
+  RequestTypes,
+  RequestWasmLoad,
+  ResponseTypes,
+  ResponseWasmLoaded,
+  WasmWebWorkerResponse
+} from "./typings/worker";
 
 
 interface DirectionMarker {
@@ -36,8 +49,6 @@ enum DIRECTION_INDEX {
 }
 
 const DEFAULT_DM_COLOR = "rgb(200, 200, 200)";
-
-export type WASM_TYPE = typeof import ('../../../rgb-solver/pkg');
 
 type Thing = "Van" | "Block" | "Button" | "Clear";
 
@@ -115,8 +126,7 @@ export class AppComponent implements OnInit {
 
   jsonSaveAs: SafeUrl;
 
-  wasm: typeof import ('../../../rgb-solver/pkg');
-
+  worker: Worker;
 
   cells: Array<CellData> = [];
 
@@ -136,10 +146,10 @@ export class AppComponent implements OnInit {
   ) {
   }
 
-  handleWasmLoaded(newWasm: WASM_TYPE) {
-    this.wasm = newWasm;
+  handleWasmLoaded(wasmLoadedMessage: ResponseWasmLoaded) {
 
-    this.colors = this.wasm.get_colors();
+
+    this.colors = wasmLoadedMessage.colors;
 
 
     if (!this.selectedColor) {
@@ -160,7 +170,7 @@ export class AppComponent implements OnInit {
 
     if (!_.isNil(savedData)) {
       console.log("Loading saved grid from local storage", savedData);
-      this.gridStateService.loadGridState(savedData, this.wasm);
+      this.loadGridState(savedData);
       this.numRows = savedData.height;
       this.numCols = savedData.width;
 
@@ -175,7 +185,7 @@ export class AppComponent implements OnInit {
   }
 
   handleGridStateChanged() {
-    //console.log("Data is now", this.gridStateService.gridState);
+    console.log("Data is now", this.gridStateService.gridState);
 
 
     //strip out empty cells
@@ -220,7 +230,11 @@ export class AppComponent implements OnInit {
        },*/
     ];
 
-    this.gridStateService.universe.set_overrides(overRideList);
+    const request: RequestSetOverrideList = {
+      tag: RequestTypes.SET_OVERRIDE_LIST,
+      overRideList
+    };
+    this.worker.postMessage(request);
 
     if (nonEmptyCells.length > 0) {
       console.log("STORING GRID");
@@ -255,7 +269,7 @@ export class AppComponent implements OnInit {
       }
 
       console.log("Loading saved grid from File", savedData);
-      this.gridStateService.loadGridState(savedData, this.wasm);
+      this.loadGridState(savedData);
       this.numRows = savedData.height;
       this.numCols = savedData.width;
 
@@ -284,23 +298,9 @@ export class AppComponent implements OnInit {
     this.gridStateService.gridState.width = this.numCols;
     this.gridStateService.gridState.height = this.numRows;
 
-    this.loadGridJsonData(this.gridStateService.gridState);
+    this.loadGridState(this.gridStateService.gridState);
   }
 
-  loadGridJsonData(jsonData: GridState) {
-
-
-    this.gridStateService.loadGridState(jsonData, this.wasm);
-
-
-
-
-  }
-
-
-  async load() {
-    this.handleWasmLoaded(await import('rgb-solver'));
-  }
 
   ngOnInit(): void {
 
@@ -308,21 +308,42 @@ export class AppComponent implements OnInit {
 
     //RustRGBProject/pkg works but not in PyCharm
 
+    this.worker = new Worker('assets/worker.js');
+    //console.log("Load", workerPath);
+    //this.worker = new EricWorker();
 
-    this.load().then(() => {
-      console.log("Load done");
+    const requestLoad: RequestWasmLoad = {
+      tag: RequestTypes.LOAD_WASM
+    };
+
+    this.worker.addEventListener("message", ev => {
+      console.log("Got message", ev);
+
+      const message : WasmWebWorkerResponse = ev.data;
+
+      switch (message.tag) {
+        case ResponseTypes.WASM_LOADED: {
+          console.log("Angular got web worker load");
+          this.handleWasmLoaded(message);
+          break;
+        }
+        case ResponseTypes.GRID_STATE_LOADED: {
+          console.log("New grid state data");
+          this.gridStateService.gridState$.next(message.data);
+          break;
+        }
+      }
+
     });
 
-    /*
-    syntax when using wasm plugin
-    import("../../../rgb-solver/pkg").then(module => {
+    this.worker.postMessage(requestLoad);
 
-      this.wasm = module;
 
-      this.updateDim();
-    });*/
+    //submitButton.addEventListener("click", () => worker.postMessage(textBox.value));
 
-    this.gridMouseMove$.subscribe(
+    this.gridMouseMove$.
+      pipe(throttleTime(100)).
+    subscribe(
       (e) => this.handleMouseMove(e)
     );
 
@@ -340,7 +361,7 @@ export class AppComponent implements OnInit {
   }
 
   handleGridMouseEvent(mouseEventType: "down" | "up" | "move" | "right" | "left", mouseEvent: MouseEvent): boolean {
-    console.log("mouse event", mouseEventType);
+    //console.log("mouse event", mouseEventType);
     switch (mouseEventType) {
       case "down":
         this.gridMouseDown$.next(mouseEvent);
@@ -452,7 +473,7 @@ export class AppComponent implements OnInit {
               break;
           }
 
-          this.gridStateService.setGridSquare({row_index: rowIndex, col_index: colIndex, tile});
+          this.setGridSquare({row_index: rowIndex, col_index: colIndex, tile});
           break;
         }
         default: {
@@ -464,14 +485,14 @@ export class AppComponent implements OnInit {
     } else {
       switch (this.selectedTile) {
         case "Empty":
-          this.gridStateService.setGridSquare({
+          this.setGridSquare({
             row_index: rowIndex,
             col_index: colIndex,
             tile: {type: this.selectedTile}
           });
           break;
         case "TileRoad":
-          this.gridStateService.setGridSquare({
+          this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               used_mask: 0,
@@ -479,7 +500,7 @@ export class AppComponent implements OnInit {
           });
           break;
         case "TileWarehouse":
-          this.gridStateService.setGridSquare({
+          this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               color: this.selectedColor.color_index,
@@ -488,7 +509,7 @@ export class AppComponent implements OnInit {
           });
           break;
         case "TileBridge":
-          this.gridStateService.setGridSquare({
+          this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               used_mask: 0,
@@ -578,22 +599,41 @@ export class AppComponent implements OnInit {
   }
 
   initCalculations() {
-    this.gridStateService.universe.init_calculate();
-    this.gridStateService.reloadGridData();
+    const request: RequestInitCalculations = {
+      tag: RequestTypes.INIT_CALCULATIONS
+    };
+
+    this.worker.postMessage(request);
   }
 
   nextCalculateStep(numStepsParam: number) {
     const numSteps = _.toNumber(numStepsParam);
 
-    const gs = this.gridStateService.universe.next_batch_calculate(numSteps);
+    const request : RequestRunCalculateSteps = {
+      tag: RequestTypes.RUN_CALCULATE_STEPS,
+      numSteps
+    };
 
-    if (_.isNil(gs)) {
-      console.log("Null grid state after batch");
-    } else {
-      this.gridStateService.gridState$.next(gs);
-    }
+    this.worker.postMessage(request);
+  }
 
+  private loadGridState(gridState: GridState) {
+    const request: RequestLoadGridState = {
+      tag: RequestTypes.LOAD_GRID_STATE,
+        gridState
 
+    };
+
+    this.worker.postMessage(request);
+  }
+
+  private setGridSquare(cellData: CellData) {
+    const request: RequestSetGridSquare = {
+      tag: RequestTypes.SET_GRID_SQUARE,
+      cellData
+    };
+
+    this.worker.postMessage(request);
   }
 
 }
