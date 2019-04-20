@@ -238,7 +238,8 @@ impl Universe {
                  log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
             }
 
-            if self.iter_count > 300000 {
+            if self.iter_count > 100_000_000 {
+                log!("Too many iterations, stopping at {}", self.iter_count);
                 self.queue.clear();
                 break;
             }

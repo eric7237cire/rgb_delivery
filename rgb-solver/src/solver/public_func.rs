@@ -171,7 +171,8 @@ impl Universe {
 
         log!("Batch calculate, repeat count: {}", repeat_count);
 
-        if repeat_count > 350000 {
+        if repeat_count > 10_000_000 {
+            log!("Too many repetitions...{}", repeat_count);
             return JsValue::from_serde(&self.data).unwrap();
         }
 
