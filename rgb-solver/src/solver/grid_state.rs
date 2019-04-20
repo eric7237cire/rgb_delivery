@@ -489,10 +489,10 @@ impl GridState {
         let on_usable_popper = match &mut self.tiles[cell_index] {
             TileRoad( Road{ used_popper_tick,has_popper,.. }) => {
                 //need to check it hasn't already been toggled
-                let r = *has_popper && used_popper_tick.is_some();
+                let r = *has_popper && used_popper_tick.is_none();
 
                 //in all cases, set to used since we can't use it after this
-                *used_popper_tick = Some(self.tick);
+                *has_popper = false;
 
                 r
             },
@@ -514,6 +514,7 @@ impl GridState {
                 assert!(road.block.is_none());
 
                 road.block = Some(top_box_color);
+                road.used_popper_tick = Some(self.tick);
 
                 Ok(Some(if_popper_active))
             } else {

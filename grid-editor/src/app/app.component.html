@@ -57,7 +57,7 @@
   <label class="button" (click)="nextCalculateStep(1)">Step 1</label>
   <div>
     <label for="numCalcSteps">Num steps:</label>
-    <input id="numCalcSteps" type="text" [(ngModel)]="numCalcSteps">
+    <input id="numCalcSteps" type="text" [(ngModel)]="numCalcSteps" (ngModelChange)="handleNumCalcStepsChange($event)" >
     <label class="button" (click)="nextCalculateStep(numCalcSteps)">Step N</label>
   </div>
 
@@ -137,6 +137,14 @@
       r="15"
       (click)="handleClickSvgText()"
       stroke="black" stroke-width="3" fill="grey" ></circle>
+
+    <circle
+      *ngIf="cell.tile.used_popper_tick > 0"
+      [attr.cx]="cell.col_index * GRID_SIZE + GRID_SIZE/2"
+      [attr.cy]="cell.row_index * GRID_SIZE + GRID_SIZE/2"
+      r="10"
+      (click)="handleClickSvgText()"
+      stroke="black" stroke-width="3" fill="white" ></circle>
 
     <text *ngIf="cell.tile.type == 'TileRoad' && cell.tile.button"
           (click)="handleClickSvgText()"

@@ -48,6 +48,8 @@ enum DIRECTION_INDEX {
   WEST = 3
 }
 
+const LOCAL_STORAGE_KEY_NUM_STEPS = "numSteps";
+
 const DEFAULT_DM_COLOR = "rgb(200, 200, 200)";
 
 type Thing = "Van" | "Block" | "Button" | "Clear" | "Popper";
@@ -305,6 +307,12 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
 
     console.log("ng on init");
+
+    const numSteps = localStorage.getItem(LOCAL_STORAGE_KEY_NUM_STEPS);
+
+    if (!_.isNil(numSteps)) {
+      this.numCalcSteps = _.toNumber(numSteps);
+    }
 
     //RustRGBProject/pkg works but not in PyCharm
 
@@ -642,4 +650,7 @@ export class AppComponent implements OnInit {
     this.worker.postMessage(request);
   }
 
+  handleNumCalcStepsChange(steps) {
+    localStorage.setItem(LOCAL_STORAGE_KEY_NUM_STEPS, steps);
+  }
 }

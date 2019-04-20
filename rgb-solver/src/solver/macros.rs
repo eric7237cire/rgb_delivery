@@ -18,7 +18,7 @@ macro_rules! log {
 #[cfg( target_arch = "x86_64")]
 macro_rules! log_trace {
      ( $( $t:tt )* ) => {
-        //println!( $( $t )* );
+        println!( $( $t )* );
     }
 }
 
