@@ -1,40 +1,43 @@
 const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 const dist = path.resolve(__dirname, "dist");
-
-const appConfig = {
-  entry: "./app/main.js",
-  devServer: {
-    contentBase: dist
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: "index.html"
-    })
-  ],
-  resolve: {
-    extensions: [".js"]
-  },
-  output: {
-    path: dist,
-    filename: "app.js"
-  }
-};
+const exec = require('child_process').exec;
 
 const workerConfig = {
-  entry: "./worker/worker.js",
+  entry: "./worker/worker.ts" ,
+    devtool: 'inline-source-map',
   target: "webworker",
-  plugins: [
 
-  ],
   resolve: {
-    extensions: [".js", ".wasm"]
+    extensions: [".ts", ".js", ".wasm"]
   },
+  module: {
+        rules: [
+            // all files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'
+            {
+                test: /\.tsx?$/,
+                use: {
+                    loader: "ts-loader"
+                }
+            }
+        ]
+    },
   output: {
     path: dist,
     filename: "worker.js"
-  }
+  },
+    plugins: [
+        {
+            apply: (compiler) => {
+                compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
+                    exec('E:\\git\\rgb_delivery\\copy-wasm-build-files.bat', (err, stdout, stderr) => {
+                        if (stdout) process.stdout.write(stdout);
+                        if (stderr) process.stderr.write(stderr);
+                    });
+                });
+            }
+        }
+        ]
 };
 
-module.exports = [appConfig, workerConfig];
+module.exports = [ workerConfig];
