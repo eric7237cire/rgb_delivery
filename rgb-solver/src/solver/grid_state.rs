@@ -179,22 +179,26 @@ impl GridState {
         &mut self.vans[ i ]
     }
 
-    fn get_current_block_on_road(&self) -> Option<ColorIndex> {
-        match self.current_cell() {
-            TileRoad(road) => {
-                road.block
-            },
-            _ => None
-        }
-    }
-
     pub(crate) fn pick_up_block_if_exists(&mut self) {
 
 
         log_trace!("pick_up_block_if_exists");
 
+        let opt = match self.current_cell() {
+            TileRoad(road) => {
+
+                if Some(self.tick) == road.used_popper_tick {
+                    //don't pick up the block we just set down
+                    None
+                } else {
+                    road.block
+                }
+            },
+            _ => None
+        };
+
         //pick up a block if it exists.  Note a van can pick up a box of any color
-        if let Some(block_color) = self.get_current_block_on_road() {
+        if let Some(block_color) = opt {
             log_trace!("Rolled on a block of color {:?}", block_color);
 
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
@@ -446,7 +450,84 @@ impl GridState {
     }
 
 
+    //if did a drop off, returns a grid state to enqueue
+    pub fn handle_warehouse_drop_off(&mut self) -> Result<Option<Self>, ()> {
+        //check if we can drop a block off
+        if self.empty_warehouse_color().is_some() {
+            match self.can_drop_off_block() {
+                Err(_) => Err(()),
+                Ok(CanDropOff::YesOK) => {
 
+                    assert!(self.empty_warehouse_color().is_none());
+                    assert!(self.warehouses_remaining > 0);
+
+                    self.warehouses_remaining -= 1;
+
+                    //test what happens if we stop
+                    let mut if_van_stops_state = self.clone();
+                    if_van_stops_state.current_van_mut().is_done = true;
+
+                     {
+                        if let TileRoad(road) = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0] {
+                            assert!(road.van_snapshot.is_some());
+                        }
+                    }
+                    Ok(Some(if_van_stops_state))
+                },
+                _ => Ok(None)
+            }
+        } else {
+            Ok(None)
+        }
+    }
+
+    /// On road, toggle-able thing that will pop off the block if active. if we do that, returns that state
+    pub fn handle_block_popper(&mut self) -> Result<Option<Self>, ()> {
+
+
+        let cell_index = self.current_cell_index().0;
+        let on_usable_popper = match &mut self.tiles[cell_index] {
+            TileRoad( Road{ used_popper_tick,has_popper,.. }) => {
+                //need to check it hasn't already been toggled
+                let r = *has_popper && used_popper_tick.is_some();
+
+                //in all cases, set to used since we can't use it after this
+                *used_popper_tick = Some(self.tick);
+
+                r
+            },
+            _ => false
+        };
+
+        if !on_usable_popper {
+            return Ok(None);
+        }
+
+        //do we have a box to pop?
+        if let Some(top_box_color) = self.vans[self.current_van_index.0].get_top_box() {
+
+            let mut if_popper_active = self.clone();
+            if_popper_active.vans[if_popper_active.current_van_index.0].clear_top_box();
+
+            let cell_index = if_popper_active.current_cell_index().0;
+            if let TileRoad(road) = &mut if_popper_active.tiles[cell_index] {
+                assert!(road.block.is_none());
+
+                road.block = Some(top_box_color);
+
+                Ok(Some(if_popper_active))
+            } else {
+                panic!("Should be a road");
+            }
+            
+
+        } else {
+
+            Ok(None)
+        }
+        //create the state
+
+    }
 
 
 }

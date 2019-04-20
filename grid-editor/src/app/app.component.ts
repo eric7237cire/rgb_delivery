@@ -50,7 +50,7 @@ enum DIRECTION_INDEX {
 
 const DEFAULT_DM_COLOR = "rgb(200, 200, 200)";
 
-type Thing = "Van" | "Block" | "Button" | "Clear";
+type Thing = "Van" | "Block" | "Button" | "Clear" | "Popper";
 
 @Component({
   selector: 'app-root',
@@ -118,7 +118,7 @@ export class AppComponent implements OnInit {
 
   selectedColor = this.colors[0];
   selectedThing: Thing = "Van";
-  readonly THING_LIST: Array<Thing> = ["Van", "Block", "Button", "Clear"];
+  readonly THING_LIST: Array<Thing> = ["Van", "Block", "Button", "Clear", "Popper"];
 
   selectedTile: TileEnum_type = this.tiles[0];
 
@@ -347,8 +347,8 @@ export class AppComponent implements OnInit {
       (e) => this.handleMouseMove(e)
     );
 
-    const paints$ = this.gridMouseDown$.pipe(
-      mergeMap(down => this.gridMouseMove$.pipe(
+    this.gridMouseDown$.pipe(
+      mergeMap(() => this.gridMouseMove$.pipe(
         //ms
         throttleTime(25),
         takeUntil(this.gridMouseUp$)))
@@ -467,9 +467,14 @@ export class AppComponent implements OnInit {
                 is_pressed: !this.selectedIsOpenOrUp
               };
               break;
+            case "Popper":
+              tile.has_popper = true;
+              break;
             case "Clear":
               delete tile.block;
               delete tile.van;
+              tile.has_popper = false;
+              delete tile.button;
               break;
           }
 
@@ -496,6 +501,7 @@ export class AppComponent implements OnInit {
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               used_mask: 0,
+              has_popper: false
             }
           });
           break;

@@ -1,7 +1,7 @@
-E:
-cd E:\git\rgb_delivery\rgb-solver
+SET BUILD_WASM_DIR=%~dp0
+cd /D "BUILD_WASM_DIR"
+CD "%BUILD_WASM_DIR%rgb-solver"
 wasm-pack build
-cd E:\git\rgb_delivery\web_worker_build
+CD "%BUILD_WASM_DIR%web_worker_build"
 CALL .\node_modules\.bin\webpack
-copy /Y E:\git\rgb_delivery\web_worker_build\dist\*  E:\git\rgb_delivery\grid-editor\src\assets
-copy /Y E:\git\rgb_delivery\web_worker_build\dist\types\worker.d.ts E:\git\rgb_delivery\grid-editor\typings\custom\worker.d.ts
+CALL "%BUILD_WASM_DIR%\copy-wasm-build-files.bat"
