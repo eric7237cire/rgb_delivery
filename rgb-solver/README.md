@@ -62,6 +62,8 @@ cargo install cargo-watch
 # in rgb-solver
 cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition -w .
 
+cargo watch -i .gitignore -i "pkg/*" -s "E:\git\rgb_delivery\build-wasm.bat" -w ../wasm-typescript-definition -w .
+
 # Running tests
 cargo test --target x86_64-pc-windows-msvc  -- --nocapture
 

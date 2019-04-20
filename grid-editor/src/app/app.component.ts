@@ -17,6 +17,15 @@ import {GridStateService} from "./grid-state.service";
 import {Subject} from "rxjs";
 import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
 
+//import EricWorker from "worker-loader?inline!./workerLoader";
+//import Worker from '../worker/main.worker';
+//import EricWorker = require('worker-loader!worker/main.worker');
+//import * as EricWorker from '../worker/worker.js';
+//import * as EricWorker from '../worker/worker.js';
+//import * as workerPath from "file-loader?name=[name].js!../worker/main.worker";
+//import * as workerPath from "../worker/main.worker";
+
+//var workerScript = require('raw!./worker.js');
 
 interface DirectionMarker {
   text: string;
@@ -299,8 +308,12 @@ export class AppComponent implements OnInit {
 
 
   async load() {
+    //npm link rgb-solver in grid-editor directory
     this.handleWasmLoaded(await import('rgb-solver'));
   }
+
+
+  worker: Worker;
 
   ngOnInit(): void {
 
@@ -308,10 +321,15 @@ export class AppComponent implements OnInit {
 
     //RustRGBProject/pkg works but not in PyCharm
 
+    this.worker = new Worker('assets/worker.js');
+    //console.log("Load", workerPath);
+    //this.worker = new EricWorker();
 
-    this.load().then(() => {
+    this.worker.postMessage({s: "What up"});
+
+    /*this.load().then(() => {
       console.log("Load done");
-    });
+    });*/
 
     /*
     syntax when using wasm plugin
@@ -321,6 +339,12 @@ export class AppComponent implements OnInit {
 
       this.updateDim();
     });*/
+
+    this.worker.addEventListener("message", ev => {
+      console.log("Got message", ev);
+    });
+
+    //submitButton.addEventListener("click", () => worker.postMessage(textBox.value));
 
     this.gridMouseMove$.subscribe(
       (e) => this.handleMouseMove(e)
