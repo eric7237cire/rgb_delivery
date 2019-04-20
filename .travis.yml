@@ -1,0 +1,9 @@
+language: rust
+cache: cargo
+
+before_install:
+  - cd rgb-solver
+
+script:
+  - cargo build --verbose --all
+  - cargo test --verbose --all
