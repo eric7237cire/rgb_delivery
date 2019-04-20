@@ -1,0 +1,1014 @@
+{
+  "width": 11,
+  "height": 11,
+  "tiles": [
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileWarehouse",
+      "color": 2,
+      "is_filled": false
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileWarehouse",
+      "color": 1,
+      "is_filled": false
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 5
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "button": {
+        "is_pressed": true,
+        "color": 5
+      }
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "button": {
+        "is_pressed": false,
+        "color": 5
+      }
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "block": 1
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "block": 2
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "van": {
+        "boxes": [
+          null,
+          null,
+          null
+        ],
+        "color": 1,
+        "is_done": false
+      }
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "used_mask": 0,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "van": {
+        "boxes": [
+          null,
+          null,
+          null
+        ],
+        "color": 2,
+        "is_done": false
+      }
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "Empty"
+    }
+  ],
+  "tick": 0,
+  "vans": [
+    {
+      "boxes": [
+        null,
+        null,
+        null
+      ],
+      "color": 1,
+      "is_done": false
+    },
+    {
+      "boxes": [
+        null,
+        null,
+        null
+      ],
+      "color": 2,
+      "is_done": false
+    }
+  ],
+  "bridges": [
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 5
+    }
+  ],
+  "buttons": [
+    {
+      "is_pressed": true,
+      "color": 5
+    },
+    {
+      "is_pressed": false,
+      "color": 5
+    }
+  ],
+  "warehouses_remaining": 2
+}

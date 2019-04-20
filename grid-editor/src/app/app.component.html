@@ -1,0 +1,162 @@
+<!--The content below is only a placeholder and can be replaced.-->
+
+<!--suppress HtmlUnknownAttribute -->
+<div class="inputs">
+  <input type="file" id="files" accept=".json" (change)="handleFileSelect($event)"/>
+
+  <label>Number of Rows</label>
+  <input id="numRows" type=text [(ngModel)]="numRows" (ngModelChange)="handleWidthHeightChange()">
+  <label for="numCols">Number of Columns</label>
+  <input id="numCols" type=text [(ngModel)]="numCols" (ngModelChange)="handleWidthHeightChange()">
+
+  <label>Color</label>
+  <div class="colors">
+    <div class="color"
+         (click)="onColorClick(c)"
+         *ngFor="let c of colors" [style.background-color]="getCssForColor(c)">{{c.label}}
+    </div>
+  </div>
+
+  <label>Selected Color</label>
+  <div class="color" [style.background-color]="getCssForColor(selectedColor)">{{selectedColor?.label}}</div>
+
+  <label for="selectedIsOpenOrUp">Is Bridge Open/Button Up</label>
+  <div><input
+    id ="selectedIsOpenOrUp"
+  type="checkbox"
+  [(ngModel)]="selectedIsOpenOrUp"></div>
+
+  <label>Tile type</label>
+  <div class="tiles">
+    <div class="tile"
+         (click)="onTileClick(t)"
+         *ngFor="let t of tiles">{{t}}
+    </div>
+  </div>
+
+  <label>Selected Tile (left click)</label>
+
+  <div class="tile"
+  >{{selectedTile}}
+  </div>
+
+  <label>Things</label>
+  <div class="things">
+    <div class="thing" *ngFor="let thing of THING_LIST" (click)="onThingClick(thing)">
+      {{thing}}
+    </div>
+  </div>
+  <label>Selected thing (right click)</label>
+  <div class="thing">
+    {{selectedThing}}
+  </div>
+
+  <label> <a download='gridData.json' target="_blank" [href]="jsonSaveAs">Save As</a></label>
+
+  <label class="button" (click)="initCalculations()">Restart calculations</label>
+  <label class="button" (click)="nextCalculateStep(1)">Step 1</label>
+  <div>
+    <label for="numCalcSteps">Num steps:</label>
+    <input id="numCalcSteps" type="text" [(ngModel)]="numCalcSteps">
+    <label class="button" (click)="nextCalculateStep(numCalcSteps)">Step N</label>
+  </div>
+
+  <div>Current mouse coords: Row {{mouseMoveRow}}, Col {{mouseMoveCol}}</div>
+</div>
+<!--suppress HtmlUnknownAttribute, HtmlUnknownAttribute, HtmlUnknownAttribute -->
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" [attr.width]="GRID_SIZE * numCols"
+     [attr.height]="GRID_SIZE * numRows"
+
+     (mousemove)="handleGridMouseEvent('move',$event)"
+     (mouseup)="handleGridMouseEvent('up',$event)"
+     (mousedown)="handleGridMouseEvent('down',$event) "
+
+    (contextmenu)="handleGridMouseEvent('right', $event)"
+     (click)="handleGridMouseEvent('left', $event)"
+>
+  <defs>
+
+
+    <pattern id="grid" [attr.width]="GRID_SIZE" [attr.height]="GRID_SIZE" patternUnits="userSpaceOnUse">
+
+      <path attr.d="M 0 0 L 0 {{GRID_SIZE}} L {{GRID_SIZE}} {{GRID_SIZE}} L {{GRID_SIZE}} 0 L 0 0" fill="none"
+            stroke="rgb(200,200,200)" stroke-width="1"></path>
+    </pattern>
+  </defs>
+  <rect fill="rgb(30,30,30)" x="0" y="0" width="100%" height="100%"></rect>
+
+
+
+  <ng-container *ngFor="let cell of cells">
+
+
+    <rect *ngIf="cell.tile.type == 'TileRoad'"
+          (click)="handleClickSvgText()"
+          fill="rgb(70,70,70)"
+          [attr.x]="cell.col_index * GRID_SIZE "
+          [attr.y]="cell.row_index * GRID_SIZE"
+          [attr.width]="GRID_SIZE" [attr.height]="GRID_SIZE"></rect>
+
+    <rect *ngIf="cell.tile.type == 'TileBridge'"
+          (click)="handleClickSvgText()"
+          [attr.fill]="getCssForColorIndex(cell.tile.color)"
+          [attr.x]="cell.col_index * GRID_SIZE + (cell.tile.is_up ? GRID_SIZE/4 : 0)"
+          [attr.y]="cell.row_index * GRID_SIZE  + (cell.tile.is_up ? GRID_SIZE/4 : 0)"
+          [attr.width]="GRID_SIZE - (cell.tile.is_up ? GRID_SIZE/2 : 0)"
+          [attr.height]="GRID_SIZE - (cell.tile.is_up ? GRID_SIZE/2 : 0)"></rect>
+
+
+    <text *ngIf="cell.tile.type == 'TileWarehouse'" [attr.x]="cell.col_index * GRID_SIZE + 15" [attr.y]="cell.row_index * GRID_SIZE + 25"
+          (click)="handleClickSvgText()"
+          [attr.fill]="getCellColor(cell)"
+          [class.warehouse_filled] = "cell.tile.is_filled"
+          class="grid_text">{{cell.tile.type[0]}}</text>
+
+    <ng-container *ngFor="let dm of DIRECTION_MARKERS">
+      <ng-container *ngIf="isDirectionMarkerVisible(cell, dm)">
+      <text
+          (click)="handleClickSvgText()"
+          [attr.x]="cell.col_index * GRID_SIZE + dm.x_offset" [attr.y]="cell.row_index * GRID_SIZE + dm.y_offset"
+            [attr.fill]="getCssColorForDirectionMarker(cell, dm)"
+          (click)="handleClickSvgText()"
+           class="dm_text">{{dm.text}}</text>
+      <text
+          (click)="handleClickSvgText()"
+          [attr.x]="cell.col_index * GRID_SIZE + dm.annotation_x_offset" [attr.y]="cell.row_index * GRID_SIZE + dm.annotation_y_offset"
+
+          (click)="handleClickSvgText()"
+           class="annotation_text">{{getDirectionMarkerAnnotation(cell,dm)}}</text>
+
+      </ng-container>
+    </ng-container>
+
+    <text *ngIf="cell.tile.type == 'TileRoad' && cell.tile.button"
+          (click)="handleClickSvgText()"
+          [attr.fill]="getCssColorForButton(cell.tile.button)"
+          [attr.x]="cell.col_index * GRID_SIZE + 7"
+          [attr.y]="cell.row_index * GRID_SIZE + 35"
+          class="van_text"
+          >{{cell.tile.button.is_pressed ? 'u' : 'U'}} </text>
+
+    <text *ngIf="cell.tile.van"
+          [attr.x]="cell.col_index * GRID_SIZE + 5"
+          [attr.y]="cell.row_index * GRID_SIZE + 35"
+          (click)="handleClickSvgText()"
+          [attr.fill]="getCssForColorIndex(cell.tile.van.color)"
+          class="van_text">V</text>
+
+    <text *ngIf="cell.tile.block"
+          [attr.x]="cell.col_index * GRID_SIZE + 7"
+          [attr.y]="cell.row_index * GRID_SIZE + 35"
+          (click)="handleClickSvgText()"
+          [attr.fill]="getCssForColorIndex(cell.tile.block)"
+          class="van_text">B</text>
+
+  </ng-container>
+
+  <rect fill="url(#grid)" x="0" y="0" width="100%" height="100%"></rect>
+
+
+</svg>
+
+<router-outlet></router-outlet>

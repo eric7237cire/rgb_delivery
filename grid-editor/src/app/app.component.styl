@@ -1,0 +1,67 @@
+.inputs {
+display:grid;
+grid-template-columns: 400px;
+margin-bottom: 30px;
+}
+
+clickable()
+    cursor: pointer
+
+button-border()
+    border: 1px solid black
+
+box()
+  display: inline-block;
+  padding: 5px;
+  margin-right: 10px;
+
+.color {
+    box()
+    button-border()
+    clickable()
+}
+
+.tiles {
+    width: 100%;
+}
+.tile {
+    box()
+    button-border()
+    clickable()
+}
+
+.thing {
+    box()
+    button-border()
+    clickable()
+}
+
+.grid_text {
+
+  font-size: 15px;
+}
+
+.warehouse_filled {
+    font-size: 30px;
+}
+
+.van_text {
+  font-size: 40px;
+}
+
+.dm_text {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.annotation_text {
+  font-size: 8px;
+  font-weight: bold;
+  fill: rgb(200,200,200)
+}
+
+.button {
+  box()
+  button-border()
+  clickable()
+}
