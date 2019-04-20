@@ -212,12 +212,8 @@ export class AppComponent implements OnInit {
 
     const overRideList: Array<ChoiceOverride> = [
 
-       /*{
-         row_index: 1,
-         col_index: 1,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.EAST
-       },
+
+      /*
       {
          row_index: 1,
          col_index: 3,

@@ -232,8 +232,6 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-
-
             if self.iter_count % 500 == 0 {
                  log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
             }
@@ -344,6 +342,7 @@ impl Universe {
 
         }
 
+        log!("Queue is empty");
         return None;
     }
 }
