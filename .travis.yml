@@ -12,4 +12,4 @@ before_script:
 
 script:
   - cargo build --verbose --all
-  - cargo test --verbose --all
+  - cargo test --target x86_64-unknown-linux-gnu --lib --verbose --all

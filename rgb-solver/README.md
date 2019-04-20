@@ -67,8 +67,14 @@ cargo test --target x86_64-pc-windows-msvc  -- --nocapture
 
 ## tests in watch mode
 cargo watch -x "test --target x86_64-pc-windows-msvc --lib -- --nocapture"
-# cargo watch -x "test <test name > --target x86_64-pc-windows-msvc --lib -- --nocapture"
+
+# watch just one test
+cargo watch -x "test test_birmingham_g10 --target x86_64-pc-windows-msvc --lib -- --nocapture"
 
 
 ## Cog with WSL
 python3 -m cogapp -r "/mnt/e/git/rgb_delivery/rgb-solver/src/solver/tests.rs"
+
+
+
+#https://www.jetbrains.com/help/pycharm/tuning-the-ide.html

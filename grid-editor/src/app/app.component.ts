@@ -202,32 +202,7 @@ export class AppComponent implements OnInit {
 
 
 
-       {
-         row_index: 8,
-         col_index: 2,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.EAST
-       },
 
-       {
-         row_index: 8,
-         col_index: 8,
-         van_index: 1,
-         direction_index: DIRECTION_INDEX.NORTH
-       },
-       {
-         row_index: 5,
-         col_index: 8,
-         van_index: 1,
-         direction_index: DIRECTION_INDEX.WEST
-       },
-
-       {
-         row_index: 5,
-         col_index: 2,
-         van_index: 1,
-         direction_index: DIRECTION_INDEX.NORTH
-       },
 /*
 
        {
@@ -516,7 +491,7 @@ export class AppComponent implements OnInit {
           this.gridStateService.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
-
+              used_mask: 0,
               is_up: this.selectedIsOpenOrUp,
               color: this.selectedColor.color_index
 
