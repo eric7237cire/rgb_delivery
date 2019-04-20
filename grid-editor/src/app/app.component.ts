@@ -212,24 +212,12 @@ export class AppComponent implements OnInit {
 
     const overRideList: Array<ChoiceOverride> = [
 
-
-
-
-/*
-
        {
-         row_index: 8,
-         col_index: 5,
+         row_index: 1,
+         col_index: 1,
          van_index: 0,
-         direction_index: DIRECTION_INDEX.NORTH
+         direction_index: DIRECTION_INDEX.EAST
        },
-       {
-         row_index: 6,
-         col_index: 3,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.SOUTH,
-         tick: 8
-       },*/
     ];
 
     const request: RequestSetOverrideList = {
