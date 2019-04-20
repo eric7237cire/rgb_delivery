@@ -366,7 +366,8 @@ impl GridState {
         match &mut self.tiles[van_cell_index.0] {
             TileRoad( current_tile_road ) => 
             {
-                assert!(current_tile_road.van_snapshot.is_some());
+                //see comment van consistency
+                //assert!(current_tile_road.van_snapshot.is_some());
                 assert_eq!(current_tile_road.used_mask & adj_info.direction as u8, 0);
 
                 current_tile_road.van_snapshot = None;

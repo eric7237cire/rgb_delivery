@@ -190,6 +190,9 @@ impl Universe {
         }
         while let Some(mut cur_state) = self.queue.pop_front() {
 
+            self.iter_count += 1;
+
+
             //self.current_calc_state = Some(cur_state.clone());
 
             //check success, where all warehouses are filled
@@ -204,6 +207,13 @@ impl Universe {
                 Err(_) => continue,
                 Ok(b) => b
             };
+
+            log_trace!("\n\nLoop count: {} Tick: {} Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
+                self.iter_count,
+                self.data.tick,
+                self.queue.len(), cur_state.current_van_index,
+                cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
+            );
 
             cur_state.check_bridges_and_buttons();
 
@@ -220,14 +230,7 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-            self.iter_count += 1;
 
-            log_trace!("\n\nLoop count: {} Tick: {} Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
-                self.iter_count,
-                self.data.tick,
-                self.queue.len(), cur_state.current_van_index,
-                cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
-            );
 
             if self.iter_count % 500 == 0 {
                  log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
@@ -266,7 +269,7 @@ impl Universe {
                                 assert!(road.van_snapshot.is_some());
                             }
                         }
-                        self.queue.push_back(if_van_stops_state);
+                        self.queue.push_front(if_van_stops_state);
                     },
                     _ => ()
                 };
@@ -302,17 +305,31 @@ impl Universe {
 
                 next_state.handle_move(van_cell_index, adj_info);
 
+                //checking tile consistency
                 {
-                    for vi in 0..next_state.vans.len() {
+                    /*
+                    Example: tick 123:
+                        Van[0] moves A=>B
+                        van 2 moves B=>C
+
+                        tick 124
+                        van 0 won't have a tile set in B
+
+
+                    van_snapshot is just used for visualization so its ok
+                    */
+
+                    /*for vi in 0..next_state.vans.len() {
                         if let TileRoad(road) = &next_state.tiles[next_state.vans[vi].cell_index.0] {
-                            assert!(road.van_snapshot.is_some(), "Hey bad vi {} row/col: {:?}", vi, next_state.vans[vi].cell_index.to_row_col(next_state.width));
+                            assert!(road.van_snapshot.is_some(), "van index {} row/col: {:?} does not have a van set in its tile", vi,
+                                    next_state.vans[vi].cell_index.to_row_col(next_state.width));
                         }
-                    }
+                    }*/
                 }
 
                 next_state.press_button_if_exists();
 
-                self.queue.push_back(next_state);
+                self.queue.push_front(next_state);
                 any_moved = true;
             }
 

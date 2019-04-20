@@ -171,7 +171,10 @@ impl Universe {
             return JsValue::from_serde(&self.data).unwrap();
         }
 
-        for _i in 0..repeat_count {
+        let cur_iter_count = self.iter_count;
+        let target_iter_count = self.iter_count + repeat_count - 1;
+
+        while self.iter_count < target_iter_count {
             self.process_queue_item();
             if self.success.is_some() {
                 return JsValue::from_serde(&self.success).unwrap()

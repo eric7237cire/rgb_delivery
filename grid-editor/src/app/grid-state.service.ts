@@ -126,10 +126,14 @@ export class GridStateService {
         //assume its a color
         cellData.tile.color = (cellData.tile.color as Color).color_index;
       }
+    } else if (cellData.tile.type === "TileBridge") {
+      if (!_.isNil(cellData.tile["is_open"])) {
+        cellData.tile.is_up = cellData.tile["is_open"];
+      }
     }
 
     try {
-      console.log("Setting square", cellData);
+      //console.log("Setting square", cellData);
       this.universe.set_square(cellData);
 
       if (refreshData) {
