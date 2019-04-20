@@ -57,7 +57,7 @@ type Thing = "Van" | "Block" | "Button" | "Clear" | "Popper";
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.styl']
+  styleUrls: ['./style/app.component.styl']
 })
 export class AppComponent implements OnInit {
   title = 'grid-editor';

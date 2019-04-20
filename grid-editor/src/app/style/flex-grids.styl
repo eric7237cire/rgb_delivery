@@ -1,0 +1,25 @@
+.row-height-container {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction : row ;
+
+  width: 250px;
+}
+
+.item {
+  flex-basis : 50px;
+  flex-grow : 1;
+  flex-shrink :1;
+
+}
+
+.item:nth-child(odd) {
+  flex: 0 0 40px;
+}
+
+
+.input-wrap {
+  flex: 1 1 auto;
+  border: 1px solid green;
+}
+

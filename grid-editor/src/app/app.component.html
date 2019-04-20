@@ -3,70 +3,84 @@
   <div class='row'>
     <div class='column'>
 
+    <div class="shade">
+      <div class="inputs blackboard ">
+        <div class="control-row">
 
-<div class="inputs">
-  <input type="file" id="files" accept=".json" (change)="handleFileSelect($event)"/>
+          <input type="file" id="files" accept=".json" (change)="handleFileSelect($event)"/>
+          <input type="button" label="Reset">
+        </div>
 
-  <label>Number of Rows</label>
-  <input id="numRows" type=text [(ngModel)]="numRows" (ngModelChange)="handleWidthHeightChange()">
-  <label for="numCols">Number of Columns</label>
-  <input id="numCols" type=text [(ngModel)]="numCols" (ngModelChange)="handleWidthHeightChange()">
+        <div class="row-height-container">
+          <label class="item">Number of Rows</label>
+          <div class="input-wrap">
+            <input
+              class="item"
+              id="numRows"
+              type=text
+              [(ngModel)]="numRows"
+              (ngModelChange)="handleWidthHeightChange()">
+          </div>
+          <label class="item" for="numCols">Number of Columns</label>
+          <input class="item" id="numCols" type=text [(ngModel)]="numCols" (ngModelChange)="handleWidthHeightChange()">
 
-  <label>Color</label>
-  <div class="colors">
-    <div class="color"
-         (click)="onColorClick(c)"
-         *ngFor="let c of colors" [style.background-color]="getCssForColor(c)">{{c.label}}
+        </div>
+
+        <label>Color</label>
+        <div class="colors">
+          <div class="color"
+               (click)="onColorClick(c)"
+               *ngFor="let c of colors" [style.background-color]="getCssForColor(c)">{{c.label}}
+          </div>
+        </div>
+
+        <label>Selected Color</label>
+        <div class="color" [style.background-color]="getCssForColor(selectedColor)">{{selectedColor?.label}}</div>
+
+        <label for="selectedIsOpenOrUp">Is Bridge Open/Button Up</label>
+        <div><input
+          id ="selectedIsOpenOrUp"
+        type="checkbox"
+        [(ngModel)]="selectedIsOpenOrUp"></div>
+
+        <label>Tile type</label>
+        <div class="tiles">
+          <div class="tile"
+               (click)="onTileClick(t)"
+               *ngFor="let t of tiles">{{t}}
+          </div>
+        </div>
+
+        <label>Selected Tile (left click)</label>
+
+        <div class="tile"
+        >{{selectedTile}}
+        </div>
+
+        <label>Things</label>
+        <div class="things">
+          <div class="thing" *ngFor="let thing of THING_LIST" (click)="onThingClick(thing)">
+            {{thing}}
+          </div>
+        </div>
+        <label>Selected thing (right click)</label>
+        <div class="thing">
+          {{selectedThing}}
+        </div>
+
+        <label> <a download='gridData.json' target="_blank" [href]="jsonSaveAs">Save As</a></label>
+
+        <label class="button" (click)="initCalculations()">Restart calculations</label>
+        <label class="button" (click)="nextCalculateStep(1)">Step 1</label>
+        <div>
+          <label for="numCalcSteps">Num steps:</label>
+          <input id="numCalcSteps" type="text" [(ngModel)]="numCalcSteps" (ngModelChange)="handleNumCalcStepsChange($event)" >
+          <label class="button" (click)="nextCalculateStep(numCalcSteps)">Step N</label>
+        </div>
+
+        <div>Current mouse coords: Row {{mouseMoveRow}}, Col {{mouseMoveCol}}</div>
+      </div>
     </div>
-  </div>
-
-  <label>Selected Color</label>
-  <div class="color" [style.background-color]="getCssForColor(selectedColor)">{{selectedColor?.label}}</div>
-
-  <label for="selectedIsOpenOrUp">Is Bridge Open/Button Up</label>
-  <div><input
-    id ="selectedIsOpenOrUp"
-  type="checkbox"
-  [(ngModel)]="selectedIsOpenOrUp"></div>
-
-  <label>Tile type</label>
-  <div class="tiles">
-    <div class="tile"
-         (click)="onTileClick(t)"
-         *ngFor="let t of tiles">{{t}}
-    </div>
-  </div>
-
-  <label>Selected Tile (left click)</label>
-
-  <div class="tile"
-  >{{selectedTile}}
-  </div>
-
-  <label>Things</label>
-  <div class="things">
-    <div class="thing" *ngFor="let thing of THING_LIST" (click)="onThingClick(thing)">
-      {{thing}}
-    </div>
-  </div>
-  <label>Selected thing (right click)</label>
-  <div class="thing">
-    {{selectedThing}}
-  </div>
-
-  <label> <a download='gridData.json' target="_blank" [href]="jsonSaveAs">Save As</a></label>
-
-  <label class="button" (click)="initCalculations()">Restart calculations</label>
-  <label class="button" (click)="nextCalculateStep(1)">Step 1</label>
-  <div>
-    <label for="numCalcSteps">Num steps:</label>
-    <input id="numCalcSteps" type="text" [(ngModel)]="numCalcSteps" (ngModelChange)="handleNumCalcStepsChange($event)" >
-    <label class="button" (click)="nextCalculateStep(numCalcSteps)">Step N</label>
-  </div>
-
-  <div>Current mouse coords: Row {{mouseMoveRow}}, Col {{mouseMoveCol}}</div>
-</div>
-
 
 
     </div>
