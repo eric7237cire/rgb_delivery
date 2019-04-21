@@ -1,8 +1,9 @@
-import {CellData, ChoiceOverride, Color, GridState, TileEnum, Universe} from "rgb-solver";
+import {CellData, Color, GridState, TileEnum, Universe} from "rgb-solver";
 import * as _ from "lodash";
 import {
     RequestTypes,
     ResponseDataLoaded,
+    ResponseProgressMessage,
     ResponseTypes,
     ResponseWasmLoaded,
     WasmWebWorkerRequest
@@ -10,6 +11,8 @@ import {
 
 export type WASM_TYPE = typeof import ('rgb-solver');
 
+//how often we update UI
+const ITER_CHUNK = 100000;
 
 let g_worker: RgbWasmWorker;
 const ctx: Worker = self as any;
@@ -52,17 +55,32 @@ ctx.addEventListener("message", ev => {
             break;
         }
         case RequestTypes.RUN_CALCULATE_STEPS: {
-            let data = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
 
-            if (_.isNil(data)) {
-              console.log("Null grid state after batch");
-            } else {
-              let dataLoadedMessage: ResponseDataLoaded = {
-                    tag: ResponseTypes.GRID_STATE_LOADED,
-                    data
+            let startedMs = performance.now();
+
+            //batch the batch
+            for( let i = 0; i < requestMessage.numSteps; i += ITER_CHUNK) {
+                let data: GridState = g_worker.universe.next_batch_calculate(ITER_CHUNK);
+
+                if (_.isNil(data)) {
+                    console.log("Null grid state after batch");
+                } else {
+                    let dataLoadedMessage: ResponseDataLoaded = {
+                        tag: ResponseTypes.GRID_STATE_LOADED,
+                        data
+                    };
+
+                    ctx.postMessage(dataLoadedMessage);
+                }
+
+                let progressMessage: ResponseProgressMessage = {
+                    tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
+                    startedMs,
+                    currentMs: performance.now(),
+                    stepsCompleted: i
                 };
 
-                ctx.postMessage(dataLoadedMessage);
+                ctx.postMessage(progressMessage);
             }
 
             break;

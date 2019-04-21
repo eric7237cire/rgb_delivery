@@ -62,6 +62,7 @@ cargo install cargo-watch
 # in rgb-solver
 cargo watch -i .gitignore -i "pkg/*" -s "wasm-pack build" -w ../wasm-typescript-definition -w .
 
+# Runs wasm + webworker
 cargo watch -i .gitignore -i "pkg/*" -s "E:\git\rgb_delivery\build-wasm.bat" -w ../wasm-typescript-definition -w .
 
 # Running tests

@@ -5,7 +5,13 @@ use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 use crate::solver::universe_impl::ALL_DIRECTIONS;
 
-#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Eq, PartialEq)]
+pub struct GridStaticState {
+
+    pub initial_blocks: Vec<Block>;
+}
+
+
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct GridState {
     pub width: usize,
     pub height: usize,
@@ -30,6 +36,30 @@ pub struct GridState {
     #[serde(skip)]
     pub(crate) current_van_index: VanIndex,
 }
+
+#[derive(Hash, PartialEq, Eq)]
+pub (crate) struct GridStateKey(Vec<u8>, Vec<(CellIndex,bool,[Option<ColorIndex>;3])>);
+
+impl GridState {
+    pub(crate) fn key(&self) -> GridStateKey {
+
+        let used_roads  =
+        self.tiles.iter().filter_map( {
+            |t|
+            if let TileRoad(Road{used_mask,..}) = t {
+                Some(*used_mask)
+            } else {
+                None
+            }
+        }).collect();
+
+        let vans_info = self.vans.iter().map(|v|
+            (v.cell_index, v.is_done, v.boxes)).collect();
+
+        GridStateKey(used_roads, vans_info)
+    }
+}
+
 
 pub enum CanDropOff {
     NoFail,

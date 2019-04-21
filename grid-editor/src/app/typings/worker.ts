@@ -2,7 +2,8 @@ import {CellData, ChoiceOverride, Color, GridState} from "rgb-solver";
 
 export enum ResponseTypes {
     WASM_LOADED,
-    GRID_STATE_LOADED
+    GRID_STATE_LOADED,
+    BATCH_PROGRESS_MESSAGE
 }
 export interface  ResponseWasmLoaded  {
     tag: ResponseTypes.WASM_LOADED;
@@ -14,7 +15,14 @@ export interface ResponseDataLoaded  {
     data: GridState;
 }
 
-export type WasmWebWorkerResponse = ResponseWasmLoaded | ResponseDataLoaded;
+export interface ResponseProgressMessage {
+    tag: ResponseTypes.BATCH_PROGRESS_MESSAGE;
+    stepsCompleted: number;
+    startedMs: number;
+    currentMs: number;
+}
+
+export type WasmWebWorkerResponse = ResponseWasmLoaded | ResponseDataLoaded | ResponseProgressMessage;
 
 
 export enum RequestTypes {

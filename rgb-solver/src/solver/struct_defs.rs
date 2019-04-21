@@ -4,7 +4,8 @@ use wasm_typescript_definition::TypescriptDefinition;
 use std::collections::vec_deque::VecDeque;
 
 use super::van::Van;
-use crate::solver::grid_state::GridState;
+use crate::solver::grid_state::{GridState, GridStateKey};
+use std::collections::HashSet;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
@@ -175,9 +176,13 @@ pub struct Universe {
     //below are used for calculating
     pub(crate) queue: VecDeque<GridState>,
 
+    pub(crate) seen: HashSet<u64>,
+
     pub(crate) success: Option<GridState>,
-    //pub(crate) current_calc_state: Option<GridState>,
-    pub(crate) iter_count: usize
+
+    pub(crate) iter_count: usize,
+
+    pub(crate) cache_hits: usize
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
