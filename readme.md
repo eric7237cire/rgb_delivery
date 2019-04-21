@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/eric7237cire/poker.svg?branch=master)](https://travis-ci.org/eric7237cire/poker)
 
-# A grid solver for [RGB Express](http://rgbexpress.com/)
+# A grid solver for [RGB Express](http://rgbexpress.com/) ![Rust](http://rust-lang.org/logos/rust-logo-32x32.png) 
+<img src="https://camo.githubusercontent.com/dd1c37a7b0d62d08e89b887ac73a4c4ca4940f97/68747470733a2f2f692e696d6775722e636f6d2f6d58626c5233392e706e67" alt="drawing" width="32"/>
+<img src="https://github.com/remojansen/logo.ts/raw/master/ts.png" alt="TypeScript Logo" width=32/>
 
 ## Components
 
