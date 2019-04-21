@@ -31,6 +31,8 @@ Code based on a [public repo](https://github.com/tcr/wasm-typescript-definition)
 
 Modified to produce better *.d.ts types for typescript.  Most useful is generating union types which match nicely with Rusts variant enums.
 
+TypeScript has nice support for [discriminated unions](https://basarat.gitbooks.io/typescript/docs/types/discriminated-unions.html) which let you do a checked switch on the attribute type.
+
 Example:
 
 Typing generated:
@@ -50,6 +52,13 @@ export type Warehouse = {
 };
 
 export type TileEnum = TileRoad | TileWarehouse | TileBridge | Empty
+
+export type TileEnum = TileRoad | TileWarehouse | TileBridge | Empty
+export type TileRoad = {type: "TileRoad"} & Road
+export type TileWarehouse = {type: "TileWarehouse"} & Warehouse
+export type TileBridge = {type: "TileBridge"} & Bridge
+export type Empty = {type: "Empty" }
+export type TileEnum_type = "TileRoad" | "TileWarehouse" | "TileBridge" | "Empty"
 ```
 
 Rust:
