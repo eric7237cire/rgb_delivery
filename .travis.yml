@@ -22,6 +22,10 @@ matrix:
 
 
     - language: node_js
+
+      before_install:
+        - cd grid-editor
+
       node_js:
         - "9"
       dist: trusty
