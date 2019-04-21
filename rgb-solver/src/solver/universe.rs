@@ -8,6 +8,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
+use crate::solver::struct_defs::Directions::NORTH;
 
 #[cfg_attr( not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -120,9 +121,16 @@ impl Universe {
                 let adj_square_index: Option<usize> = get_adjacent_index( CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
 
                 if let Some(adj_square_index) = adj_square_index {
-                    if is_tile_navigable(&self.data.tiles[adj_square_index]) {
+                    if is_tile_navigable(&self.data.tiles[adj_square_index])                         
+                    {
                         assert_eq!( *adj_dir as u8, 1 << dir_idx);
                         is_connected |= 1 << dir_idx;
+                    } else if adj_dir == &NORTH { 
+                        if let TileWarehouse(_) = &self.data.tiles[adj_square_index]  {
+                            //special case that we want warehouses to be connected to the cell to their south
+                            assert_eq!( *adj_dir as u8, 1 << dir_idx);
+                            is_connected |= 1 << dir_idx;
+                        }
                     }
                 }
             }
@@ -237,6 +245,12 @@ impl Universe {
                  Queue Length: {} Current Tick: {} ",
                       self.iter_count, self.queue.len(), cur_state.tick);
             }
+
+            if !cur_state.check_graph_validity() {
+                log_trace!("Rejecting state");
+                continue;
+            }
+
 
             let van_cell_index = cur_state.vans[cur_state.current_van_index.0].cell_index;
 

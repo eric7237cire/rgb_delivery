@@ -3,7 +3,10 @@ use wasm_typescript_definition::TypescriptDefinition;
 use crate::solver::struct_defs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
 use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
-use crate::solver::misc::{ALL_DIRECTIONS, opposite_dir_index};
+use crate::solver::misc::{ALL_DIRECTIONS, opposite_dir_index, get_adjacent_index};
+use std::collections::HashMap;
+use crate::solver::func_public::NUM_COLORS;
+use crate::solver::disjointset::DisjointSet;
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -582,7 +585,7 @@ impl GridState {
         let empty_wh_count = self.tiles.iter().filter(|tile| {
             match tile {
                 TileWarehouse(Warehouse { is_filled,color, .. }) => {
-                    !is_filled && *color == self.vans[self.current_van_index.0].color
+                    !is_filled && color == &self.vans[self.current_van_index.0].color
                 },
                 _ => false
             }
@@ -603,5 +606,81 @@ impl GridState {
         other_van
     }
 
+
+    //basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
+    pub(crate) fn check_graph_validity(&self) -> bool {
+
+        let mut ds = DisjointSet::new(self.tiles.len());
+
+        for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
+
+            for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate() {
+                if is_connected_mask & (1 << dir_idx) > 0 {
+                    let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
+
+                    log_trace!("Merging cells {} and {}", idx, adj_idx);
+                    ds.merge_sets(idx, adj_idx);
+                }
+            }
+
+        }
+
+        //for each color, get unfilled warehouse count & block count
+
+        let mut component_to_counts: HashMap<usize, [ [usize;2]; NUM_COLORS ]> = HashMap::new();
+
+        for (idx, tile) in self.tiles.iter().enumerate() {
+
+            let component_number = ds.get_repr(idx);
+
+            match tile {
+                TileRoad(Road { block: Some(block), .. }) => {
+                    log_trace!("Block in cell {}, component {}, color {}", idx, component_number, block.0);
+                    add_component_to_map(&mut component_to_counts, component_number, *block, true);
+                },
+                TileWarehouse( Warehouse{is_filled: false, color}) => {
+                    log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
+                    add_component_to_map(&mut component_to_counts, component_number, *color, false);
+                }
+                _ => {}
+            }
+        }
+
+        for van in self.vans.iter() {
+            let component_number = ds.get_repr(van.cell_index.0);
+
+            for opt_box in van.boxes.iter() {
+                if let Some(color) = opt_box {
+                    add_component_to_map(&mut component_to_counts, component_number, *color, true);
+                }
+            }
+        }
+
+        //now we can check for consistency
+        for (component_number, color_count) in component_to_counts.iter() {
+
+            for color_index in 0..NUM_COLORS {
+                if color_count[color_index][0] != color_count[color_index][1] {
+                    log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    return false;
+                }
+            }
+        }
+
+
+        return true;
+    }
+
+
+
+}
+
+fn add_component_to_map(component_to_counts: &mut HashMap<usize, [ [usize;2]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, is_block: bool) {
+
+    let counts = component_to_counts.entry(component_number).or_insert(Default::default());
+
+    let idx = if is_block { 0 } else { 1 };
+
+    counts[color.0][idx] += 1
 
 }

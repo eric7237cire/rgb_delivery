@@ -9,7 +9,7 @@ use crate::solver::struct_defs::*;
     }
 
 
-
+pub(crate) const NUM_COLORS:usize = 9;
 
 pub(crate) fn build_color_list() -> Vec<Color> {
     let mut color_list = vec![
@@ -33,6 +33,8 @@ pub(crate) fn build_color_list() -> Vec<Color> {
     for (idx, c) in color_list.iter_mut().enumerate() {
         c.color_index = ColorIndex(idx);
     }
+
+    assert_eq!(color_list.len(), NUM_COLORS);
 
     color_list
 }
