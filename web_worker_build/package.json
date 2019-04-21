@@ -5,19 +5,16 @@
   "repository": "https://github.com/rustwasm/rust-wasm-worker-template",
   "license": "Apache-2.0/MIT",
   "scripts": {
-    "start": "webpack-dev-server -d",
     "build": "webpack --mode production"
   },
   "bin": {
     "create-rust-wasm-worker": ".bin/create-rust-wasm-worker.js"
   },
   "devDependencies": {
-    "html-webpack-plugin": "^3.2.0",
     "ts-loader": "^5.3.3",
     "typescript": "^3.4.4",
     "webpack": "^4.27.1",
     "webpack-cli": "^3.1.2",
-    "webpack-dev-server": "^3.1.10"
   },
   "dependencies": {
     "@types/lodash": "^4.14.123",
