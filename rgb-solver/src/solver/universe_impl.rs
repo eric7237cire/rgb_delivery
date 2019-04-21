@@ -241,8 +241,9 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-            if self.iter_count % 500 == 0 {
-                 log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
+            if self.iter_count % 100 == 0 {
+                 log!("\n\nLoop count: {}  Queue Length: {} Current Tick: {}",
+                      self.iter_count, self.queue.len(), cur_state.tick);
             }
 
             if self.iter_count > 100_000_000 {

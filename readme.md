@@ -2,6 +2,15 @@
 
 # ![Rust](http://rust-lang.org/logos/rust-logo-32x32.png) A grid solver for [RGB Express](http://rgbexpress.com/) ![Rust](http://rust-lang.org/logos/rust-logo-32x32.png) 
 
+
+Component/tech flow:
+
+WASM => Web Worker <=> Angular 7
+
+Thus Angular has no knowledge of the WebAssembly, using only WebWorker messages, but it does use the typings generated.  Thus if a new attribute/etc. is 
+added to the public classes/interfaces (exposed by Serde), the typescript transpilation will show errors.
+
+
 ## Components
 
 ### grid-editor
@@ -21,11 +30,37 @@ to play nicely.  Copies the output directly to angulars assets.
 
 Language: TypeScript
 
+One time setup:
+```
+npm install
+npm link rgb-solver
+```
+
+Building:
+```
+.\node_modules\.bin\webpack
+```
+
+
+
+
 ### rgb-solver
 
 WASM Source.  Unit tests run in x86 (or linux on travis)
 
 Language: Rust
+
+Building:
+```
+wasm-pack build
+```
+
+One time setup:
+```
+cd pkg
+npm link
+```
+
 
 ### wasm-typescript-definition
 
@@ -34,6 +69,12 @@ Code based on a [public repo](https://github.com/tcr/wasm-typescript-definition)
 Modified to produce better *.d.ts types for typescript.  Most useful is generating union types which match nicely with Rusts variant enums.
 
 TypeScript has nice support for [discriminated unions](https://basarat.gitbooks.io/typescript/docs/types/discriminated-unions.html) which let you do a checked switch on the attribute type.
+
+Building:
+```
+build by cargo.toml of rgb-solver
+```
+
 
 Example:
 
