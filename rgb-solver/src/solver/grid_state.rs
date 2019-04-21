@@ -7,6 +7,7 @@ use crate::solver::misc::{ALL_DIRECTIONS, opposite_dir_index, get_adjacent_index
 use std::collections::HashMap;
 use crate::solver::func_public::NUM_COLORS;
 use crate::solver::disjointset::DisjointSet;
+use crate::solver::grid_state::ComponentMapIdx::*;
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -606,7 +607,6 @@ impl GridState {
         other_van
     }
 
-
     //basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
     pub(crate) fn check_graph_validity(&self) -> bool {
 
@@ -627,7 +627,7 @@ impl GridState {
 
         //for each color, get unfilled warehouse count & block count
 
-        let mut component_to_counts: HashMap<usize, [ [usize;2]; NUM_COLORS ]> = HashMap::new();
+        let mut component_to_counts: HashMap<usize, [ [usize;3]; NUM_COLORS ]> = HashMap::new();
 
         for (idx, tile) in self.tiles.iter().enumerate() {
 
@@ -636,11 +636,11 @@ impl GridState {
             match tile {
                 TileRoad(Road { block: Some(block), .. }) => {
                     log_trace!("Block in cell {}, component {}, color {}", idx, component_number, block.0);
-                    add_component_to_map(&mut component_to_counts, component_number, *block, true);
+                    add_component_to_map(&mut component_to_counts, component_number, *block, BLOCK);
                 },
                 TileWarehouse( Warehouse{is_filled: false, color}) => {
                     log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
-                    add_component_to_map(&mut component_to_counts, component_number, *color, false);
+                    add_component_to_map(&mut component_to_counts, component_number, *color, WAREHOUSE);
                 }
                 _ => {}
             }
@@ -649,9 +649,11 @@ impl GridState {
         for van in self.vans.iter() {
             let component_number = ds.get_repr(van.cell_index.0);
 
+            add_component_to_map(&mut component_to_counts, component_number, van.color, VAN);
+
             for opt_box in van.boxes.iter() {
                 if let Some(color) = opt_box {
-                    add_component_to_map(&mut component_to_counts, component_number, *color, true);
+                    add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
                 }
             }
         }
@@ -660,8 +662,13 @@ impl GridState {
         for (component_number, color_count) in component_to_counts.iter() {
 
             for color_index in 0..NUM_COLORS {
-                if color_count[color_index][0] != color_count[color_index][1] {
+                if color_count[color_index][BLOCK as usize] != color_count[color_index][WAREHOUSE as usize] {
                     log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    return false;
+                }
+
+                if color_count[color_index][BLOCK as usize] > 0 && (color_count[0][VAN as usize] + color_count[color_index][VAN as usize] == 0) {
+                    log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
             }
@@ -675,12 +682,17 @@ impl GridState {
 
 }
 
-fn add_component_to_map(component_to_counts: &mut HashMap<usize, [ [usize;2]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, is_block: bool) {
+enum ComponentMapIdx {
+    BLOCK = 0,
+    WAREHOUSE = 1,
+    VAN = 2
+}
+
+//indexs block 0, warehouse 1, van 2
+fn add_component_to_map(component_to_counts: &mut HashMap<usize, [ [usize;3]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
 
     let counts = component_to_counts.entry(component_number).or_insert(Default::default());
 
-    let idx = if is_block { 0 } else { 1 };
-
-    counts[color.0][idx] += 1
+    counts[color.0][thing_idx as usize] += 1
 
 }
