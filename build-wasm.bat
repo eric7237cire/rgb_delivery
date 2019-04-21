@@ -1,5 +1,5 @@
 SET BUILD_WASM_DIR=%~dp0
-cd /D "BUILD_WASM_DIR"
+cd /D "%BUILD_WASM_DIR%"
 CD "%BUILD_WASM_DIR%rgb-solver"
 REM wasm-pack build --dev
 wasm-pack build --release
