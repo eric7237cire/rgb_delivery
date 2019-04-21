@@ -4,14 +4,16 @@ cache: cargo
 before_install:
   - cd rgb-solver
 
+# https://github.com/rustwasm/wasm-pack-template/blob/master/.travis.yml
 before_script:
  # - (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
  # - (test -x $HOME/.cargo/bin/cargo-generate || cargo install --vers "^0.2" cargo-generate)
  # - cargo install-update -a
   - rustup target add wasm32-unknown-unknown
+  - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -f
 
 script:
-  - cargo build --verbose --all
-  - cargo test --target x86_64-unknown-linux-gnu --lib --verbose --all
+  #- cargo build --verbose --all
+  #- cargo test --target x86_64-unknown-linux-gnu --lib --verbose --all
 
   - wasm-pack build
