@@ -5,11 +5,11 @@ use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 use crate::solver::misc::ALL_DIRECTIONS;
 
-
+#[derive(Default)]
 pub struct GridAnalysis {
 
     //important because if there are none, then a van can only pick up its color
-    has_poppers: bool
+    pub has_poppers: bool
 }
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
@@ -42,27 +42,6 @@ pub struct GridState {
 
 #[derive(Hash, PartialEq, Eq)]
 pub (crate) struct GridStateKey(Vec<u8>, Vec<(CellIndex,bool,[Option<ColorIndex>;3])>);
-
-impl GridState {
-    pub(crate) fn key(&self) -> GridStateKey {
-
-        let used_roads  =
-        self.tiles.iter().filter_map( {
-            |t|
-            if let TileRoad(Road{used_mask,..}) = t {
-                Some(*used_mask)
-            } else {
-                None
-            }
-        }).collect();
-
-        let vans_info = self.vans.iter().map(|v|
-            (v.cell_index, v.is_done, v.boxes)).collect();
-
-        GridStateKey(used_roads, vans_info)
-    }
-}
-
 
 pub enum CanDropOff {
     NoFail,
@@ -212,7 +191,7 @@ impl GridState {
         &mut self.vans[ i ]
     }
 
-    pub(crate) fn pick_up_block_if_exists(&mut self) {
+    pub(crate) fn pick_up_block_if_exists(&mut self, analysis: &GridAnalysis ) -> Result<(),()> {
 
 
         log_trace!("pick_up_block_if_exists");
@@ -235,6 +214,12 @@ impl GridState {
             log_trace!("Rolled on a block of color {:?}", block_color);
 
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
+
+                if !analysis.has_poppers && self.vans[self.current_van_index.0].color != block_color{
+                    log_trace!("No way of dropping block off");
+                    return Err(());
+                }
+
                 log_trace!("Van picked up a block of color {:?}", block_color);
                 self.vans[self.current_van_index.0].boxes[i] = Some(block_color);
                 
@@ -243,6 +228,8 @@ impl GridState {
                 }
             }
         }
+
+        Ok(())
     }
 
     pub(crate) fn press_button_if_exists(&mut self) {

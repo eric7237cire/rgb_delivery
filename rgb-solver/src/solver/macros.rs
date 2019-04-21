@@ -25,7 +25,7 @@ macro_rules! log_trace {
 #[cfg( not(target_arch = "x86_64"))]
 macro_rules! log_trace {
      ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
+        //web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
 

@@ -1,7 +1,6 @@
-use crate::solver::grid_state::GridState;
-use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Directions};
+use crate::solver::grid_state::{GridState, GridAnalysis};
+use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum};
 use std::collections::vec_deque::VecDeque;
-use std::collections::HashSet;
 use crate::solver::misc::ALL_DIRECTIONS;
 use crate::solver::struct_defs::Directions::*;
 use crate::solver::struct_defs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
@@ -21,11 +20,11 @@ pub struct Universe {
     //below are used for calculating
     pub(crate) queue: VecDeque<GridState>,
 
-    pub(crate) seen: HashSet<u64>,
-
     pub(crate) success: Option<GridState>,
 
     pub(crate) iter_count: usize,
+
+    pub(crate) analysis: GridAnalysis
 }
 
 //private
@@ -192,9 +191,6 @@ impl Universe {
                 return self.success.as_ref();
             }
 
-            let cur_key = cur_state.key();
-
-
             let save_for_toggle = (cur_state.tick, cur_state.current_van_index);
 
             //change current_van_index in one place
@@ -205,11 +201,9 @@ impl Universe {
 
 
             log_trace!("\n\nLoop count: {} Tick: {} \
-            Cache Hits: {} \
             Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
                 self.iter_count,
                 cur_state.tick,
-                self.cache_hits,
                 self.queue.len(), cur_state.current_van_index,
                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
@@ -240,10 +234,8 @@ impl Universe {
 
             if self.iter_count % 10000 == 0 {
                  log!("\n\nLoop count: {} \
-                 Queue Length: {} Current Tick: {} \
-                 Cache Hits: {} \
-                 ",
-                      self.iter_count, self.queue.len(), cur_state.tick, self.cache_hits);
+                 Queue Length: {} Current Tick: {} ",
+                      self.iter_count, self.queue.len(), cur_state.tick);
             }
 
             if self.iter_count > 100_000_000 {
@@ -256,7 +248,10 @@ impl Universe {
 
             //let (cur_row_index, cur_col_index) = van_cell_index.to_row_col(self.data.width);
 
-            cur_state.pick_up_block_if_exists();
+            match cur_state.pick_up_block_if_exists(&self.analysis) {
+                Err(_) => continue,
+                _ => ()
+            };
 
             //check if we can drop a block off
             match cur_state.handle_warehouse_drop_off() {
@@ -420,8 +415,7 @@ impl Universe {
         set_panic_hook();
 
 
-        self.queue = VecDeque::new();
-        self.seen = HashSet::new();
+        self.queue = VecDeque::new();        
 
         self.iter_count = 0;
         self.data.tick = 0;
@@ -472,6 +466,12 @@ impl Universe {
                 panic!("Van is not on a road");
             }
         }
+
+        self.analysis = GridAnalysis {
+            has_poppers: self.data.tiles.iter().any( |t| if let TileRoad(r) = t {
+                return r.has_popper;
+            } else {false} )
+        };
 
         self.queue.push_back(self.data.clone());
 

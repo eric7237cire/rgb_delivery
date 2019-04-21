@@ -208,7 +208,7 @@ export class AppComponent implements OnInit {
       cell => cell.tile.type !== "Empty"
     );
 
-    console.log("Non empty cells", nonEmptyCells);
+    //console.log("Non empty cells", nonEmptyCells);
 
     //Only continue processing on initial tick/load
     if (this.gridStateService.gridState.tick > 0) {
