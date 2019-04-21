@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, ElementRef, OnInit, ViewChild} from '@angular/core';
 import * as _ from "lodash";
 import {
   Button,
@@ -13,7 +13,7 @@ import {
 } from "rgb-solver";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
-import {GridStateService} from "./grid-state.service";
+import {EMPTY_GRID_STATE, GridStateService} from "./grid-state.service";
 import {Subject} from "rxjs";
 import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
 
@@ -62,6 +62,9 @@ type Thing = "Van" | "Block" | "Button" | "Clear" | "Popper";
 export class AppComponent implements OnInit {
   title = 'grid-editor';
   readonly GRID_SIZE = 40;
+
+  @ViewChild('fileInput')
+  private fileInput: ElementRef;
 
   readonly DIRECTION_MARKERS: Array<DirectionMarker> = [
     //north
@@ -195,7 +198,7 @@ export class AppComponent implements OnInit {
       return;
     }
 
-    this.cells =  this.gridStateService.gridState.tiles.map((t, index) => {
+    this.cells = this.gridStateService.gridState.tiles.map((t, index) => {
       return GridStateService.tileToCellState(this.gridStateService.gridState, t, index);
     });
 
@@ -274,8 +277,8 @@ export class AppComponent implements OnInit {
       const savedData: GridState = JSON.parse(fileTextData);
 
       //convert cells to tiles
-      if (_.isArray( (savedData as any).cells )) {
-        savedData.tiles = ( (savedData as any).cells as Array<CellData> ).map(c => c.tile);
+      if (_.isArray((savedData as any).cells)) {
+        savedData.tiles = ((savedData as any).cells as Array<CellData>).map(c => c.tile);
       }
 
       console.log("Loading saved grid from File", savedData);
@@ -335,7 +338,7 @@ export class AppComponent implements OnInit {
     this.worker.addEventListener("message", ev => {
       console.log("Got message", ev);
 
-      const message : WasmWebWorkerResponse = ev.data;
+      const message: WasmWebWorkerResponse = ev.data;
 
       switch (message.tag) {
         case ResponseTypes.WASM_LOADED: {
@@ -357,9 +360,7 @@ export class AppComponent implements OnInit {
 
     //submitButton.addEventListener("click", () => worker.postMessage(textBox.value));
 
-    this.gridMouseMove$.
-      pipe(throttleTime(100)).
-    subscribe(
+    this.gridMouseMove$.pipe(throttleTime(100)).subscribe(
       (e) => this.handleMouseMove(e)
     );
 
@@ -390,16 +391,20 @@ export class AppComponent implements OnInit {
         break;
       case "right":
         this.gridMouseDown$.next(mouseEvent);
-        const mouseEventOverride = {buttons: 2,
-          target: mouseEvent.target, clientX: mouseEvent.clientX, clientY: mouseEvent.clientY};
+        const mouseEventOverride = {
+          buttons: 2,
+          target: mouseEvent.target, clientX: mouseEvent.clientX, clientY: mouseEvent.clientY
+        };
         this.gridMouseMove$.next(mouseEventOverride as any);
         this.gridMouseUp$.next(mouseEvent);
 
         break;
-        case "left":
+      case "left":
         this.gridMouseDown$.next(mouseEvent);
-        const mouseEventOverride2 = {buttons: 1,
-          target: mouseEvent.target, clientX: mouseEvent.clientX, clientY: mouseEvent.clientY};
+        const mouseEventOverride2 = {
+          buttons: 1,
+          target: mouseEvent.target, clientX: mouseEvent.clientX, clientY: mouseEvent.clientY
+        };
         this.gridMouseMove$.next(mouseEventOverride2 as any);
         this.gridMouseUp$.next(mouseEvent);
 
@@ -461,47 +466,45 @@ export class AppComponent implements OnInit {
       return false;
     }
 
-    //return false;
-
     if (isRightClick) {
       const cellIndex = rowIndex * this.numCols + colIndex;
-      const tile: TileEnum = this.gridStateService.gridState.tiles[cellIndex];
+      let tile: TileEnum = this.gridStateService.gridState.tiles[cellIndex];
 
-      switch (tile.type) {
-        case "TileRoad": {
-
-          switch (this.selectedThing) {
-            case "Van":
-              tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false};
-              break;
-            case "Block":
-              tile.block = this.selectedColor.color_index;
-              break;
-            case "Button":
-              tile.button = {
-                color: this.selectedColor.color_index,
-                is_pressed: !this.selectedIsOpenOrUp
-              };
-              break;
-            case "Popper":
-              tile.has_popper = true;
-              break;
-            case "Clear":
-              delete tile.block;
-              delete tile.van;
-              tile.has_popper = false;
-              delete tile.button;
-              break;
-          }
-
-          this.setGridSquare({row_index: rowIndex, col_index: colIndex, tile});
-          break;
-        }
-        default: {
-          console.log("Not a road");
-          break;
-        }
+      //make it a road
+      if (tile.type !== "TileRoad") {
+        tile = {
+          type: "TileRoad",
+          used_mask: 0,
+          has_popper: false
+        };
       }
+
+      switch (this.selectedThing) {
+        case "Van":
+          tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false};
+          break;
+        case "Block":
+          tile.block = this.selectedColor.color_index;
+          break;
+        case "Button":
+          tile.button = {
+            color: this.selectedColor.color_index,
+            is_pressed: !this.selectedIsOpenOrUp
+          };
+          break;
+        case "Popper":
+          tile.has_popper = true;
+          break;
+        case "Clear":
+          delete tile.block;
+          delete tile.van;
+          tile.has_popper = false;
+          delete tile.button;
+          break;
+      }
+
+      this.setGridSquare({row_index: rowIndex, col_index: colIndex, tile});
+
 
     } else {
       switch (this.selectedTile) {
@@ -578,6 +581,7 @@ export class AppComponent implements OnInit {
   getCssColorForButton(button: Button) {
     return this.getCssForColorIndex(button.color);
   }
+
   getCssColorForDirectionMarker(cell: CellData, dm: DirectionMarker): string | null {
     //color of the van
 
@@ -631,7 +635,7 @@ export class AppComponent implements OnInit {
   nextCalculateStep(numStepsParam: number) {
     const numSteps = _.toNumber(numStepsParam);
 
-    const request : RequestRunCalculateSteps = {
+    const request: RequestRunCalculateSteps = {
       tag: RequestTypes.RUN_CALCULATE_STEPS,
       numSteps
     };
@@ -642,7 +646,7 @@ export class AppComponent implements OnInit {
   private loadGridState(gridState: GridState) {
     const request: RequestLoadGridState = {
       tag: RequestTypes.LOAD_GRID_STATE,
-        gridState
+      gridState
 
     };
 
@@ -660,5 +664,27 @@ export class AppComponent implements OnInit {
 
   handleNumCalcStepsChange(steps) {
     localStorage.setItem(LOCAL_STORAGE_KEY_NUM_STEPS, steps);
+  }
+
+  resetGrid() {
+
+    this.fileInput.nativeElement.value = "";
+
+    const gs: GridState = {
+      ...EMPTY_GRID_STATE,
+      width: this.numCols,
+      height: this.numRows,
+      tiles: [],
+    };
+    for (let row = 0; row < this.numRows; ++row) {
+      for (let col = 0; col < this.numCols; ++col) {
+        gs.tiles.push({
+          type: "Empty",
+
+        });
+      }
+    }
+
+    this.loadGridState(gs);
   }
 }

@@ -3,12 +3,13 @@
   <div class='row'>
     <div class='column'>
 
-      <div class="shade">
+      <div class="shade" >
         <div class="inputs blackboard ">
           <div class="control-row">
 
             <input type="file"
                    id="files"
+                   #fileInput
                    accept=".json"
                    (change)="handleFileSelect($event)" />
             <input type="button"
@@ -69,6 +70,8 @@
 
 
             <div class="item wide buttons">
+              <label class="button item"
+                     (click)="resetGrid()">Reset grid</label>
               <label class="button item"
                      (click)="initCalculations()">Reset calc</label>
               <label class="button item"

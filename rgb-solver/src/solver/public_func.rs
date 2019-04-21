@@ -184,7 +184,11 @@ impl Universe {
         while self.iter_count < target_iter_count {
             self.process_queue_item();
             if self.success.is_some() {
-                return JsValue::from_serde(&self.success).unwrap()
+                return JsValue::from_serde(&self.success).unwrap();
+            }
+            if self.queue.is_empty() {
+                log!("Queue is empty");
+                return JsValue::from_serde(&None).unwrap();
             }
         }
 
