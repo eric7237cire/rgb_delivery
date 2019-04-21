@@ -68,7 +68,6 @@ pub struct Button  {
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Road {
-    pub used_mask: u8,
 
     //togglable thing that if activated, will remove the top block and put it back on the street
     #[serde(default)]
@@ -102,9 +101,6 @@ pub struct Bridge {
     //once van leaves, is set to the van that used this bridge
     #[serde(default)]
     pub used_van_index: Option<VanIndex>,
-
-    #[serde(skip_deserializing)]
-    pub used_mask: u8,
 
     #[serde(default)]
     pub used_tick: Option<usize>,

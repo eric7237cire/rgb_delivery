@@ -15,7 +15,7 @@ import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {EMPTY_GRID_STATE, GridStateService} from "./grid-state.service";
 import {Subject} from "rxjs";
-import {mergeMap, min, takeUntil, throttleTime} from "rxjs/operators";
+import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
 
 import {
   RequestInitCalculations,
@@ -556,7 +556,6 @@ export class AppComponent implements OnInit {
       if (tile.type !== "TileRoad") {
         tile = {
           type: "TileRoad",
-          used_mask: 0,
           has_popper: false
         };
       }
@@ -601,7 +600,6 @@ export class AppComponent implements OnInit {
           this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
-              used_mask: 0,
               has_popper: false
             }
           });
@@ -657,7 +655,7 @@ export class AppComponent implements OnInit {
       return false;
     }
 
-    return ((cell.tile.used_mask & dm.mask) > 0);
+    return !_.isNil(cell.tile.used_van_index) && !_.isNil(cell.tile.used_van_index[dm.dir_index]);
   }
 
   getCssColorForButton(button: Button) {

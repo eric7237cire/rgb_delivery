@@ -3,7 +3,7 @@ use wasm_typescript_definition::TypescriptDefinition;
 use crate::solver::struct_defs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
 use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
-use crate::solver::misc::ALL_DIRECTIONS;
+use crate::solver::misc::{ALL_DIRECTIONS, opposite_dir_index};
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -12,12 +12,24 @@ pub struct GridAnalysis {
     pub has_poppers: bool
 }
 
+#[derive(Default,Clone)]
+pub struct GridGraph {
+
+    //contains adj node, indexs are ALL_DIRECTIONS.  Stores index to adj square
+
+    //index is tile index; 4 bits are used to determine if connected
+    pub is_connected: Vec<u8>
+}
+
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct GridState {
     pub width: usize,
     pub height: usize,
 
     pub tiles: Vec<TileEnum>,
+
+    #[serde(skip)]
+    pub graph: GridGraph,
 
     //Js=>Rust will ignore this
     #[serde(skip_deserializing)]
@@ -322,12 +334,8 @@ impl GridState {
         }
     }
 
-    pub (crate) fn get_cur_used_mask(&self) -> u8 {
-        match &self.tiles[self.current_cell_index().0] {
-            TileRoad( Road{ used_mask, .. } ) => *used_mask,
-            TileBridge( Bridge{ used_mask,  .. } ) => *used_mask,
-            _ => panic!("Van not on road or bridge")
-        }
+    pub (crate) fn get_cur_is_connected_mask(&self) -> u8 {
+        self.graph.is_connected[ self.current_cell_index().0 ]        
     }
 
     pub (crate) fn filter_map_by_can_have_van<'a>(
@@ -386,16 +394,26 @@ impl GridState {
 
         log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
 
+        
+        //must have a connection in the direction we are moving
+        assert_eq!(1 << adj_info.direction_index, adj_info.direction as u8);
+
+        assert!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 > 0);
+
+        //Now we remove the edge
+        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction_index); 
+
+        assert_eq!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 , 0);
+
         //remove van & set used mask
         match &mut self.tiles[van_cell_index.0] {
             TileRoad( current_tile_road ) => 
             {
                 //see comment van consistency
                 //assert!(current_tile_road.van_snapshot.is_some());
-                assert_eq!(current_tile_road.used_mask & adj_info.direction as u8, 0);
-
+                
                 current_tile_road.van_snapshot = None;
-                current_tile_road.used_mask |= adj_info.direction as u8;
+                
                 current_tile_road.used_tick[adj_info.direction_index] = Some(self.tick);
                 current_tile_road.used_van_index[adj_info.direction_index] = Some(self.current_van_index);
 
@@ -407,11 +425,9 @@ impl GridState {
                 //These are set when moved to
                 assert_eq!(current_tile_bridge.used_van_index, Some(self.current_van_index));
                 assert_eq!(current_tile_bridge.used_tick, Some(self.tick - 1));
-                assert_eq!(current_tile_bridge.used_mask & adj_info.direction as u8, 0);
+                
 
                 assert!(current_tile_bridge.van_snapshot.is_some());
-
-                current_tile_bridge.used_mask |= adj_info.direction as u8;
 
                 //current_tile_bridge.used_van_index = Some(self.current_van_index);
                 //current_tile_bridge.used_tick = Some(self.tick);
@@ -433,14 +449,19 @@ impl GridState {
             van.tick += 1;
         }
 
+        assert_eq!(1 << opposite_dir_index( adj_info.direction_index ), adj_info.direction.opposite() as u8);
+
+        assert!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8 > 0);
+        //Now we remove the edge; we cant do a U turn
+        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << opposite_dir_index(adj_info.direction_index)); 
+
+        assert_eq!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8, 0);
+
         match &mut self.tiles[moving_to_cell_index.0] {
             TileRoad( next_road ) => 
             {
                 //keep a history
                 next_road.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
-
-                //we cant do a U turn
-                next_road.used_mask |= adj_info.direction.opposite() as u8;
 
                 let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
 
@@ -455,13 +476,7 @@ impl GridState {
 
                 next_bridge.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
 
-                next_bridge.used_mask |= adj_info.direction.opposite() as u8;
-
-                //we cant do a U turn
                 next_bridge.used_van_index = Some(self.current_van_index);
-
-                //let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
-
 
                 next_bridge.used_tick = Some( self.tick );
             },

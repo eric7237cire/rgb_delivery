@@ -1,8 +1,7 @@
-use crate::solver::grid_state::{GridState, GridAnalysis};
+use crate::solver::grid_state::{GridState, GridAnalysis, GridGraph};
 use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum};
 use std::collections::vec_deque::VecDeque;
-use crate::solver::misc::ALL_DIRECTIONS;
-use crate::solver::struct_defs::Directions::*;
+use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, is_tile_navigable};
 use crate::solver::struct_defs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
 use crate::solver::van::Van;
 use wasm_bindgen::JsValue;
@@ -32,49 +31,16 @@ impl Universe {
 
     /// Gets adj indexes, checking grid limits
     fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
-                                   used_dir_mask: u8) -> Vec<AdjSquareInfo> {
-        let cell_row_index: usize = cell_index.0 / self.data.width;
-        let cell_col_index: usize = cell_index.0 % self.data.width;
-
+                                   is_connected_mask: u8) -> Vec<AdjSquareInfo> {
+        
         ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index,dir)| {
 
             //first check the mask
-            if used_dir_mask & *dir as u8 > 0 {
+            if is_connected_mask & *dir as u8 == 0 {
                 return None;
             }
 
-
-
-            let adj_index: Option<usize> = match dir {
-                NORTH => {
-                    if cell_row_index == 0 {
-                        None
-                    } else {
-                        Some(cell_index.0 - self.data.width)
-                    }
-                }
-                SOUTH => {
-                    if cell_row_index >= self.data.height-1 {
-                        None
-                    } else {
-                        Some(cell_index.0 + self.data.width)
-                    }
-                }
-                EAST => {
-                    if cell_col_index >= self.data.width-1 {
-                        None
-                    } else {
-                        Some(cell_index.0 + 1)
-                    }
-                }
-                WEST => {
-                    if cell_col_index == 0 {
-                        None
-                    } else {
-                        Some(cell_index.0 - 1)
-                    }
-                }
-            };
+            let adj_index: Option<usize> = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
 
             if let Some(adj_index) = adj_index {
                 Some(AdjSquareInfo{direction:*dir, cell_index: adj_index.into(), direction_index: dir_index})
@@ -137,13 +103,44 @@ impl Universe {
         }).collect()
     }
 
+
+
+    pub(crate) fn initial_graph(&self) -> GridGraph {
+
+        let is_connected_list = self.data.tiles.iter().enumerate().map( |(cur_square_index, tile)| {
+
+            let mut is_connected: u8 = 0;
+
+            if !is_tile_navigable(tile) {
+                return 0;
+            }
+
+            for (dir_idx,adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
+
+                let adj_square_index: Option<usize> = get_adjacent_index( CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
+
+                if let Some(adj_square_index) = adj_square_index {
+                    if is_tile_navigable(&self.data.tiles[adj_square_index]) {
+                        assert_eq!( *adj_dir as u8, 1 << dir_idx);
+                        is_connected |= 1 << dir_idx;
+                    }
+                }
+            }
+
+            is_connected
+
+        }).collect();
+
+        GridGraph { is_connected: is_connected_list }
+
+    }
+
     pub(crate) fn initial_bridge_list(&self) -> Vec<Bridge> {
        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
 
             if let TileBridge(bridge) = &tile {
                 let mut m_bridge = bridge.clone();
-                m_bridge.cell_index = cell_index.into();
-                m_bridge.used_mask = 0;
+                m_bridge.cell_index = cell_index.into();                
                 Some(m_bridge)
             } else {
                 None
@@ -271,15 +268,15 @@ impl Universe {
             };
 
 
-            let cur_used_mask = cur_state.get_cur_used_mask();
+            let cur_is_connected_mask = cur_state.get_cur_is_connected_mask();
 
-            log_trace!("Current used mask: {:#07b}", cur_used_mask);
+            log_trace!("Current used mask: {:#07b}", cur_is_connected_mask);
 
             //now attempt to move
 
             //Where could we move?  (looks at mask & grid)
             let adj_square_indexes = self.get_adjacent_square_indexes(
-                van_cell_index, cur_used_mask);
+                van_cell_index, cur_is_connected_mask);
 
             log_trace!("Adj squares: {:?}", adj_square_indexes);
             let mut any_moved = false;
@@ -422,6 +419,7 @@ impl Universe {
         self.data.vans = self.initial_van_list();
         self.data.buttons = self.initial_button_list();
         self.data.bridges = self.initial_bridge_list();
+        self.data.graph = self.initial_graph();
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter( |t| {
             if let TileWarehouse(_) = t {
@@ -440,14 +438,12 @@ impl Universe {
             match tile {
                 TileRoad(road) => {
                     road.used_van_index = Default::default();
-                    road.used_mask = Default::default();
                     road.van_snapshot = None;
                 },
                 TileBridge(bridge) => {
                     bridge.used_tick = None;
                     bridge.used_van_index = None;
                     bridge.van_snapshot = None;
-                    bridge.used_mask = 0;
                 },
                 _ => {}
             }
