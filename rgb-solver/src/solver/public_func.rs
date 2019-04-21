@@ -188,7 +188,7 @@ impl Universe {
             }
             if self.queue.is_empty() {
                 log!("Queue is empty");
-                return JsValue::from_serde(&None).unwrap();
+                return JsValue::from_serde(&self.success).unwrap();
             }
         }
 
