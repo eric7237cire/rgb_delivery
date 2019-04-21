@@ -20,21 +20,21 @@ matrix:
 
         - wasm-pack build
 
-
-    - language: node_js
-
-      before_install:
-        - cd grid-editor
-
-      node_js:
-        - "9"
-      dist: trusty
-      sudo: required
-      branches:
-        only:
-        - master
-      before_script:
-        - npm install -g @angular/cli
-      script:
-        - ng lint
-        - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+# need to publish an npm module
+#    - language: node_js
+#
+#      before_install:
+#        - cd grid-editor
+#
+#      node_js:
+#        - "9"
+#      dist: trusty
+#      sudo: required
+#      branches:
+#        only:
+#        - master
+#      before_script:
+#        - npm install -g @angular/cli
+#      script:
+#        - ng lint
+#        - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/

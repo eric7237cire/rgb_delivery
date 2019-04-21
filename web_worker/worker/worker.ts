@@ -59,29 +59,28 @@ ctx.addEventListener("message", ev => {
 
             let startedMs = performance.now();
 
-            //batch the batch
-            for( let i = 0; i < requestMessage.numSteps; i += ITER_CHUNK) {
-                let data: GridState = g_worker.universe.next_batch_calculate(ITER_CHUNK);
+            if (requestMessage.numSteps < ITER_CHUNK) {
+                let data: GridState = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
 
-                if (_.isNil(data)) {
-                    console.log("Null grid state after batch");
-                } else {
-                    let dataLoadedMessage: ResponseDataLoaded = {
-                        tag: ResponseTypes.GRID_STATE_LOADED,
-                        data
+                sendUpdate(data);
+
+            } else {
+
+                //batch the batch
+                for (let i = 0; i < requestMessage.numSteps; i += ITER_CHUNK) {
+                    let data: GridState = g_worker.universe.next_batch_calculate(ITER_CHUNK);
+
+                    sendUpdate(data);
+
+                    let progressMessage: ResponseProgressMessage = {
+                        tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
+                        startedMs,
+                        currentMs: performance.now(),
+                        stepsCompleted: i
                     };
 
-                    ctx.postMessage(dataLoadedMessage);
+                    ctx.postMessage(progressMessage);
                 }
-
-                let progressMessage: ResponseProgressMessage = {
-                    tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
-                    startedMs,
-                    currentMs: performance.now(),
-                    stepsCompleted: i
-                };
-
-                ctx.postMessage(progressMessage);
             }
 
             break;
@@ -99,6 +98,20 @@ ctx.addEventListener("message", ev => {
 
 
 });
+
+function  sendUpdate(data: GridState) {
+    if (_.isNil(data)) {
+        console.log("Null grid state after batch");
+    } else {
+        let dataLoadedMessage: ResponseDataLoaded = {
+            tag: ResponseTypes.GRID_STATE_LOADED,
+            data
+        };
+
+        ctx.postMessage(dataLoadedMessage);
+    }
+
+}
 
 class RgbWasmWorker {
 
