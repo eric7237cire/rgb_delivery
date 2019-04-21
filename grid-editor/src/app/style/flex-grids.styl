@@ -15,18 +15,15 @@
   }
 }
 
-.item {
-  flex-basis : 30px;
+.item
+  flex-basis : 50%;
   flex-grow : 0;
   flex-shrink :0;
 
-}
 
-.item:nth-child(odd) {
-  flex-basis : 120px;
-  flex-grow : 0;
-  flex-shrink :0;
-}
+
+  &.wide
+    flex-basis: 100%;
 
 
 .control-row {
@@ -87,6 +84,14 @@ selected-button()
     &.selected
       selected-button()
 
+.buttons
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction : column ;
+  height: 35px;
 
+  .button {
+    margin-right: 5px;
+  }
 
 

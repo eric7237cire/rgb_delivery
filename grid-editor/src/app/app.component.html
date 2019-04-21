@@ -59,8 +59,36 @@
             <div class="item">
               <input id="selectedIsOpenOrUp"
                      type="checkbox"
-                     [(ngModel)]="selectedIsOpenOrUp"></div>
+                     [(ngModel)]="selectedIsOpenOrUp">
+            </div>
+
+<label class="item">Save</label>
+            <label class="item "> <a download='gridData.json'
+                 target="_blank"
+                 [href]="jsonSaveAs">Save As</a></label>
+
+
+            <div class="item wide buttons">
+              <label class="button item"
+                     (click)="initCalculations()">Reset calc</label>
+              <label class="button item"
+                     (click)="nextCalculateStep(1)">Run 1 step</label>
+              <label class="button item"
+                   (click)="nextCalculateStep(numCalcSteps)">Step N</label>
+            </div>
+
+            <label class="item" for="numCalcSteps">Num steps:</label>
+            <input id="numCalcSteps"
+                   class="item"
+                   type="text"
+                   [(ngModel)]="numCalcSteps"
+                   (ngModelChange)="handleNumCalcStepsChange($event)">
+
+
           </div>
+
+
+
 
           <div class="color-container">
             <div class="color"
@@ -72,26 +100,6 @@
           </div>
 
 
-
-
-
-          <label> <a download='gridData.json'
-               target="_blank"
-               [href]="jsonSaveAs">Save As</a></label>
-
-          <label class="button"
-                 (click)="initCalculations()">Restart calculations</label>
-          <label class="button"
-                 (click)="nextCalculateStep(1)">Step 1</label>
-          <div>
-            <label for="numCalcSteps">Num steps:</label>
-            <input id="numCalcSteps"
-                   type="text"
-                   [(ngModel)]="numCalcSteps"
-                   (ngModelChange)="handleNumCalcStepsChange($event)">
-            <label class="button"
-                   (click)="nextCalculateStep(numCalcSteps)">Step N</label>
-          </div>
 
           <div>Current mouse coords: Row {{mouseMoveRow}}, Col {{mouseMoveCol}}</div>
         </div>
