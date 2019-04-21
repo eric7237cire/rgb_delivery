@@ -14,6 +14,8 @@ Language: TypeScript
 
 ### web_worker_build
 
+Code based on a [public repo](https://github.com/rustwasm/rust-wasm-worker-template).
+
 Packages the WASM using a stand alone webpack as a Web worker.  Too much of a PITA to get angular cli
 to play nicely.  Copies the output directly to angulars assets.
 
