@@ -1,8 +1,3 @@
-.inputs {
-display:grid;
-grid-template-columns: 400px;
-margin-bottom: 30px;
-}
 
 clickable()
     cursor: pointer
@@ -15,15 +10,27 @@ box()
   padding: 5px;
   margin-right: 10px;
 
+
+button()
+  button-border()
+  clickable()
+  text-align: center;
+  text-decoration: none;
+  padding: 0.2em;
+  margin-top: 3px;
+  background-color: teal;
+
+  &:hover {
+    color: white;
+  }
+
 .color {
-    box()
+
     button-border()
     clickable()
 }
 
-.tiles {
-    width: 100%;
-}
+
 .tile {
     box()
     button-border()
@@ -60,8 +67,31 @@ box()
   fill: rgb(200,200,200)
 }
 
-.button {
-  box()
-  button-border()
-  clickable()
+.button
+  button()
+  background-color: darkslategrey
+
+  // layout
+.some-page-wrapper {
+  margin: 15px;
 }
+
+.row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  flex : 1;
+}
+
+svg {
+  pointer-events: auto;
+}
+
+  @import "./chalkboard.styl"
+@import "./flex-grids.styl"

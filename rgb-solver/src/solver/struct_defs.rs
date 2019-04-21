@@ -73,11 +73,18 @@ pub struct Button  {
 pub struct Road {
     pub used_mask: u8,
 
+    //togglable thing that if activated, will remove the top block and put it back on the street
+    #[serde(default)]
+    pub has_popper: bool,
+
     #[serde(default)]
     pub used_van_index: [Option<VanIndex>; 4],
 
     #[serde(default)]
     pub used_tick: [Option<usize>; 4],
+
+    #[serde(default)]
+    pub used_popper_tick: Option<usize>,
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "block")]

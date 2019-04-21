@@ -3,7 +3,7 @@ import {Injectable} from "@angular/core";
 import * as _ from "lodash";
 import {BehaviorSubject} from "rxjs";
 
-const EMPTY_GRID_STATE: GridState = {
+export const EMPTY_GRID_STATE: GridState = {
   width: 0,
   height: 0,
   vans: [],

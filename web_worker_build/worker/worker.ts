@@ -103,6 +103,10 @@ class RgbWasmWorker {
             throw Error(`Width must be >0: ${w}`);
         }
 
+        if (!_.isFinite(index)) {
+            throw Error(`Index is not a number: ${index}`);
+        }
+
         return {
             tile,
             row_index: _.floor(index / w),
@@ -118,6 +122,10 @@ class RgbWasmWorker {
      */
     loadGridState(jsonData: GridState) {
         console.log("Loading json data", jsonData);
+
+        if (!_.isFinite(jsonData.width) || jsonData.width < 0) {
+            throw Error(`Invalid width: ${jsonData.width}`);
+        }
 
         this.universe = this.wasm.Universe.new(jsonData.height, jsonData.width);
 

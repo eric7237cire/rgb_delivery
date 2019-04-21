@@ -24,7 +24,7 @@ use crate::solver::struct_defs::Directions::*;
 
 use crate::solver::struct_defs::Warehouse;
 use crate::solver::van::Van;
-use crate::solver::grid_state::{GridState, CanDropOff};
+use crate::solver::grid_state::{GridState};
 
 pub (crate) const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];
 
@@ -202,6 +202,8 @@ impl Universe {
                 return self.success.as_ref();
             }
 
+            let save_for_toggle = (cur_state.tick, cur_state.current_van_index);
+
             //change current_van_index in one place
             let did_tick_advance = match cur_state.increment_current_van_index() {
                 Err(_) => continue,
@@ -210,10 +212,19 @@ impl Universe {
 
             log_trace!("\n\nLoop count: {} Tick: {} Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
                 self.iter_count,
-                self.data.tick,
+                cur_state.tick,
                 self.queue.len(), cur_state.current_van_index,
                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
+
+            // Also test if starting vans don't move
+            if cur_state.tick == 1 {
+                assert!(!cur_state.vans[cur_state.current_van_index.0].is_done);
+                let mut if_van_stops_state = cur_state.clone();
+                if_van_stops_state.current_van_mut().is_done = true;
+                //push back to calculate last
+                self.queue.push_back(if_van_stops_state);
+            }
 
             cur_state.check_bridges_and_buttons();
 
@@ -230,13 +241,12 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-
-
             if self.iter_count % 500 == 0 {
                  log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
             }
 
-            if self.iter_count > 300000 {
+            if self.iter_count > 100_000_000 {
+                log!("Too many iterations, stopping at {}", self.iter_count);
                 self.queue.clear();
                 break;
             }
@@ -247,33 +257,25 @@ impl Universe {
 
             cur_state.pick_up_block_if_exists();
 
-            //cur_state.press_button_if_exists();
-
             //check if we can drop a block off
-            if cur_state.empty_warehouse_color().is_some() {
-                match cur_state.can_drop_off_block() {
-                    Err(_) => continue,
-                    Ok(CanDropOff::YesOK) => {
+            match cur_state.handle_warehouse_drop_off() {
+                Ok(Some(next_state)) => {
+                    self.queue.push_front(next_state);
+                },
+                Err(_) => continue,
+                _ => ()
+            };
 
-                        assert!(cur_state.empty_warehouse_color().is_none());
-                        assert!(cur_state.warehouses_remaining > 0);
-
-                        cur_state.warehouses_remaining -= 1;
-
-                        //test what happens if we stop
-                        let mut if_van_stops_state = cur_state.clone();
-                        if_van_stops_state.current_van_mut().is_done = true;
-
-                         {
-                            if let TileRoad(road) = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0] {
-                                assert!(road.van_snapshot.is_some());
-                            }
-                        }
-                        self.queue.push_front(if_van_stops_state);
-                    },
-                    _ => ()
-                };
-            }
+            match cur_state.handle_block_popper() {
+                Ok(Some(mut next_state)) => {
+                    //reset to values as when it was just popped
+                    next_state.tick = save_for_toggle.0;
+                    next_state.current_van_index = save_for_toggle.1;
+                    self.queue.push_front(next_state);
+                },
+                Err(_) => continue,
+                _ => ()
+            };
 
 
             let cur_used_mask = cur_state.get_cur_used_mask();
@@ -349,6 +351,7 @@ impl Universe {
 
         }
 
+        log!("Queue is empty");
         return None;
     }
 }

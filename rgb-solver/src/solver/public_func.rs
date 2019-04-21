@@ -24,6 +24,10 @@ pub(crate) fn build_color_list() -> Vec<Color> {
         Color{ label: "Green".to_string(), red: 0, green: 255, blue: 0, ..Default::default()},
         Color{ label: "Purple".to_string(), red: 167, green: 152, blue: 253, ..Default::default()},
 
+        Color{ label: "PinkPurple".to_string(), red: 185, green: 95, blue: 167, ..Default::default()},
+        Color{ label: "Teal".to_string(), red: 169, green: 162, blue: 107, ..Default::default()},
+        Color{ label: "Orange".to_string(), red: 219, green: 103, blue: 0, ..Default::default()},
+
 /*
  colors = [ new Color("rgb(255,0,0)","Red"), new Color("rgb(255,255,0)","Yellow"),
   new Color("rgb(50,50,255)", "Blue"), new Color("rgb(230,230,230)", "White") ] ;
@@ -107,6 +111,7 @@ impl Universe {
         self.queue = VecDeque::new();
 
         self.iter_count = 0;
+        self.data.tick = 0;
 
         self.success = None;
 
@@ -156,6 +161,8 @@ impl Universe {
         }
 
         self.queue.push_back(self.data.clone());
+
+
     }
 
     pub fn next_calculate(&mut self) -> JsValue {
@@ -167,7 +174,8 @@ impl Universe {
 
         log!("Batch calculate, repeat count: {}", repeat_count);
 
-        if repeat_count > 350000 {
+        if repeat_count > 10_000_000 {
+            log!("Too many repetitions...{}", repeat_count);
             return JsValue::from_serde(&self.data).unwrap();
         }
 
@@ -176,7 +184,11 @@ impl Universe {
         while self.iter_count < target_iter_count {
             self.process_queue_item();
             if self.success.is_some() {
-                return JsValue::from_serde(&self.success).unwrap()
+                return JsValue::from_serde(&self.success).unwrap();
+            }
+            if self.queue.is_empty() {
+                log!("Queue is empty");
+                return JsValue::from_serde(&self.success).unwrap();
             }
         }
 
