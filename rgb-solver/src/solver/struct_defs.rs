@@ -151,7 +151,7 @@ impl Default for CellData {
 pub struct ChoiceOverride {
     pub row_index: usize,
     pub col_index: usize,
-    pub van_index: VanIndex,
+    pub van_index: Option<VanIndex>,
     pub direction_index: usize,
 
     pub tick: Option<usize>

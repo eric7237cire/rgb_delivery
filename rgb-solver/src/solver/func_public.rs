@@ -10,6 +10,7 @@ use crate::solver::struct_defs::*;
 
 
 pub(crate) const NUM_COLORS:usize = 9;
+pub(crate) const WHITE_COLOR_INDEX:usize = 0;
 
 pub(crate) fn build_color_list() -> Vec<Color> {
     let mut color_list = vec![

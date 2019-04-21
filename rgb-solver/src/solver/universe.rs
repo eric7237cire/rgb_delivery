@@ -10,7 +10,7 @@ use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
 use crate::solver::struct_defs::Directions::NORTH;
 
-#[cfg_attr( not(target_arch = "x86_64"), wasm_bindgen())]
+#[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
 pub struct Universe {
     pub(crate) data: GridState,
@@ -24,17 +24,15 @@ pub struct Universe {
 
     pub(crate) iter_count: usize,
 
-    pub(crate) analysis: GridAnalysis
+    pub(crate) analysis: GridAnalysis,
 }
 
 //private
 impl Universe {
-
     /// Gets adj indexes, checking grid limits
     fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
                                    is_connected_mask: u8) -> Vec<AdjSquareInfo> {
-        
-        ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index,dir)| {
+        ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index, dir)| {
 
             //first check the mask
             if is_connected_mask & *dir as u8 == 0 {
@@ -44,7 +42,7 @@ impl Universe {
             let adj_index: Option<usize> = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
 
             if let Some(adj_index) = adj_index {
-                Some(AdjSquareInfo{direction:*dir, cell_index: adj_index.into(), direction_index: dir_index})
+                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index.into(), direction_index: dir_index })
             } else {
                 None
             }
@@ -54,23 +52,25 @@ impl Universe {
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
     fn get_fixed_choice(&self, cur_state: &GridState) -> Option<ChoiceOverride> {
-
         let (cur_row_index, cur_col_index) = cur_state.current_cell_index().to_row_col(cur_state.width);
 
-        let o = self.choice_override_list.iter().find( |co| {
-
+        let o = self.choice_override_list.iter().find(|co| {
             if let Some(forced_tick) = co.tick {
                 if forced_tick != cur_state.tick {
                     return false;
                 }
             }
 
-            co.van_index == cur_state.current_van_index
-                && cur_row_index == co.row_index
-                && cur_col_index == co.col_index
+            if let Some(van_index) = co.van_index {
+                if van_index != cur_state.current_van_index {
+                    return false;
+                }
             }
 
-
+            
+            cur_row_index == co.row_index
+                && cur_col_index == co.col_index
+        }
         );
 
         if let Some(o) = o {
@@ -82,10 +82,7 @@ impl Universe {
 
 
     pub(crate) fn initial_van_list(&self) -> Vec<Van> {
-
-
         self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
-
             if let TileRoad(road) = &tile {
                 if let Some(van) = &road.van_snapshot {
 
@@ -105,30 +102,26 @@ impl Universe {
     }
 
 
-
     pub(crate) fn initial_graph(&self) -> GridGraph {
-
-        let is_connected_list = self.data.tiles.iter().enumerate().map( |(cur_square_index, tile)| {
-
+        let is_connected_list = self.data.tiles.iter().enumerate().map(|(cur_square_index, tile)| {
             let mut is_connected: u8 = 0;
 
             if !is_tile_navigable(tile) {
                 return 0;
             }
 
-            for (dir_idx,adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
-
-                let adj_square_index: Option<usize> = get_adjacent_index( CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
+            for (dir_idx, adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
+                let adj_square_index: Option<usize> = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
 
                 if let Some(adj_square_index) = adj_square_index {
-                    if is_tile_navigable(&self.data.tiles[adj_square_index])                         
+                    if is_tile_navigable(&self.data.tiles[adj_square_index])
                     {
-                        assert_eq!( *adj_dir as u8, 1 << dir_idx);
+                        assert_eq!(*adj_dir as u8, 1 << dir_idx);
                         is_connected |= 1 << dir_idx;
-                    } else if adj_dir == &NORTH { 
-                        if let TileWarehouse(_) = &self.data.tiles[adj_square_index]  {
+                    } else if adj_dir == &NORTH {
+                        if let TileWarehouse(_) = &self.data.tiles[adj_square_index] {
                             //special case that we want warehouses to be connected to the cell to their south
-                            assert_eq!( *adj_dir as u8, 1 << dir_idx);
+                            assert_eq!(*adj_dir as u8, 1 << dir_idx);
                             is_connected |= 1 << dir_idx;
                         }
                     }
@@ -136,19 +129,16 @@ impl Universe {
             }
 
             is_connected
-
         }).collect();
 
         GridGraph { is_connected: is_connected_list }
-
     }
 
     pub(crate) fn initial_bridge_list(&self) -> Vec<Bridge> {
-       self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
-
+        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
             if let TileBridge(bridge) = &tile {
                 let mut m_bridge = bridge.clone();
-                m_bridge.cell_index = cell_index.into();                
+                m_bridge.cell_index = cell_index.into();
                 Some(m_bridge)
             } else {
                 None
@@ -157,8 +147,7 @@ impl Universe {
     }
 
     pub(crate) fn initial_button_list(&self) -> Vec<Button> {
-       self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
-
+        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
             if let TileRoad(road) = &tile {
                 if let Some(button) = &road.button_snapshot {
 
@@ -178,12 +167,10 @@ impl Universe {
 
 
     pub(crate) fn process_queue_item(&mut self) -> Option<&GridState> {
-
         if self.success.is_some() {
             return self.success.as_ref();
         }
         while let Some(mut cur_state) = self.queue.pop_front() {
-
             self.iter_count += 1;
 
 
@@ -215,6 +202,7 @@ impl Universe {
 
             // Also test if starting vans don't move
             if cur_state.tick == 1 {
+                log_trace!("Adding state where van does not move for van index: {}", cur_state.current_van_index.0);
                 assert!(!cur_state.vans[cur_state.current_van_index.0].is_done);
 
                 if cur_state.can_current_van_stop() {
@@ -232,7 +220,7 @@ impl Universe {
                     Err(_) => {
                         log_trace!("Van caught on open bridge");
                         continue;
-                    },
+                    }
                     Ok(_) => {}
                 };
                 cur_state.check_bridges_and_buttons();
@@ -241,9 +229,9 @@ impl Universe {
             }
 
             if self.iter_count % 10000 == 0 {
-                 log!("\n\nLoop count: {} \
+                log!("\n\nLoop count: {} \
                  Queue Length: {} Current Tick: {} ",
-                      self.iter_count, self.queue.len(), cur_state.tick);
+                     self.iter_count, self.queue.len(), cur_state.tick);
             }
 
             if !cur_state.check_graph_validity() {
@@ -265,7 +253,7 @@ impl Universe {
             match cur_state.handle_warehouse_drop_off() {
                 Ok(Some(next_state)) => {
                     self.queue.push_front(next_state);
-                },
+                }
                 Err(_) => continue,
                 _ => ()
             };
@@ -276,7 +264,7 @@ impl Universe {
                     next_state.tick = save_for_toggle.0;
                     next_state.current_van_index = save_for_toggle.1;
                     self.queue.push_front(next_state);
-                },
+                }
                 Err(_) => continue,
                 _ => ()
             };
@@ -297,7 +285,7 @@ impl Universe {
 
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
-            let adj_info_filtered_list : Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
+            let adj_info_filtered_list: Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
                 |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt, a_info)).collect();
 
             log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
@@ -341,7 +329,7 @@ impl Universe {
 
             //we are stuck, nothing else will be queued at this point
             if !any_moved {
-                 log_trace!("NO MOVES  Van: {:?}",
+                log_trace!("NO MOVES  Van: {:?}",
                      cur_state.current_van_index);
                 continue;
             }
@@ -352,11 +340,34 @@ impl Universe {
             } else {
                 return None;
             }
-
         }
 
         log!("Queue is empty");
         return None;
+    }
+
+    pub(crate) fn next_calculate(&mut self) -> JsValue {
+        let iter_count = self.iter_count;
+        let q_len = self.queue.len();
+        let success = self.success.is_some();
+
+        let v = self.process_queue_item();
+
+        if let Some(cur_state) = v {
+            log!("next_calculate: Is success?: {} Iter Count: {} Tick: {} \
+            Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
+                 success,
+                 iter_count,
+                 cur_state.tick,
+                 q_len, cur_state.current_van_index,
+                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
+            );
+        } else {
+            log!("next_calculate: No grid state");
+        }
+
+        //false for should not stop
+        JsValue::from_serde(&(v,false)).unwrap()
     }
 }
 
@@ -404,14 +415,14 @@ impl Universe {
         }
     }
 
-    
+
     pub fn get_data(&self) -> JsValue {
         JsValue::from_serde(&self.data).unwrap()
     }
 
 
     pub fn set_overrides(&mut self, choice_override_list: &JsValue) {
-        let lo : Vec<ChoiceOverride> = choice_override_list.into_serde().unwrap();
+        let lo: Vec<ChoiceOverride> = choice_override_list.into_serde().unwrap();
 
         self.choice_override_list = lo.clone();
 
@@ -419,11 +430,10 @@ impl Universe {
     }
 
     pub fn init_calculate(&mut self) {
-
         set_panic_hook();
 
 
-        self.queue = VecDeque::new();        
+        self.queue = VecDeque::new();
 
         self.iter_count = 0;
         self.data.tick = 0;
@@ -435,7 +445,7 @@ impl Universe {
         self.data.bridges = self.initial_bridge_list();
         self.data.graph = self.initial_graph();
 
-        self.data.warehouses_remaining = self.data.tiles.iter().filter( |t| {
+        self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
             if let TileWarehouse(_) = t {
                 true
             } else {
@@ -444,7 +454,7 @@ impl Universe {
         }).count();
 
         //we increment on pop, so...
-        self.data.current_van_index = VanIndex( self.initial_van_list().len() - 1 );
+        self.data.current_van_index = VanIndex(self.initial_van_list().len() - 1);
 
 
         //reset road history
@@ -453,18 +463,18 @@ impl Universe {
                 TileRoad(road) => {
                     road.used_van_index = Default::default();
                     road.van_snapshot = None;
-                },
+                }
                 TileBridge(bridge) => {
                     bridge.used_tick = None;
                     bridge.used_van_index = None;
                     bridge.van_snapshot = None;
-                },
+                }
                 _ => {}
             }
         }
 
         //vans should start on roads
-        let van_cells: Vec<CellIndex> = self.data.vans.iter().map( |v| v.cell_index).collect();
+        let van_cells: Vec<CellIndex> = self.data.vans.iter().map(|v| v.cell_index).collect();
 
         for (van_idx, v_cell_index) in van_cells.iter().enumerate() {
             if let TileRoad(road) = &mut self.data.tiles[v_cell_index.0] {
@@ -475,49 +485,23 @@ impl Universe {
         }
 
         self.analysis = GridAnalysis {
-            has_poppers: self.data.tiles.iter().any( |t| if let TileRoad(r) = t {
+            has_poppers: self.data.tiles.iter().any(|t| if let TileRoad(r) = t {
                 return r.has_popper;
-            } else {false} )
+            } else { false })
         };
 
         self.queue.push_back(self.data.clone());
-
-
     }
 
-    pub fn next_calculate(&mut self) -> JsValue {
 
-        let iter_count = self.iter_count;
-        let q_len = self.queue.len();
-        let success = self.success.is_some();
 
-        let v = self.process_queue_item();
-
-        if let Some(cur_state) = v {
-            
-
-            log!("next_calculate: Is success?: {} Iter Count: {} Tick: {} \
-            Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
-                success,
-                 iter_count,
-                cur_state.tick,
-                q_len, cur_state.current_van_index,
-                cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
-            );
-        } else {
-            log!("next_calculate: No grid state");
-        }
-
-        JsValue::from_serde(&v).unwrap()
-    }
-
+    //returns GridState, bool should stop
     pub fn next_batch_calculate(&mut self, repeat_count: usize) -> JsValue {
-
         log!("Batch calculate, repeat count: {}", repeat_count);
 
         if repeat_count > 10_000_000 {
             log!("Too many repetitions...{}", repeat_count);
-            return JsValue::from_serde(&self.data).unwrap();
+            return JsValue::from_serde(&(&self.data,true) ).unwrap();
         }
 
         let target_iter_count = self.iter_count + repeat_count - 1;
@@ -525,16 +509,15 @@ impl Universe {
         while self.iter_count < target_iter_count {
             self.process_queue_item();
             if self.success.is_some() {
-                return JsValue::from_serde(&self.success).unwrap();
+                return JsValue::from_serde(&(&self.success,true)).unwrap();
             }
             if self.queue.is_empty() {
                 log!("Queue is empty");
-                return JsValue::from_serde(&self.success).unwrap();
+                return JsValue::from_serde(&(&self.success,true)).unwrap();
             }
         }
 
         return self.next_calculate();
-
     }
 
 

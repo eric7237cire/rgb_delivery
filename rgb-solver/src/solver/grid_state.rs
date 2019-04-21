@@ -5,7 +5,7 @@ use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 use crate::solver::misc::{ALL_DIRECTIONS, opposite_dir_index, get_adjacent_index};
 use std::collections::HashMap;
-use crate::solver::func_public::NUM_COLORS;
+use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
 
@@ -564,8 +564,6 @@ impl GridState {
             } else {
                 panic!("Should be a road");
             }
-            
-
         } else {
 
             Ok(None)
@@ -618,7 +616,7 @@ impl GridState {
                 if is_connected_mask & (1 << dir_idx) > 0 {
                     let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
 
-                    log_trace!("Merging cells {} and {}", idx, adj_idx);
+                    //log_trace!("Merging cells {} and {}", idx, adj_idx);
                     ds.merge_sets(idx, adj_idx);
                 }
             }
@@ -649,6 +647,11 @@ impl GridState {
         for van in self.vans.iter() {
             let component_number = ds.get_repr(van.cell_index.0);
 
+            //they are out of the game
+            if van.is_done {
+                continue;
+            }
+
             add_component_to_map(&mut component_to_counts, component_number, van.color, VAN);
 
             for opt_box in van.boxes.iter() {
@@ -667,8 +670,17 @@ impl GridState {
                     return false;
                 }
 
-                if color_count[color_index][BLOCK as usize] > 0 && (color_count[0][VAN as usize] + color_count[color_index][VAN as usize] == 0) {
+                if color_count[color_index][BLOCK as usize] > 0 && (color_count[WHITE_COLOR_INDEX][VAN as usize] + color_count[color_index][VAN as usize] == 0) {
                     log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    return false;
+                }
+
+                //a van shouldn't be without blocks, should have set is_done.  Need to skip the first tick though since we haven't yet set that
+                if self.tick > 1 &&
+                    color_index != WHITE_COLOR_INDEX &&
+                    color_count[color_index][BLOCK as usize] == 0 &&
+                    color_count[color_index][VAN as usize] > 0 {
+                    log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
             }

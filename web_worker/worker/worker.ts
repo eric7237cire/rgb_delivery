@@ -60,17 +60,17 @@ ctx.addEventListener("message", ev => {
             let startedMs = performance.now();
 
             if (requestMessage.numSteps < ITER_CHUNK) {
-                let data: GridState = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
+                let data: [GridState, boolean] = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
 
-                sendUpdate(data);
+                sendUpdate(data[0]);
 
             } else {
 
                 //batch the batch
                 for (let i = 0; i < requestMessage.numSteps; i += ITER_CHUNK) {
-                    let data: GridState = g_worker.universe.next_batch_calculate(ITER_CHUNK);
+                    let data: [GridState,boolean] = g_worker.universe.next_batch_calculate(ITER_CHUNK);
 
-                    sendUpdate(data);
+                    sendUpdate(data[0]);
 
                     let progressMessage: ResponseProgressMessage = {
                         tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
@@ -80,6 +80,11 @@ ctx.addEventListener("message", ev => {
                     };
 
                     ctx.postMessage(progressMessage);
+
+                    //should stop
+                    if ( data[1]) {
+                        break;
+                    }
                 }
             }
 

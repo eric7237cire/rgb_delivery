@@ -185,7 +185,7 @@ export class AppComponent implements OnInit {
 
       //temp
       this.sendOverrideList();
-      this.nextCalculateStep(100000);
+      //this.nextCalculateStep(100000);
     }
     //this.nextCalculateStep(this.numCalcSteps);
 
@@ -199,14 +199,14 @@ export class AppComponent implements OnInit {
     const overRideList: Array<ChoiceOverride> = [
 
 
-/*
+
       {
          row_index: 0,
          col_index: 6,
-         van_index: 1,
+         //van_index: 1,
          direction_index: DIRECTION_INDEX.EAST
        },
-      {
+      /*{
          row_index: 2,
          col_index: 8,
          van_index: 1,
