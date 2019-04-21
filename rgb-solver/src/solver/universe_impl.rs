@@ -25,6 +25,8 @@ use crate::solver::struct_defs::Directions::*;
 use crate::solver::struct_defs::Warehouse;
 use crate::solver::van::Van;
 use crate::solver::grid_state::{GridState};
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 
 pub (crate) const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];
 
@@ -202,6 +204,20 @@ impl Universe {
                 return self.success.as_ref();
             }
 
+            let cur_key = cur_state.key();
+
+            let mut s = DefaultHasher::new();
+            cur_key.hash(&mut s);
+            let hash = s.finish();
+
+            if self.seen.contains(&hash) {
+                log_trace!("Already seen an equivalent state");
+                self.cache_hits += 1;
+                continue;
+            }
+
+            self.seen.insert(hash);
+
             let save_for_toggle = (cur_state.tick, cur_state.current_van_index);
 
             //change current_van_index in one place
@@ -210,9 +226,13 @@ impl Universe {
                 Ok(b) => b
             };
 
-            log_trace!("\n\nLoop count: {} Tick: {} Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
+
+            log_trace!("\n\nLoop count: {} Tick: {} \
+            Cache Hits: {} \
+            Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
                 self.iter_count,
                 cur_state.tick,
+                self.cache_hits,
                 self.queue.len(), cur_state.current_van_index,
                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
@@ -241,8 +261,12 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-            if self.iter_count % 500 == 0 {
-                 log!("\n\nLoop count: {}  Queue Length: {} Cur van index: {:?}", self.iter_count, self.queue.len(), cur_state.current_van_index);
+            if self.iter_count % 10000 == 0 {
+                 log!("\n\nLoop count: {} \
+                 Queue Length: {} Current Tick: {} \
+                 Cache Hits: {} \
+                 ",
+                      self.iter_count, self.queue.len(), cur_state.tick, self.cache_hits);
             }
 
             if self.iter_count > 100_000_000 {

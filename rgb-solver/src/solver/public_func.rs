@@ -6,6 +6,7 @@ use super::utils;
 use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse, TileBridge};
 use crate::solver::utils::set_panic_hook;
 use crate::solver::grid_state::GridState;
+use std::collections::HashSet;
 
 #[wasm_bindgen]
     pub fn get_colors() -> JsValue {
@@ -109,6 +110,7 @@ impl Universe {
 
 
         self.queue = VecDeque::new();
+        self.seen = HashSet::new();
 
         self.iter_count = 0;
         self.data.tick = 0;

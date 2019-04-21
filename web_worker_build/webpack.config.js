@@ -30,10 +30,10 @@ const workerConfig = {
         {
             apply: (compiler) => {
                 compiler.hooks.afterEmit.tap('AfterEmitPlugin', (compilation) => {
-                    exec('E:\\git\\rgb_delivery\\copy-wasm-build-files.bat', (err, stdout, stderr) => {
+                    /*exec('E:\\git\\rgb_delivery\\copy-wasm-build-files.bat', (err, stdout, stderr) => {
                         if (stdout) process.stdout.write(stdout);
                         if (stderr) process.stderr.write(stderr);
-                    });
+                    });*/
                 });
             }
         }

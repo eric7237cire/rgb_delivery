@@ -15,7 +15,7 @@ import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {EMPTY_GRID_STATE, GridStateService} from "./grid-state.service";
 import {Subject} from "rxjs";
-import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
+import {mergeMap, min, takeUntil, throttleTime} from "rxjs/operators";
 
 import {
   RequestInitCalculations,
@@ -139,6 +139,8 @@ export class AppComponent implements OnInit {
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
+
+  progressMessage: string = "No Progress Info";
 
   readonly gridMouseMove$ = new Subject<MouseEvent>();
   readonly gridMouseDown$ = new Subject<MouseEvent>();
@@ -346,11 +348,21 @@ export class AppComponent implements OnInit {
           this.handleWasmLoaded(message);
           break;
         }
-        case ResponseTypes.GRID_STATE_LOADED: {
+        case ResponseTypes.GRID_STATE_LOADED:
+
           console.log("New grid state data");
           this.gridStateService.gridState$.next(message.data);
           break;
-        }
+
+        case ResponseTypes.BATCH_PROGRESS_MESSAGE:
+
+          let secElapsed = (message.currentMs - message.startedMs) / 1000;
+          const minutesElapsed = _.floor( secElapsed / 60);
+          secElapsed -= minutesElapsed * 60;
+
+          this.progressMessage = `Done with ${message.stepsCompleted}.  min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
+
+          break;
       }
 
     });
