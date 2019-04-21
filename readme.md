@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/eric7237cire/poker.svg?branch=master)](https://travis-ci.org/eric7237cire/poker)
+
 # A grid solver for [RGB Express](http://rgbexpress.com/)
 
 ## Components
