@@ -1,4 +1,4 @@
-
+@echo OFF
 SET DEVOPS_DIR=%~dp0
 SET WEB_WORKER_BUILD_DIR=%DEVOPS_DIR%..\web_worker\
 SET GRID_EDITOR_BUILD_DIR=%DEVOPS_DIR%..\grid-editor\

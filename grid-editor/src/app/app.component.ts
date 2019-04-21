@@ -182,6 +182,10 @@ export class AppComponent implements OnInit {
       this.numCols = savedData.width;
 
       this.initCalculations();
+
+      //temp
+      this.sendOverrideList();
+      this.nextCalculateStep(100000);
     }
     //this.nextCalculateStep(this.numCalcSteps);
 
@@ -191,34 +195,11 @@ export class AppComponent implements OnInit {
 
   }
 
-  handleGridStateChanged() {
-    console.log("Data is now", this.gridStateService.gridState);
-
-
-    //strip out empty cells
-    if (_.isNil(this.gridStateService.gridState)) {
-      return;
-    }
-
-    this.cells = this.gridStateService.gridState.tiles.map((t, index) => {
-      return GridStateService.tileToCellState(this.gridStateService.gridState, t, index);
-    });
-
-    const nonEmptyCells: Array<CellData> = this.cells.filter(
-      cell => cell.tile.type !== "Empty"
-    );
-
-    //console.log("Non empty cells", nonEmptyCells);
-
-    //Only continue processing on initial tick/load
-    if (this.gridStateService.gridState.tick > 0) {
-      return;
-    }
-
+  sendOverrideList() {
     const overRideList: Array<ChoiceOverride> = [
 
 
-
+/*
       {
          row_index: 0,
          col_index: 6,
@@ -245,6 +226,66 @@ export class AppComponent implements OnInit {
          direction_index: DIRECTION_INDEX.SOUTH
        },
 
+      {
+         row_index: 4,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+      {
+         row_index: 5,
+         col_index: 8,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+      {
+         row_index: 5,
+         col_index: 6,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+       {
+         row_index: 10,
+         col_index: 4,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+      {
+         row_index: 8,
+         col_index: 4,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+
+      {
+         row_index: 8,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 7,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 6,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 5,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },*/
+
     ];
 
     const request: RequestSetOverrideList = {
@@ -252,6 +293,33 @@ export class AppComponent implements OnInit {
       overRideList
     };
     this.worker.postMessage(request);
+  }
+
+  handleGridStateChanged() {
+    console.log("Data is now", this.gridStateService.gridState);
+
+
+    //strip out empty cells
+    if (_.isNil(this.gridStateService.gridState)) {
+      return;
+    }
+
+    this.cells = this.gridStateService.gridState.tiles.map((t, index) => {
+      return GridStateService.tileToCellState(this.gridStateService.gridState, t, index);
+    });
+
+    const nonEmptyCells: Array<CellData> = this.cells.filter(
+      cell => cell.tile.type !== "Empty"
+    );
+
+    //console.log("Non empty cells", nonEmptyCells);
+
+    //Only continue processing on initial tick/load
+    if (this.gridStateService.gridState.tick > 0) {
+      return;
+    }
+
+    this.sendOverrideList();
 
     if (nonEmptyCells.length > 0) {
       console.log("STORING GRID");

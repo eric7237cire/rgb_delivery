@@ -241,12 +241,6 @@ impl Universe {
                       self.iter_count, self.queue.len(), cur_state.tick);
             }
 
-            if self.iter_count > 100_000_000 {
-                log!("Too many iterations, stopping at {}", self.iter_count);
-                self.queue.clear();
-                break;
-            }
-
             let van_cell_index = cur_state.vans[cur_state.current_van_index.0].cell_index;
 
             //let (cur_row_index, cur_col_index) = van_cell_index.to_row_col(self.data.width);
@@ -482,7 +476,28 @@ impl Universe {
     }
 
     pub fn next_calculate(&mut self) -> JsValue {
+
+        let iter_count = self.iter_count;
+        let q_len = self.queue.len();
+        let success = self.success.is_some();
+
         let v = self.process_queue_item();
+
+        if let Some(cur_state) = v {
+            
+
+            log!("next_calculate: Is success?: {} Iter Count: {} Tick: {} \
+            Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
+                success,
+                 iter_count,
+                cur_state.tick,
+                q_len, cur_state.current_van_index,
+                cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
+            );
+        } else {
+            log!("next_calculate: No grid state");
+        }
+
         JsValue::from_serde(&v).unwrap()
     }
 
