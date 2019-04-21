@@ -11,6 +11,7 @@ import {
 
 export type WASM_TYPE = typeof import ('rgb-solver');
 
+
 //how often we update UI
 const ITER_CHUNK = 100000;
 

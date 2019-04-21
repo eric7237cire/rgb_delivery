@@ -3,13 +3,14 @@ use wasm_typescript_definition::TypescriptDefinition;
 use crate::solver::struct_defs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
 use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
-use crate::solver::universe_impl::ALL_DIRECTIONS;
+use crate::solver::misc::ALL_DIRECTIONS;
 
-pub struct GridStaticState {
 
-    pub initial_blocks: Vec<Block>;
+pub struct GridAnalysis {
+
+    //important because if there are none, then a van can only pick up its color
+    has_poppers: bool
 }
-
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct GridState {
@@ -35,6 +36,8 @@ pub struct GridState {
 
     #[serde(skip)]
     pub(crate) current_van_index: VanIndex,
+
+
 }
 
 #[derive(Hash, PartialEq, Eq)]

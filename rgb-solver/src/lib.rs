@@ -35,20 +35,4 @@ mod solver;
 
 pub use solver::*;
 
-use std::fmt;
-use crate::solver::struct_defs::Universe;
 
-impl fmt::Display for Universe {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        /*for line in self.cells.as_slice().chunks(self.width as usize) {
-            for &cell in line {
-                let symbol = if cell == Cell::Dead { "uud◻" } else { "a◼" };
-                write!(f, "{}", symbol)?;
-            }
-            write!(f, "\n")?;
-        }*/
-        write!(f,"Nothing for now\n")?;
-
-        Ok(())
-    }
-}

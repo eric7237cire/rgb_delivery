@@ -1,48 +1,34 @@
-use crate::solver::struct_defs::*;
-
-use crate::solver::struct_defs::TileEnum::{TileRoad, TileWarehouse, TileBridge};
-
-//use crate::solver::public_func::build_color_list;
-
-//use crate::solver::utils::VAN_LABEL;
-
-
-
-impl Directions {
-    pub(crate) fn opposite(&self) -> Directions {
-        match self {
-            NORTH => SOUTH,
-            EAST => WEST,
-            SOUTH => NORTH,
-            WEST => EAST
-        }
-    }
-}
-
-
+use crate::solver::grid_state::GridState;
+use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Directions};
+use std::collections::vec_deque::VecDeque;
+use std::collections::HashSet;
+use crate::solver::misc::ALL_DIRECTIONS;
 use crate::solver::struct_defs::Directions::*;
-
-use crate::solver::struct_defs::Warehouse;
+use crate::solver::struct_defs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
 use crate::solver::van::Van;
-use crate::solver::grid_state::{GridState};
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
+use wasm_bindgen::JsValue;
+use wasm_bindgen::prelude::*;
+use crate::solver::utils;
+use crate::solver::utils::set_panic_hook;
 
-pub (crate) const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];
+#[cfg_attr( not(target_arch = "x86_64"), wasm_bindgen())]
+#[derive(Default)]
+pub struct Universe {
+    pub(crate) data: GridState,
 
+    pub(crate) choice_override_list: Vec<ChoiceOverride>,
 
-impl TileEnum {
-    pub(crate) fn mut_warehouse(&mut self) -> &mut Warehouse {
-        match self {
-            TileWarehouse(inner) => {
-                return inner;
-            }
-            _ => panic!()
-        }
-    }
+    //below are used for calculating
+    pub(crate) queue: VecDeque<GridState>,
+
+    pub(crate) seen: HashSet<u64>,
+
+    pub(crate) success: Option<GridState>,
+
+    pub(crate) iter_count: usize,
 }
 
-
+//private
 impl Universe {
 
     /// Gets adj indexes, checking grid limits
@@ -57,6 +43,8 @@ impl Universe {
             if used_dir_mask & *dir as u8 > 0 {
                 return None;
             }
+
+
 
             let adj_index: Option<usize> = match dir {
                 NORTH => {
@@ -116,7 +104,7 @@ impl Universe {
                 && cur_col_index == co.col_index
             }
 
-            
+
         );
 
         if let Some(o) = o {
@@ -131,7 +119,7 @@ impl Universe {
 
 
         self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
-           
+
             if let TileRoad(road) = &tile {
                 if let Some(van) = &road.van_snapshot {
 
@@ -206,17 +194,6 @@ impl Universe {
 
             let cur_key = cur_state.key();
 
-            let mut s = DefaultHasher::new();
-            cur_key.hash(&mut s);
-            let hash = s.finish();
-
-            if self.seen.contains(&hash) {
-                log_trace!("Already seen an equivalent state");
-                self.cache_hits += 1;
-                continue;
-            }
-
-            self.seen.insert(hash);
 
             let save_for_toggle = (cur_state.tick, cur_state.current_van_index);
 
@@ -306,7 +283,7 @@ impl Universe {
 
             log_trace!("Current used mask: {:#07b}", cur_used_mask);
 
-            //now attempt to move 
+            //now attempt to move
 
             //Where could we move?  (looks at mask & grid)
             let adj_square_indexes = self.get_adjacent_square_indexes(
@@ -361,7 +338,7 @@ impl Universe {
 
             //we are stuck, nothing else will be queued at this point
             if !any_moved {
-                 log_trace!("NO MOVES  Van: {:?}",                     
+                 log_trace!("NO MOVES  Van: {:?}",
                      cur_state.current_van_index);
                 continue;
             }
@@ -377,5 +354,181 @@ impl Universe {
 
         log!("Queue is empty");
         return None;
+    }
+}
+
+//public
+
+#[wasm_bindgen()]
+impl Universe {
+    // ...
+
+    pub fn new(h: usize, w: usize) -> Universe {
+        log!(
+            "Building a new Grid.  [{}, {}] ",
+            w,
+            h
+        );
+
+        utils::set_panic_hook();
+
+        let width = w;
+        let height = h;
+
+
+        let tiles: Vec<TileEnum> = (0..width * height)
+            .map(|_| {
+                TileEnum::Empty
+            })
+            .collect();
+
+        //let cl = build_color_list();
+        /*
+                cells[0] =  CellData{row_index: 0, col_index: 0, tile: TileRoad(
+                    Road {used_mask: 45, block: None, van: None})
+                };*/
+        /*cells[1] =  CellData{row_index: 0, col_index: 0, tile: Warehouse {color: cl[2].clone(), is_filled: true},
+            van: Some( Van{ boxes: [None, Some(cl[0].clone()), Some(cl[3].clone())] } ) } );*/
+
+        Universe {
+            data: GridState {
+                width,
+                height,
+                tiles,
+                ..Default::default()
+            },
+            ..Default::default()
+        }
+    }
+
+    
+    pub fn get_data(&self) -> JsValue {
+        JsValue::from_serde(&self.data).unwrap()
+    }
+
+
+    pub fn set_overrides(&mut self, choice_override_list: &JsValue) {
+        let lo : Vec<ChoiceOverride> = choice_override_list.into_serde().unwrap();
+
+        self.choice_override_list = lo.clone();
+
+        log!("Set override list {:?}", lo);
+    }
+
+    pub fn init_calculate(&mut self) {
+
+        set_panic_hook();
+
+
+        self.queue = VecDeque::new();
+        self.seen = HashSet::new();
+
+        self.iter_count = 0;
+        self.data.tick = 0;
+
+        self.success = None;
+
+        self.data.vans = self.initial_van_list();
+        self.data.buttons = self.initial_button_list();
+        self.data.bridges = self.initial_bridge_list();
+
+        self.data.warehouses_remaining = self.data.tiles.iter().filter( |t| {
+            if let TileWarehouse(_) = t {
+                true
+            } else {
+                false
+            }
+        }).count();
+
+        //we increment on pop, so...
+        self.data.current_van_index = VanIndex( self.initial_van_list().len() - 1 );
+
+
+        //reset road history
+        for tile in self.data.tiles.iter_mut() {
+            match tile {
+                TileRoad(road) => {
+                    road.used_van_index = Default::default();
+                    road.used_mask = Default::default();
+                    road.van_snapshot = None;
+                },
+                TileBridge(bridge) => {
+                    bridge.used_tick = None;
+                    bridge.used_van_index = None;
+                    bridge.van_snapshot = None;
+                    bridge.used_mask = 0;
+                },
+                _ => {}
+            }
+        }
+
+        //vans should start on roads
+        let van_cells: Vec<CellIndex> = self.data.vans.iter().map( |v| v.cell_index).collect();
+
+        for (van_idx, v_cell_index) in van_cells.iter().enumerate() {
+            if let TileRoad(road) = &mut self.data.tiles[v_cell_index.0] {
+                road.van_snapshot = Some(self.data.vans[van_idx].clone());
+            } else {
+                panic!("Van is not on a road");
+            }
+        }
+
+        self.queue.push_back(self.data.clone());
+
+
+    }
+
+    pub fn next_calculate(&mut self) -> JsValue {
+        let v = self.process_queue_item();
+        JsValue::from_serde(&v).unwrap()
+    }
+
+    pub fn next_batch_calculate(&mut self, repeat_count: usize) -> JsValue {
+
+        log!("Batch calculate, repeat count: {}", repeat_count);
+
+        if repeat_count > 10_000_000 {
+            log!("Too many repetitions...{}", repeat_count);
+            return JsValue::from_serde(&self.data).unwrap();
+        }
+
+        let target_iter_count = self.iter_count + repeat_count - 1;
+
+        while self.iter_count < target_iter_count {
+            self.process_queue_item();
+            if self.success.is_some() {
+                return JsValue::from_serde(&self.success).unwrap();
+            }
+            if self.queue.is_empty() {
+                log!("Queue is empty");
+                return JsValue::from_serde(&self.success).unwrap();
+            }
+        }
+
+        return self.next_calculate();
+
+    }
+
+
+    pub fn set_square(&mut self, tile_val: &JsValue) {
+        let cell: CellData = tile_val.into_serde().unwrap();
+
+        let idx: usize = cell.row_index * self.data.width + cell.col_index;
+
+        /*log!(
+            "Received Row/Col [{}, {}] = idx [{}].  Tile {:?}",
+            tile.row_index,
+            tile.col_index,
+            idx,
+            tile
+        );*/
+
+        if idx < self.data.tiles.len() {
+            self.data.tiles[idx] = cell.tile;
+        } else {
+            log!(
+                "Out of bounds, ignoring"
+            );
+        }
     }
 }
