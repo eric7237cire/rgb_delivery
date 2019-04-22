@@ -731,6 +731,8 @@ export class AppComponent implements OnInit {
     };
 
     this.worker.postMessage(request);
+
+    this.initCalculations();
   }
 
   handleNumCalcStepsChange(steps) {
