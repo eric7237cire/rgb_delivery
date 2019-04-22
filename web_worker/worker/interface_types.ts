@@ -1,3 +1,5 @@
+/// <reference path="../node_modules/rgb-solver/rgb_solver.d.ts" />
+
 import {CellData, ChoiceOverride, Color, GridState} from "rgb-solver";
 
 export enum ResponseTypes {

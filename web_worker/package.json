@@ -6,7 +6,8 @@
   "license": "Apache-2.0/MIT",
   "scripts": {
     "build": "webpack --mode production",
-    "build-lib": "rmdir /s /q dist && tsc --project tsconfig-lib.json"
+    "clean-lib" : "rmdir /s /q lib",
+    "build-lib": "tsc --project tsconfig-lib.json"
   },
   "devDependencies": {
     "ts-loader": "^5.3.3",
