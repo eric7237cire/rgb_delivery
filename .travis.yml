@@ -29,8 +29,8 @@ matrix:
         - cd web_worker
         - npm install
         - ./node_modules/.bin/webpack
-        - cp -r ./dist/* ../grid-editor/src/assets
-        - cp ./worker/interface_types.ts ../grid-editor/src/app/typings/worker.ts
+        - cp -rv ./dist/* ../grid-editor/src/assets
+        - cp -v ./worker/interface_types.ts ../grid-editor/src/app/typings/worker.ts
         - cd ../grid-editor
         - npm install
         - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
