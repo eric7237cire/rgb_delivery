@@ -24,3 +24,9 @@ python3 -m cogapp -r "/mnt/e/git/rgb_delivery/rgb-solver/src/solver/tests.rs"
 
 ## Publishing to npm 
 https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/packaging-and-publishing.html
+
+```
+wasm-pack login
+cd pkg
+npm publish --access=public
+```

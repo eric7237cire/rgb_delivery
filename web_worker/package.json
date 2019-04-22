@@ -19,6 +19,6 @@
   "dependencies": {
     "@types/lodash": "^4.14.123",
     "lodash": "^4.17.11",
-    "rgb-solver": "^0.1.0"
+    "rgb-solver": ">=0.1.0-progress"
   }
 }
