@@ -2,7 +2,7 @@
 
 # ![Rust](http://rust-lang.org/logos/rust-logo-32x32.png) 🦀 🕸️ A grid solver for [RGB Express](http://rgbexpress.com/) ![Rust](http://rust-lang.org/logos/rust-logo-32x32.png) 
 
-[RGB Express](http://rgbexpress.com/) is an excellent strategy Android game.  It helps to download & play before looking at the solver, otherwise it won't make any sense.
+[RGB Express](http://rgbexpress.com/) is an excellent strategy Android game.  It helps to download & play before looking at the solver.
 
 Basically you have to get each van (V) pick up a block (B) and return it to the target warehouse (T).   The van and warehouse must be the same color.
 Each van can hold 3 blocks, the 'poppers', if active, will pop the top block off the Van.  Poppers are activated before starting the level.  
