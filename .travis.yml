@@ -31,8 +31,8 @@ matrix:
         - ./node_modules/.bin/webpack
         - npm link
         - cd ../grid-editor
-        - npm link web_worker
         - npm install
+        - npm link web_worker
         - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
         - ls -l ./dist/grid-editor/assets
 

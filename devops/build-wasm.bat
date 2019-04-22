@@ -28,6 +28,4 @@ CALL .\node_modules\.bin\webpack
 
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-copy /Y "%WEB_WORKER_BUILD_DIR%dist\*"  "%GRID_EDITOR_BUILD_DIR%src\assets"
-copy /Y "%WEB_WORKER_BUILD_DIR%worker\interface_types.ts" "%GRID_EDITOR_BUILD_DIR%src\app\typings\worker.ts
 
