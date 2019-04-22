@@ -6,15 +6,16 @@ SET RGB_SOLVER_DIR=%~dp0..\rgb-solver\
 
 cd /D "%RGB_SOLVER_DIR%"
 
-REM we want to use the one built, not the one from npm
-CALL npm link
-
 ECHO Building Web Assembly...
 
 REM wasm-pack build --dev
 wasm-pack build --release
-
 if %errorlevel% neq 0 exit /b %errorlevel%
+
+CD pkg
+REM we want to use the one built, not the one from npm
+REM Normally only needed once, but we do it each time as npm installs can unlink it
+CALL npm link
 
 CD "%WEB_WORKER_BUILD_DIR%"
 
@@ -27,10 +28,13 @@ rem make sure we are using the local one
 CALL npm link rgb-solver
 
 CALL npm run build
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 CALL npm run build-lib
+if %errorlevel% neq 0 exit /b %errorlevel%
 
 CALL npm link
 
-if %errorlevel% neq 0 exit /b %errorlevel%
+
 
 

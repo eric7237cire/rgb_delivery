@@ -1,6 +1,4 @@
-//#![feature(uniform_paths)]
-
-//Serialize/Deserialize traints
+//Serialize/Deserialize traits
 #[macro_use]
 extern crate serde_derive;
 

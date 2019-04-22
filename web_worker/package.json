@@ -6,7 +6,7 @@
   "license": "Apache-2.0/MIT",
   "scripts": {
     "build": "webpack --mode production",
-    "clean-lib" : "rmdir /s /q lib",
+    "clean-lib": "rmdir /s /q lib",
     "build-lib": "tsc --project tsconfig-lib.json"
   },
   "devDependencies": {
