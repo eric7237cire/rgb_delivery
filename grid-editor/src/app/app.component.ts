@@ -138,11 +138,11 @@ export class AppComponent implements OnInit {
 
   cells: Array<CellData> = [];
 
-  numCalcSteps = 14;
+  numCalcSteps = 100000;
 
-  mouseMoveRow = 0;
-  mouseMoveCol = 0;
-  mouseMoveIndex = 0;
+  mouseMoveRow = "00";
+  mouseMoveCol = "00";
+  mouseMoveIndex = "00";
 
   progressMessage: string = "No Progress Info";
 
@@ -516,9 +516,14 @@ export class AppComponent implements OnInit {
     const x = moveEvent.clientX - rect.left; //x position within the element.
     const y = moveEvent.clientY - rect.top;  //y position within the element.
 
-    this.mouseMoveRow = _.floor(y / this.GRID_SIZE);
-    this.mouseMoveCol = _.floor(x / this.GRID_SIZE);
-    this.mouseMoveIndex = this.mouseMoveRow * this.gridState.width + this.mouseMoveCol;
+    const mmRow: number = _.floor(y / this.GRID_SIZE);
+    const mmCol = _.floor(x / this.GRID_SIZE);
+
+    const leftPadNumber = (n) => _.toString(n).padStart(2, '0');
+
+    this.mouseMoveRow = leftPadNumber( mmRow );
+    this.mouseMoveCol = leftPadNumber(mmCol);
+    this.mouseMoveIndex = leftPadNumber(mmRow * this.gridState.width + mmCol);
   }
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
@@ -712,6 +717,8 @@ export class AppComponent implements OnInit {
     };
 
     this.worker.postMessage(request);
+
+    this.progressMessage = "Starting calculations...";
   }
 
   private sendGridStateToWasm(gridState: GridState) {
