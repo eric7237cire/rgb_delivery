@@ -20,7 +20,7 @@ added to the public classes/interfaces (exposed by Serde), the typescript transp
 
 Angular 7 front end, grid editor.  
 
-![Screenshot](./readme_images/grid_editor.png)
+![Screenshot](./readme_images/grid_editor_42.gif)
 
 Language: TypeScript
 
