@@ -7,9 +7,6 @@
   "scripts": {
     "build": "webpack --mode production"
   },
-  "bin": {
-    "create-rust-wasm-worker": ".bin/create-rust-wasm-worker.js"
-  },
   "devDependencies": {
     "ts-loader": "^5.3.3",
     "typescript": "^3.4.4",
@@ -20,5 +17,9 @@
     "@types/lodash": "^4.14.123",
     "lodash": "^4.17.11",
     "rgb-solver": "=0.1.0-progress.1"
-  }
+  },
+  "browser": "./dist/worker.js",
+  "files": [
+    "dist"
+  ]
 }
