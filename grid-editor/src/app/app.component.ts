@@ -788,7 +788,7 @@ export class AppComponent implements OnInit {
   }
 
   loadExample(exampleName: string) {
-    fetch(`/assets/example_levels/${exampleName}.json`).then(response => {
+    fetch(`assets/example_levels/${exampleName}.json`).then(response => {
       return response.json();
     }).then(jsonData => {
       this.loadJsonFromClient(jsonData);
