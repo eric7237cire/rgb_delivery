@@ -6245,7 +6245,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 "#;
 // --[[[end]]]
     }
-    use crate::solver::struct_defs::{ Universe};
+    use crate::solver::universe::{ Universe};
     use crate::solver::grid_state:: {GridState};
     use self::test_data::*;
     use serde_json;

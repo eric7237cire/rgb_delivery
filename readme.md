@@ -116,3 +116,12 @@ pub enum TileEnum {
     Empty
 }
 ```
+
+
+# Deploying to [git hub pages](https://eric7237cire.github.io/rgb_delivery/)
+
+```
+npm install -g angular-cli-ghpages
+ng build --prod --base-href "https://eric7237cire.github.io/rgb_delivery/"
+ngh  --dir dist/grid-editor
+```

@@ -15,7 +15,7 @@ import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import {EMPTY_GRID_STATE, GridStateService} from "./grid-state.service";
 import {Subject} from "rxjs";
-import {mergeMap, min, takeUntil, throttleTime} from "rxjs/operators";
+import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
 
 import {
   RequestInitCalculations,
@@ -139,6 +139,7 @@ export class AppComponent implements OnInit {
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
+  mouseMoveIndex = 0;
 
   progressMessage: string = "No Progress Info";
 
@@ -182,6 +183,12 @@ export class AppComponent implements OnInit {
       this.numCols = savedData.width;
 
       this.initCalculations();
+
+
+      this.sendOverrideList();
+
+      //temp
+      //this.nextCalculateStep(100000);
     }
     //this.nextCalculateStep(this.numCalcSteps);
 
@@ -189,6 +196,106 @@ export class AppComponent implements OnInit {
       this.handleGridStateChanged();
     });
 
+  }
+
+  sendOverrideList() {
+    const overRideList: Array<ChoiceOverride> = [
+
+
+/*
+      {
+         row_index: 0,
+         col_index: 6,
+         //van_index: 1,
+         direction_index: DIRECTION_INDEX.EAST
+       },*/
+      /*{
+         row_index: 2,
+         col_index: 8,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+      {
+         row_index: 5,
+         col_index: 4,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+
+       {
+         row_index: 5,
+         col_index: 4,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+
+      {
+         row_index: 4,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+      {
+         row_index: 5,
+         col_index: 8,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+      {
+         row_index: 5,
+         col_index: 6,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+       {
+         row_index: 10,
+         col_index: 4,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+      {
+         row_index: 8,
+         col_index: 4,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+
+      {
+         row_index: 8,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 7,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 6,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 5,
+         col_index: 2,
+         van_index: 1,
+         direction_index: DIRECTION_INDEX.NORTH
+       },*/
+
+    ];
+
+    const request: RequestSetOverrideList = {
+      tag: RequestTypes.SET_OVERRIDE_LIST,
+      overRideList
+    };
+    this.worker.postMessage(request);
   }
 
   handleGridStateChanged() {
@@ -208,48 +315,14 @@ export class AppComponent implements OnInit {
       cell => cell.tile.type !== "Empty"
     );
 
-    console.log("Non empty cells", nonEmptyCells);
+    //console.log("Non empty cells", nonEmptyCells);
 
     //Only continue processing on initial tick/load
     if (this.gridStateService.gridState.tick > 0) {
       return;
     }
 
-    const overRideList: Array<ChoiceOverride> = [
-
-
-      /*
-      {
-         row_index: 1,
-         col_index: 3,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.EAST
-       },
-      {
-         row_index: 1,
-         col_index: 5,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.EAST
-       },
-      {
-         row_index: 1,
-         col_index: 7,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.EAST
-       },
-      {
-         row_index: 1,
-         col_index: 8,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.EAST
-       },*/
-    ];
-
-    const request: RequestSetOverrideList = {
-      tag: RequestTypes.SET_OVERRIDE_LIST,
-      overRideList
-    };
-    this.worker.postMessage(request);
+    this.sendOverrideList();
 
     if (nonEmptyCells.length > 0) {
       console.log("STORING GRID");
@@ -457,6 +530,7 @@ export class AppComponent implements OnInit {
 
     this.mouseMoveRow = _.floor(y / this.GRID_SIZE);
     this.mouseMoveCol = _.floor(x / this.GRID_SIZE);
+    this.mouseMoveIndex = this.mouseMoveRow * this.gridStateService.gridState$.value.width + this.mouseMoveCol;
   }
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
@@ -486,7 +560,6 @@ export class AppComponent implements OnInit {
       if (tile.type !== "TileRoad") {
         tile = {
           type: "TileRoad",
-          used_mask: 0,
           has_popper: false
         };
       }
@@ -531,7 +604,6 @@ export class AppComponent implements OnInit {
           this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
-              used_mask: 0,
               has_popper: false
             }
           });
@@ -549,7 +621,6 @@ export class AppComponent implements OnInit {
           this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
-              used_mask: 0,
               is_up: this.selectedIsOpenOrUp,
               color: this.selectedColor.color_index
 
@@ -587,7 +658,7 @@ export class AppComponent implements OnInit {
       return false;
     }
 
-    return ((cell.tile.used_mask & dm.mask) > 0);
+    return !_.isNil(cell.tile.used_van_index) && !_.isNil(cell.tile.used_van_index[dm.dir_index]);
   }
 
   getCssColorForButton(button: Button) {

@@ -3,13 +3,29 @@ use wasm_typescript_definition::TypescriptDefinition;
 use crate::solver::struct_defs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
 use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
-use crate::solver::universe_impl::ALL_DIRECTIONS;
+use crate::solver::misc::{ALL_DIRECTIONS, opposite_dir_index, get_adjacent_index};
+use std::collections::HashMap;
+use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
+use crate::solver::disjointset::DisjointSet;
+use crate::solver::grid_state::ComponentMapIdx::*;
 
-pub struct GridStaticState {
+#[derive(Default)]
+pub struct GridAnalysis {
 
-    pub initial_blocks: Vec<Block>;
+    //important because if there are none, then a van can only pick up its color
+    pub has_poppers: bool,
+
+    pub forced_choices: Vec<ChoiceOverride>
 }
 
+#[derive(Default,Clone)]
+pub struct GridGraph {
+
+    //contains adj node, indexs are ALL_DIRECTIONS.  Stores index to adj square
+
+    //index is tile index; 4 bits are used to determine if connected
+    pub is_connected: Vec<u8>
+}
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct GridState {
@@ -17,6 +33,9 @@ pub struct GridState {
     pub height: usize,
 
     pub tiles: Vec<TileEnum>,
+
+    #[serde(skip)]
+    pub graph: GridGraph,
 
     //Js=>Rust will ignore this
     #[serde(skip_deserializing)]
@@ -35,31 +54,12 @@ pub struct GridState {
 
     #[serde(skip)]
     pub(crate) current_van_index: VanIndex,
+
+
 }
 
 #[derive(Hash, PartialEq, Eq)]
 pub (crate) struct GridStateKey(Vec<u8>, Vec<(CellIndex,bool,[Option<ColorIndex>;3])>);
-
-impl GridState {
-    pub(crate) fn key(&self) -> GridStateKey {
-
-        let used_roads  =
-        self.tiles.iter().filter_map( {
-            |t|
-            if let TileRoad(Road{used_mask,..}) = t {
-                Some(*used_mask)
-            } else {
-                None
-            }
-        }).collect();
-
-        let vans_info = self.vans.iter().map(|v|
-            (v.cell_index, v.is_done, v.boxes)).collect();
-
-        GridStateKey(used_roads, vans_info)
-    }
-}
-
 
 pub enum CanDropOff {
     NoFail,
@@ -209,7 +209,7 @@ impl GridState {
         &mut self.vans[ i ]
     }
 
-    pub(crate) fn pick_up_block_if_exists(&mut self) {
+    pub(crate) fn pick_up_block_if_exists(&mut self, analysis: &GridAnalysis ) -> Result<(),()> {
 
 
         log_trace!("pick_up_block_if_exists");
@@ -232,6 +232,12 @@ impl GridState {
             log_trace!("Rolled on a block of color {:?}", block_color);
 
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
+
+                if !analysis.has_poppers && self.vans[self.current_van_index.0].color != block_color{
+                    log_trace!("No way of dropping block off");
+                    return Err(());
+                }
+
                 log_trace!("Van picked up a block of color {:?}", block_color);
                 self.vans[self.current_van_index.0].boxes[i] = Some(block_color);
                 
@@ -240,6 +246,8 @@ impl GridState {
                 }
             }
         }
+
+        Ok(())
     }
 
     pub(crate) fn press_button_if_exists(&mut self) {
@@ -332,12 +340,8 @@ impl GridState {
         }
     }
 
-    pub (crate) fn get_cur_used_mask(&self) -> u8 {
-        match &self.tiles[self.current_cell_index().0] {
-            TileRoad( Road{ used_mask, .. } ) => *used_mask,
-            TileBridge( Bridge{ used_mask,  .. } ) => *used_mask,
-            _ => panic!("Van not on road or bridge")
-        }
+    pub (crate) fn get_cur_is_connected_mask(&self) -> u8 {
+        self.graph.is_connected[ self.current_cell_index().0 ]        
     }
 
     pub (crate) fn filter_map_by_can_have_van<'a>(
@@ -396,16 +400,26 @@ impl GridState {
 
         log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
 
+        
+        //must have a connection in the direction we are moving
+        assert_eq!(1 << adj_info.direction_index, adj_info.direction as u8);
+
+        assert!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 > 0);
+
+        //Now we remove the edge
+        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction_index); 
+
+        assert_eq!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 , 0);
+
         //remove van & set used mask
         match &mut self.tiles[van_cell_index.0] {
             TileRoad( current_tile_road ) => 
             {
                 //see comment van consistency
                 //assert!(current_tile_road.van_snapshot.is_some());
-                assert_eq!(current_tile_road.used_mask & adj_info.direction as u8, 0);
-
+                
                 current_tile_road.van_snapshot = None;
-                current_tile_road.used_mask |= adj_info.direction as u8;
+                
                 current_tile_road.used_tick[adj_info.direction_index] = Some(self.tick);
                 current_tile_road.used_van_index[adj_info.direction_index] = Some(self.current_van_index);
 
@@ -417,11 +431,9 @@ impl GridState {
                 //These are set when moved to
                 assert_eq!(current_tile_bridge.used_van_index, Some(self.current_van_index));
                 assert_eq!(current_tile_bridge.used_tick, Some(self.tick - 1));
-                assert_eq!(current_tile_bridge.used_mask & adj_info.direction as u8, 0);
+                
 
                 assert!(current_tile_bridge.van_snapshot.is_some());
-
-                current_tile_bridge.used_mask |= adj_info.direction as u8;
 
                 //current_tile_bridge.used_van_index = Some(self.current_van_index);
                 //current_tile_bridge.used_tick = Some(self.tick);
@@ -443,14 +455,19 @@ impl GridState {
             van.tick += 1;
         }
 
+        assert_eq!(1 << opposite_dir_index( adj_info.direction_index ), adj_info.direction.opposite() as u8);
+
+        assert!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8 > 0);
+        //Now we remove the edge; we cant do a U turn
+        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << opposite_dir_index(adj_info.direction_index)); 
+
+        assert_eq!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8, 0);
+
         match &mut self.tiles[moving_to_cell_index.0] {
             TileRoad( next_road ) => 
             {
                 //keep a history
                 next_road.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
-
-                //we cant do a U turn
-                next_road.used_mask |= adj_info.direction.opposite() as u8;
 
                 let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
 
@@ -465,13 +482,7 @@ impl GridState {
 
                 next_bridge.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
 
-                next_bridge.used_mask |= adj_info.direction.opposite() as u8;
-
-                //we cant do a U turn
                 next_bridge.used_van_index = Some(self.current_van_index);
-
-                //let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
-
 
                 next_bridge.used_tick = Some( self.tick );
             },
@@ -494,15 +505,20 @@ impl GridState {
                     self.warehouses_remaining -= 1;
 
                     //test what happens if we stop
-                    let mut if_van_stops_state = self.clone();
-                    if_van_stops_state.current_van_mut().is_done = true;
+                    if self.can_current_van_stop() {
+                        let mut if_van_stops_state = self.clone();
+                        if_van_stops_state.current_van_mut().is_done = true;
 
-                     {
-                        if let TileRoad(road) = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0] {
-                            assert!(road.van_snapshot.is_some());
+                        {
+                            if let TileRoad(road) = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0] {
+                                assert!(road.van_snapshot.is_some());
+                            }
                         }
+                        Ok(Some(if_van_stops_state))
+                    } else {
+                        Ok(None)
                     }
-                    Ok(Some(if_van_stops_state))
+                    
                 },
                 _ => Ok(None)
             }
@@ -550,8 +566,6 @@ impl GridState {
             } else {
                 panic!("Should be a road");
             }
-            
-
         } else {
 
             Ok(None)
@@ -560,5 +574,139 @@ impl GridState {
 
     }
 
+
+    pub fn can_current_van_stop(&self) -> bool {
+        let any_non_stopped_white_vans = self.vans.iter().any(  |v| v.color.is_white() && !v.is_done );
+
+        if any_non_stopped_white_vans {
+            return true;
+        }
+
+        //Is there an empty warehouse of this vans color?
+        let empty_wh_count = self.tiles.iter().filter(|tile| {
+            match tile {
+                TileWarehouse(Warehouse { is_filled,color, .. }) => {
+                    !is_filled && color == &self.vans[self.current_van_index.0].color
+                },
+                _ => false
+            }
+        }).count();
+
+        if empty_wh_count == 0 {
+            return true;
+        }
+
+        //can another van handle it?
+        let other_van = self.vans.iter().enumerate().any( | (v_idx,v)|
+                                                              //not current van
+                                                              v_idx != self.current_van_index.0 &&
+            //not wrong color
+                                                                  !v.is_done && v.color == self.vans[self.current_van_index.0].color);
+
+        //another van could in theory handle it
+        other_van
+    }
+
+    //basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
+    pub(crate) fn check_graph_validity(&self) -> bool {
+
+        let mut ds = DisjointSet::new(self.tiles.len());
+
+        for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
+
+            for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate() {
+                if is_connected_mask & (1 << dir_idx) > 0 {
+                    let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
+
+                    //log_trace!("Merging cells {} and {}", idx, adj_idx);
+                    ds.merge_sets(idx, adj_idx.0);
+                }
+            }
+
+        }
+
+        //for each color, get unfilled warehouse count & block count
+
+        let mut component_to_counts: HashMap<usize, [ [usize;3]; NUM_COLORS ]> = HashMap::new();
+
+        for (idx, tile) in self.tiles.iter().enumerate() {
+
+            let component_number = ds.get_repr(idx);
+
+            match tile {
+                TileRoad(Road { block: Some(block), .. }) => {
+                    log_trace!("Block in cell {}, component {}, color {}", idx, component_number, block.0);
+                    add_component_to_map(&mut component_to_counts, component_number, *block, BLOCK);
+                },
+                TileWarehouse( Warehouse{is_filled: false, color}) => {
+                    log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
+                    add_component_to_map(&mut component_to_counts, component_number, *color, WAREHOUSE);
+                }
+                _ => {}
+            }
+        }
+
+        for van in self.vans.iter() {
+            let component_number = ds.get_repr(van.cell_index.0);
+
+            //they are out of the game
+            if van.is_done {
+                continue;
+            }
+
+            add_component_to_map(&mut component_to_counts, component_number, van.color, VAN);
+
+            for opt_box in van.boxes.iter() {
+                if let Some(color) = opt_box {
+                    add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
+                }
+            }
+        }
+
+        //now we can check for consistency
+        for (component_number, color_count) in component_to_counts.iter() {
+
+            for color_index in 0..NUM_COLORS {
+                if color_count[color_index][BLOCK as usize] != color_count[color_index][WAREHOUSE as usize] {
+                    log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    return false;
+                }
+
+                if color_count[color_index][BLOCK as usize] > 0 && (color_count[WHITE_COLOR_INDEX][VAN as usize] + color_count[color_index][VAN as usize] == 0) {
+                    log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    return false;
+                }
+
+                //a van shouldn't be without blocks, should have set is_done.  Need to skip the first tick though since we haven't yet set that
+                if self.tick > 1 &&
+                    color_index != WHITE_COLOR_INDEX &&
+                    color_count[color_index][BLOCK as usize] == 0 &&
+                    color_count[color_index][VAN as usize] > 0 {
+                    log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    return false;
+                }
+            }
+        }
+
+
+        return true;
+    }
+
+
+
+}
+
+enum ComponentMapIdx {
+    BLOCK = 0,
+    WAREHOUSE = 1,
+    VAN = 2
+}
+
+//indexs block 0, warehouse 1, van 2
+fn add_component_to_map(component_to_counts: &mut HashMap<usize, [ [usize;3]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
+
+    let counts = component_to_counts.entry(component_number).or_insert(Default::default());
+
+    counts[color.0][thing_idx as usize] += 1
 
 }
