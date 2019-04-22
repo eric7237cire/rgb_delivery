@@ -34,11 +34,12 @@ selected-button()
   font-size: 1em;
 
 file-input-height = 35px
+file-input-bottom-margin = 5px
 
 .color-container
   position: absolute;
   right: 15px;
-  top: file-input-height
+  top: file-input-height + file-input-bottom-margin
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
@@ -100,6 +101,21 @@ file-input-height = 35px
 .file-controls {
   display: flex;
   height: file-input-height;
+  margin-bottom file-input-bottom-margin
   flex-direction: row
 
+  input {
+    width: 100px;
+    margin-top : 3px;
+  }
+
+  .load-example {
+     @extends .button
+  }
+
+  label {
+    margin-left : 40px
+    line-height file-input-height
+    margin-right 2px
+  }
 }

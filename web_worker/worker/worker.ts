@@ -13,7 +13,7 @@ export type WASM_TYPE = typeof import ('rgb-solver');
 
 
 //how often we update UI
-const ITER_CHUNK = 100000;
+const ITER_CHUNK = 50000;
 
 let g_worker: RgbWasmWorker;
 const ctx: Worker = self as any;
