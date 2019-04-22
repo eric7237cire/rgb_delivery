@@ -44,3 +44,5 @@ matrix:
         skip_cleanup: true
         github_token: $GITHUB_TOKEN
         local_dir: dist/grid-editor
+        on:
+          all_branches: true
