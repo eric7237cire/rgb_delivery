@@ -35,6 +35,7 @@ matrix:
         - cd ../grid-editor
         - npm install
         - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+        - ls -l ./dist/grid-editor/assets
 
       deploy:
         provider: pages
@@ -42,5 +43,6 @@ matrix:
         github_token: $GITHUB_TOKEN
         # from root
         local_dir: grid-editor/dist/grid-editor
+        verbose: true
         on:
           all_branches: true
