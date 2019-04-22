@@ -13,8 +13,7 @@ import {
 } from "rgb-solver";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
-import {EMPTY_GRID_STATE, GridStateService} from "./grid-state.service";
-import {Subject} from "rxjs";
+import { Subject} from "rxjs";
 import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
 
 import {
@@ -116,6 +115,10 @@ export class AppComponent implements OnInit {
 
   numCols: number = 3;
   numRows: number = 3;
+  gridState: GridState;
+
+  //when changing dimensions, reapply tiles
+  tempTiles: Array<CellData> = [];
 
   colors: Array<Color> = [];
 
@@ -149,8 +152,7 @@ export class AppComponent implements OnInit {
 
   constructor(
     private gridStorageService: GridStorageService,
-    private sanitizer: DomSanitizer,
-    private gridStateService: GridStateService
+    private sanitizer: DomSanitizer
   ) {
   }
 
@@ -175,27 +177,7 @@ export class AppComponent implements OnInit {
 
     //see if we have one from local storage
     const savedData = this.gridStorageService.loadGrid();
-
-    if (!_.isNil(savedData)) {
-      console.log("Loading saved grid from local storage", savedData);
-      this.loadGridState(savedData);
-      this.numRows = savedData.height;
-      this.numCols = savedData.width;
-
-      this.initCalculations();
-
-
-      this.sendOverrideList();
-
-      //temp
-      //this.nextCalculateStep(100000);
-    }
-    //this.nextCalculateStep(this.numCalcSteps);
-
-    this.gridStateService.gridState$.subscribe(() => {
-      this.handleGridStateChanged();
-    });
-
+    this.loadJsonFromClient(savedData);
   }
 
   sendOverrideList() {
@@ -298,17 +280,17 @@ export class AppComponent implements OnInit {
     this.worker.postMessage(request);
   }
 
-  handleGridStateChanged() {
-    console.log("Data is now", this.gridStateService.gridState);
+  handleGridStateFromWasm() {
+    console.log("Data is now", this.gridState);
 
 
     //strip out empty cells
-    if (_.isNil(this.gridStateService.gridState)) {
+    if (_.isNil(this.gridState)) {
       return;
     }
 
-    this.cells = this.gridStateService.gridState.tiles.map((t, index) => {
-      return GridStateService.tileToCellState(this.gridStateService.gridState, t, index);
+    this.cells = this.gridState.tiles.map((t, index) => {
+      return tileToCellState(this.gridState, t, index);
     });
 
     const nonEmptyCells: Array<CellData> = this.cells.filter(
@@ -318,7 +300,7 @@ export class AppComponent implements OnInit {
     //console.log("Non empty cells", nonEmptyCells);
 
     //Only continue processing on initial tick/load
-    if (this.gridStateService.gridState.tick > 0) {
+    if (this.gridState.tick > 0) {
       return;
     }
 
@@ -326,10 +308,10 @@ export class AppComponent implements OnInit {
 
     if (nonEmptyCells.length > 0) {
       console.log("STORING GRID");
-      this.gridStorageService.storeGrid(this.gridStateService.gridState);
+      this.gridStorageService.storeGrid(this.gridState);
     }
 
-    const theJSON = JSON.stringify(this.gridStateService.gridState, null, 2);
+    const theJSON = JSON.stringify(this.gridState, null, 2);
     this.jsonSaveAs = this.sanitizer.bypassSecurityTrustUrl(
       "data:text/json;charset=UTF-8," + encodeURIComponent(theJSON));
 
@@ -351,17 +333,8 @@ export class AppComponent implements OnInit {
 
       const savedData: GridState = JSON.parse(fileTextData);
 
-      //convert cells to tiles
-      if (_.isArray((savedData as any).cells)) {
-        savedData.tiles = ((savedData as any).cells as Array<CellData>).map(c => c.tile);
-      }
-
       console.log("Loading saved grid from File", savedData);
-      this.loadGridState(savedData);
-      this.numRows = savedData.height;
-      this.numCols = savedData.width;
-
-
+      this.loadJsonFromClient(savedData);
     };
 
 
@@ -379,14 +352,28 @@ export class AppComponent implements OnInit {
     this.numRows = _.toNumber(this.numRows);
     this.numCols = _.toNumber(this.numCols);
 
-    if (_.isNil(this.gridStateService.gridState)) {
+    if (_.isNil(this.gridState)) {
       return;
     }
 
-    this.gridStateService.gridState.width = this.numCols;
-    this.gridStateService.gridState.height = this.numRows;
+    const loadTemp = this.tempTiles.length !== 0;
 
-    this.loadGridState(this.gridStateService.gridState);
+    if (!loadTemp) {
+      this.tempTiles = this.gridState.tiles.map((t, idx) =>
+        tileToCellState(this.gridState, t, idx));
+    }
+
+    this.gridState.width = this.numCols;
+    this.gridState.height = this.numRows;
+
+    //basically keep loading until the next change
+    if (loadTemp)  {
+      for (const cell of this.tempTiles) {
+        this.gridState.tiles[ cell.row_index * this.gridState.width + cell.col_index ] = cell.tile;
+      }
+    }
+
+    this.sendGridStateToWasm(this.gridState);
   }
 
 
@@ -424,7 +411,8 @@ export class AppComponent implements OnInit {
         case ResponseTypes.GRID_STATE_LOADED:
 
           console.log("New grid state data");
-          this.gridStateService.gridState$.next(message.data);
+          this.gridState = message.data;
+          this.handleGridStateFromWasm();
           break;
 
         case ResponseTypes.BATCH_PROGRESS_MESSAGE:
@@ -530,7 +518,7 @@ export class AppComponent implements OnInit {
 
     this.mouseMoveRow = _.floor(y / this.GRID_SIZE);
     this.mouseMoveCol = _.floor(x / this.GRID_SIZE);
-    this.mouseMoveIndex = this.mouseMoveRow * this.gridStateService.gridState$.value.width + this.mouseMoveCol;
+    this.mouseMoveIndex = this.mouseMoveRow * this.gridState.width + this.mouseMoveCol;
   }
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
@@ -548,13 +536,13 @@ export class AppComponent implements OnInit {
 
     console.log(`Clicked on row ${rowIndex}, col ${colIndex}.  Right click? ${isRightClick}`);
 
-    if (_.isNil(this.gridStateService.gridState)) {
+    if (_.isNil(this.gridState)) {
       return false;
     }
 
     if (isRightClick) {
       const cellIndex = rowIndex * this.numCols + colIndex;
-      let tile: TileEnum = this.gridStateService.gridState.tiles[cellIndex];
+      let tile: TileEnum = this.gridState.tiles[cellIndex];
 
       //make it a road
       if (tile.type !== "TileRoad") {
@@ -680,11 +668,11 @@ export class AppComponent implements OnInit {
 
     const vanIndex = road.used_van_index[dm.dir_index];
 
-    if (_.isNil(vanIndex) || _.isNil(this.gridStateService.gridState)) {
+    if (_.isNil(vanIndex) || _.isNil(this.gridState)) {
       return DEFAULT_DM_COLOR;
     }
 
-    return this.getCssForColorIndex(this.gridStateService.gridState.vans[vanIndex].color);
+    return this.getCssForColorIndex(this.gridState.vans[vanIndex].color);
   }
 
   getDirectionMarkerAnnotation(cell: CellData, dm: DirectionMarker): string | null {
@@ -726,7 +714,7 @@ export class AppComponent implements OnInit {
     this.worker.postMessage(request);
   }
 
-  private loadGridState(gridState: GridState) {
+  private sendGridStateToWasm(gridState: GridState) {
     const request: RequestLoadGridState = {
       tag: RequestTypes.LOAD_GRID_STATE,
       gridState
@@ -768,6 +756,75 @@ export class AppComponent implements OnInit {
       }
     }
 
-    this.loadGridState(gs);
+    this.loadJsonFromClient(gs);
+  }
+
+  //if the data comes from the user (a file, local storage, etc.)
+  loadJsonFromClient(data: GridState | null) {
+    if (!_.isNil(data)) {
+      console.log("Loading saved grid from local storage", data);
+
+      //convert cells to tiles
+      if (_.isArray((data as any).cells)) {
+        data.tiles = ((data as any).cells as Array<CellData>).map(c => c.tile);
+      }
+
+      this.sendGridStateToWasm(data);
+      this.numRows = data.height;
+      this.numCols = data.width;
+
+      this.tempTiles = [];
+
+      this.initCalculations();
+
+
+      this.sendOverrideList();
+
+      //temp
+      //this.nextCalculateStep(100000);
+    }
+  }
+
+  loadExample(exampleName: string) {
+    fetch(`/assets/example_levels/${exampleName}.json`).then(response => {
+      return response.json();
+    }).then(jsonData => {
+      this.loadJsonFromClient(jsonData);
+    }).catch((error) => {
+      console.log(error);
+    });
+
   }
 }
+
+
+function tileToCellState(gridState: GridState, tile: TileEnum, index: number): CellData {
+
+    if (!_.isFinite(index)) {
+        throw Error(`Index is not a number: ${index}`);
+    }
+
+    const w = gridState.width;
+
+    if (!_.isFinite(w) || w < 0) {
+        throw Error(`Width must be >0: ${w}`);
+    }
+
+    return {
+        tile,
+        row_index: _.floor(index / w),
+        col_index: index % w
+    };
+}
+
+
+const EMPTY_GRID_STATE: GridState = {
+  width: 0,
+  height: 0,
+  vans: [],
+  tiles: [],
+  tick: -1,
+  warehouses_remaining: 0,
+  bridges: [],
+  buttons: []
+};

@@ -1,19 +1,28 @@
 <!--suppress HtmlUnknownAttribute -->
-<div class='some-page-wrapper'>
+<div class='page-wrapper'>
+
+
+
   <div class='row'>
+
+
+
     <div class='column'>
 
       <div class="shade" >
         <div class="inputs blackboard ">
-          <div class="control-row">
 
+          <div class="file-controls">
             <input type="file"
-                   id="files"
-                   #fileInput
-                   accept=".json"
-                   (change)="handleFileSelect($event)" />
-            <input type="button"
-                   label="Reset">
+                         id="files"
+                         #fileInput
+                         accept=".json"
+                         (change)="handleFileSelect($event)" />
+
+            <label>Examples:</label>
+            <div class="load-example" (click)="loadExample('Simple')">Simple</div>
+            <div class="load-example" (click)="loadExample('Complex')">Complex</div>
+
           </div>
 
           <div class="row-height-container">

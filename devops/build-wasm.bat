@@ -19,7 +19,7 @@ CD "%WEB_WORKER_BUILD_DIR%"
 DEL "%GRID_EDITOR_BUILD_DIR%src\assets\*.wasm"
 RMDIR /S /Q "%WEB_WORKER_BUILD_DIR%dist"
 
-ECHO "Building Web Worker..."
+ECHO Building Web Worker...
 
 CALL .\node_modules\.bin\webpack
 
