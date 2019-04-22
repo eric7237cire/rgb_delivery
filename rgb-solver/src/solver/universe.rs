@@ -1,5 +1,5 @@
 use crate::solver::grid_state::{GridState, GridAnalysis, GridGraph};
-use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road};
+use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse};
 use std::collections::vec_deque::VecDeque;
 use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, is_tile_navigable, GraphBridge};
 use crate::solver::struct_defs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
@@ -20,7 +20,7 @@ pub struct Universe {
     //below are used for calculating
     pub(crate) queue: VecDeque<GridState>,
 
-    pub(crate) success: Option<GridState>,
+    pub(crate) success_state: Option<GridState>,
 
     pub(crate) iter_count: usize,
 
@@ -189,9 +189,6 @@ impl Universe {
 
                         return true;
                     }
-
-                    
-
                 }
 
                 false 
@@ -216,9 +213,6 @@ impl Universe {
         }
 
         ga
-
-
-
     }
 
     pub(crate) fn initial_bridge_list(&self) -> Vec<Bridge> {
@@ -254,8 +248,8 @@ impl Universe {
 
 
     pub(crate) fn process_queue_item(&mut self) -> Option<&GridState> {
-        if self.success.is_some() {
-            return self.success.as_ref();
+        if self.success_state.is_some() {
+            return self.success_state.as_ref();
         }
         while let Some(mut cur_state) = self.queue.pop_front() {
             self.iter_count += 1;
@@ -266,8 +260,8 @@ impl Universe {
             //check success, where all warehouses are filled
             if cur_state.check_success() {
                 log!("Success!");
-                self.success = Some(cur_state);
-                return self.success.as_ref();
+                self.success_state = Some(cur_state);
+                return self.success_state.as_ref();
             }
 
             let save_for_toggle = (cur_state.tick, cur_state.current_van_index);
@@ -433,14 +427,15 @@ impl Universe {
         return None;
     }
 
+    //return CalculationResponse
     pub(crate) fn next_calculate(&mut self) -> JsValue {
         let iter_count = self.iter_count;
         let q_len = self.queue.len();
-        let success = self.success.is_some();
+        let success = self.success_state.is_some();
 
         let v = self.process_queue_item();
 
-        if let Some(cur_state) = v {
+        let r = if let Some(cur_state) = v {
             log!("next_calculate: Is success?: {} Iter Count: {} Tick: {} \
             Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
                  success,
@@ -449,12 +444,23 @@ impl Universe {
                  q_len, cur_state.current_van_index,
                  cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
-        } else {
-            log!("next_calculate: No grid state");
-        }
+            CalculationResponse{               
+                grid_state: Some(cur_state.clone()),
+                iteration_count: self.iter_count,
+                success,
+                ..Default::default()
+            }
+        } else {            
+            CalculationResponse{
+                error_message: Some( "No grid state".to_string() ),
+                iteration_count: self.iter_count,
+                success,
+                ..Default::default()
+            }
+        };
 
         //false for should not stop
-        JsValue::from_serde(&(v,false)).unwrap()
+        JsValue::from_serde(&r).unwrap()
     }
 }
 
@@ -525,7 +531,7 @@ impl Universe {
         self.iter_count = 0;
         self.data.tick = 0;
 
-        self.success = None;
+        self.success_state = None;
 
         self.data.vans = self.initial_van_list();
         self.data.buttons = self.initial_button_list();
@@ -578,25 +584,34 @@ impl Universe {
 
 
 
-    //returns GridState, bool should stop
+    //returns CalculationResponse
     pub fn next_batch_calculate(&mut self, repeat_count: usize) -> JsValue {
         log!("Batch calculate, repeat count: {}", repeat_count);
 
         if repeat_count > 10_000_000 {
-            log!("Too many repetitions...{}", repeat_count);
-            return JsValue::from_serde(&(&self.data,true) ).unwrap();
+            return JsValue::from_serde(&CalculationResponse {
+                error_message: Some(format!("Too many repetitions...{}", repeat_count)),
+                ..Default::default()
+            }).unwrap();
         }
 
         let target_iter_count = self.iter_count + repeat_count - 1;
 
         while self.iter_count < target_iter_count {
             self.process_queue_item();
-            if self.success.is_some() {
-                return JsValue::from_serde(&(&self.success,true)).unwrap();
+            if let Some(success_state) = &self.success_state {
+                return JsValue::from_serde(&CalculationResponse {
+                    grid_state: Some(success_state.clone()),
+                    iteration_count: self.iter_count,
+                    success: true,
+                    ..Default::default()
+                }).unwrap();
             }
             if self.queue.is_empty() {
-                log!("Queue is empty");
-                return JsValue::from_serde(&(&self.success,true)).unwrap();
+                return JsValue::from_serde(&CalculationResponse {
+                    error_message: Some(format!("Queue is empty")),
+                    ..Default::default()
+                }).unwrap();
             }
         }
 

@@ -20,6 +20,7 @@ export interface ResponseProgressMessage {
     stepsCompleted: number;
     startedMs: number;
     currentMs: number;
+    success: boolean;
 }
 
 export type WasmWebWorkerResponse = ResponseWasmLoaded | ResponseDataLoaded | ResponseProgressMessage;

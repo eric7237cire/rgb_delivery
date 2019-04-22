@@ -8,33 +8,43 @@ matrix:
 
       # https://github.com/rustwasm/wasm-pack-template/blob/master/.travis.yml
       before_script:
-       # - (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
-       # - (test -x $HOME/.cargo/bin/cargo-generate || cargo install --vers "^0.2" cargo-generate)
-       # - cargo install-update -a
-        - rustup target add wasm32-unknown-unknown
-        - curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -f
+
+        #- rustup target add wasm32-unknown-unknown
+        #- curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -f
 
       script:
         #- cargo build --verbose --all
-        #- cargo test --target x86_64-unknown-linux-gnu --lib --verbose --all
+        - cargo test --target x86_64-unknown-linux-gnu --lib --verbose --all
 
-        - wasm-pack build
+        # - wasm-pack build
 
-# need to publish an npm module
-#    - language: node_js
-#
-#      before_install:
-#        - cd grid-editor
-#
-#      node_js:
-#        - "9"
-#      dist: trusty
-#      sudo: required
-#      branches:
-#        only:
-#        - master
-#      before_script:
-#        - npm install -g @angular/cli
-#      script:
-#        - ng lint
-#        - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+    - language: node_js
+
+      node_js:
+        - "9"
+      dist: trusty
+      before_script:
+        - npm install -g @angular/cli
+      script:
+        - cd web_worker
+        - npm install
+        - ./node_modules/.bin/webpack
+        - cp -rv ./dist/* ../grid-editor/src/assets
+        - cp -v ./worker/interface_types.ts ../grid-editor/src/app/typings/worker.ts
+        - ls -l ../grid-editor/src/assets
+        - cd ../grid-editor
+        - npm install
+        - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+        # Otherwise our worker does not get published
+        - rm ./dist/grid-editor/assets/.gitignore
+        - ls -l ./dist/grid-editor/assets
+
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        # from root
+        local_dir: grid-editor/dist/grid-editor
+        verbose: true
+        on:
+          all_branches: true

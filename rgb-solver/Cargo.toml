@@ -1,8 +1,9 @@
 [package]
 name = "rgb-solver"
-version = "0.1.0"
+version = "0.1.0-progress.2"
 authors = ["Eric <eric7237cire@gmail.com>"]
 edition = "2018"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
