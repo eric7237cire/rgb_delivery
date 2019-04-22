@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import {GridState} from "rgb-solver";
+//import {GridState} from "rgb-solver";
 import * as _ from "lodash";
+import {GridState} from "web_worker";
 
 @Injectable({
   providedIn: 'root'

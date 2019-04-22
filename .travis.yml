@@ -28,15 +28,15 @@ matrix:
       script:
         - cd web_worker
         - npm install
-        - ./node_modules/.bin/webpack
-        - cp -rv ./dist/* ../grid-editor/src/assets
-        - cp -v ./worker/interface_types.ts ../grid-editor/src/app/typings/worker.ts
-        - ls -l ../grid-editor/src/assets
+        # Builds the asset worker.js
+        - npm run build
+        # Builds the node export (for the typings basically)
+        - npm run build-lib
+        - npm link
         - cd ../grid-editor
         - npm install
+        - npm link web_worker
         - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
-        # Otherwise our worker does not get published
-        - rm ./dist/grid-editor/assets/.gitignore
         - ls -l ./dist/grid-editor/assets
 
       deploy:

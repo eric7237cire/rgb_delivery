@@ -1,6 +1,7 @@
 import {CellData, ChoiceOverride, Color, GridState} from "rgb-solver";
 
-export enum ResponseTypes {
+//use const enum to inline
+export const enum ResponseTypes {
     WASM_LOADED,
     GRID_STATE_LOADED,
     BATCH_PROGRESS_MESSAGE
@@ -26,7 +27,7 @@ export interface ResponseProgressMessage {
 export type WasmWebWorkerResponse = ResponseWasmLoaded | ResponseDataLoaded | ResponseProgressMessage;
 
 
-export enum RequestTypes {
+export const enum RequestTypes {
     LOAD_GRID_STATE,
     LOAD_WASM,
     SET_GRID_SQUARE,

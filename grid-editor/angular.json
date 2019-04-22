@@ -18,9 +18,8 @@
           "builder": "@angular-builders/custom-webpack:browser",
           "options": {
             "outputPath": "dist/grid-editor",
-            "customWebpackConfig": {"path": "./custom-webpack.config.js",
-
-
+            "customWebpackConfig": {
+              "path": "./custom-webpack.config.js"
             },
             "index": "src/index.html",
             "main": "src/main.ts",
@@ -28,7 +27,12 @@
             "tsConfig": "src/tsconfig.app.json",
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "./node_modules/web_worker/dist/",
+                "output": "./assets"
+              }
             ],
             "styles": [
               "src/styles.styl"
@@ -71,8 +75,7 @@
           },
           "configurations": {
             "production": {
-              "browserTarget": "grid-editor:build:production",
-
+              "browserTarget": "grid-editor:build:production"
             }
           }
         },
@@ -95,7 +98,12 @@
             "scripts": [],
             "assets": [
               "src/favicon.ico",
-              "src/assets"
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "./node_modules/web_worker/dist*",
+                "output": "./assets"
+              }
             ]
           }
         },

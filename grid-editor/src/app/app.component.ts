@@ -10,7 +10,7 @@ import {
   TileEnum,
   TileEnum_type,
   TileRoad
-} from "rgb-solver";
+} from "web_worker";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
 import { Subject} from "rxjs";
@@ -27,7 +27,7 @@ import {
   ResponseTypes,
   ResponseWasmLoaded,
   WasmWebWorkerResponse
-} from "./typings/worker";
+} from "web_worker";
 
 
 interface DirectionMarker {
