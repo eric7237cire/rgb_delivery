@@ -28,7 +28,10 @@ matrix:
       script:
         - cd web_worker
         - npm install
-        - ./node_modules/.bin/webpack
+        # Builds the asset worker.js
+        - npm run build
+        # Builds the node export (for the typings basically)
+        - npm run build-lib
         - npm link
         - cd ../grid-editor
         - npm install
