@@ -6,10 +6,11 @@ SET RGB_SOLVER_DIR=%~dp0..\rgb-solver\
 
 
 cd /D "%RGB_SOLVER_DIR%"
+
+
+ECHO Building Web Assembly...
+
 REM wasm-pack build --dev
-
-ECHO "Building Web Assembly..."
-
 wasm-pack build --release
 
 if %errorlevel% neq 0 exit /b %errorlevel%

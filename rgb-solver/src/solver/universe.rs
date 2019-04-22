@@ -189,9 +189,6 @@ impl Universe {
 
                         return true;
                     }
-
-                    
-
                 }
 
                 false 
