@@ -35,6 +35,8 @@ matrix:
         - cd ../grid-editor
         - npm install
         - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+        # Otherwise our worker does not get published
+        - rm ./dist/grid-editor/assets/.gitignore
         - ls -l ./dist/grid-editor/assets
 
       deploy:
