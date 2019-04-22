@@ -38,3 +38,9 @@ matrix:
         - cd ../grid-editor
         - npm install
         - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        local_dir: dist/grid-editor
