@@ -4,9 +4,10 @@ SET WEB_WORKER_BUILD_DIR=%DEVOPS_DIR%..\web_worker\
 SET GRID_EDITOR_BUILD_DIR=%DEVOPS_DIR%..\grid-editor\
 SET RGB_SOLVER_DIR=%~dp0..\rgb-solver\
 
-
 cd /D "%RGB_SOLVER_DIR%"
 
+REM we want to use the one built, not the one from npm
+CALL npm link
 
 ECHO Building Web Assembly...
 
@@ -27,6 +28,8 @@ CALL npm link rgb-solver
 
 CALL npm run build
 CALL npm run build-lib
+
+CALL npm link
 
 if %errorlevel% neq 0 exit /b %errorlevel%
 
