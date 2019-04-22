@@ -4,6 +4,8 @@
 
 [RGB Express](http://rgbexpress.com/) is an excellent strategy Android game.  It helps to download & play before looking at the solver, otherwise it won't make any sense.
 
+Basically you have to get each van (V) pick up a block (B) and return it to the target warehouse (T).   The van and warehouse must be the same color.
+Each van can hold 3 blocks, the 'poppers', if active, will pop the top block off the Van.  Poppers are activated before starting the level.  
 
 
 Component/tech flow:
@@ -14,11 +16,16 @@ Thus Angular has no knowledge of the WebAssembly, using only WebWorker messages,
 added to the public classes/interfaces (exposed by Serde), the typescript transpilation will show errors.
 
 
+## The Algorithm
+
+Just a brute force search with some pruning done with connected components calculated 
+with the Union Find / Disjoint Set datastructure.
+
 ## Components
 
 ### grid-editor
 
-Angular 7 front end, grid editor.  
+Angular 7 front end, grid editor & runs the search.
 
 ![Screenshot](./readme_images/grid_editor_42.gif)
 
