@@ -18,12 +18,8 @@ matrix:
 
         # - wasm-pack build
 
-# need to publish an npm module
     - language: node_js
-#
 
-#        - cd grid-editor
-#
       node_js:
         - "9"
       dist: trusty
@@ -31,13 +27,13 @@ matrix:
 #      branches:
 #        only:
 #        - master
-#      before_script:
-#        - npm install -g @angular/cli
+      before_script:
+        - npm install -g @angular/cli
       script:
         - cd web_worker
         - npm install
         - ./node_modules/.bin/webpack
         - cp ./dist/* ../grid-editor/src/assets
-        - cp ./worker/py /Y "%WEB_WORKER_BUILD_DIR%worker\interface_types.ts" "%GRID_EDITOR_BUILD_DIR%src\app\typings\worker.ts
-#        - ng lint
-#        - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+        - cp ./worker/interface_types.ts ../grid-editor/src/app/typings/worker.ts
+        - cd ../grid-editor
+        - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
