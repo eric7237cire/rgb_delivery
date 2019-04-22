@@ -36,7 +36,7 @@ pub fn derive_enum(
             }
         }).collect::<Vec<String>>().join("\n");
 
-    format!("export type {enum_name} = {1}\n{0}\nexport type {enum_name}_type = {2}\n", tokens,types,quoted_types,
+    format!("//generated enum variants by wasm-typescript-definition\nexport type {enum_name} = {1}\n{0}\n//generated union type by wasm-typescript-definition\nexport type {enum_name}_type = {2}\n", tokens,types,quoted_types,
             enum_name=_attr_container.name().serialize_name() )
 
 }

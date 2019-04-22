@@ -3,6 +3,7 @@ name = "rgb-solver"
 version = "0.1.0"
 authors = ["Eric <eric7237cire@gmail.com>"]
 edition = "2018"
+license = "MIT"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

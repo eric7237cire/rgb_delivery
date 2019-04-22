@@ -2,6 +2,9 @@
 
 # ![Rust](http://rust-lang.org/logos/rust-logo-32x32.png) A grid solver for [RGB Express](http://rgbexpress.com/) ![Rust](http://rust-lang.org/logos/rust-logo-32x32.png) 
 
+[RGB Express](http://rgbexpress.com/) is an excellent strategy Android game.  It helps to download & play before looking at the solver, otherwise it won't make any sense.
+
+
 
 Component/tech flow:
 

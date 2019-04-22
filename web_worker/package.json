@@ -1,8 +1,8 @@
 {
-  "author": "Victor Gavrish <victor.gavrish@gmail.com>",
-  "name": "create-rust-wasm-worker",
+  "author": "Eric <eric7237cire@gmail.com>",
+  "name": "web_worker",
   "version": "0.1.0",
-  "repository": "https://github.com/rustwasm/rust-wasm-worker-template",
+  "repository": "https://github.com/eric7237cire/rgb_delivery/tree/master/web_worker",
   "license": "Apache-2.0/MIT",
   "scripts": {
     "build": "webpack --mode production"
@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.123",
-    "lodash": "^4.17.11"
+    "lodash": "^4.17.11",
+    "rgb-solver": "^0.1.0"
   }
 }
