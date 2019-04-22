@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
 
 use super::van::Van;
+use crate::solver::grid_state::GridState;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
@@ -175,4 +176,12 @@ pub(crate) struct AdjSquareInfo {
 
     //direction from original cell to the cell_index in this struct
     pub(crate) direction_index: usize
+}
+
+#[derive(Default, Serialize, Deserialize, TypescriptDefinition)]
+pub struct CalculationResponse {
+    pub error_message: Option<String>,
+    pub grid_state: Option<GridState>,
+    pub iteration_count: usize,
+    pub success: bool
 }

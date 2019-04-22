@@ -421,7 +421,7 @@ export class AppComponent implements OnInit {
           const minutesElapsed = _.floor( secElapsed / 60);
           secElapsed -= minutesElapsed * 60;
 
-          this.progressMessage = `Done with ${message.stepsCompleted}.  min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
+          this.progressMessage = `${message.success ? 'Success! ' : ''}Iteration Count: [${message.stepsCompleted.toLocaleString()}].  min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
 
           break;
       }
@@ -718,7 +718,7 @@ export class AppComponent implements OnInit {
 
     this.worker.postMessage(request);
 
-    this.progressMessage = "Starting calculations...";
+    this.progressMessage = "Starting/continuing calculations...";
   }
 
   private sendGridStateToWasm(gridState: GridState) {

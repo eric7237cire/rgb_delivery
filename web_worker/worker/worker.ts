@@ -1,4 +1,4 @@
-import {CellData, Color, GridState, TileEnum, Universe} from "rgb-solver";
+import {CalculationResponse, CellData, Color, GridState, TileEnum, Universe} from "rgb-solver";
 import * as _ from "lodash";
 import {
     RequestTypes,
@@ -60,29 +60,25 @@ ctx.addEventListener("message", ev => {
             let startedMs = performance.now();
 
             if (requestMessage.numSteps < ITER_CHUNK) {
-                let data: [GridState, boolean] = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
+                const calcResponse: CalculationResponse = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
 
-                sendUpdate(data[0]);
+                handleWasmCalcResponse(startedMs, calcResponse);
 
             } else {
 
                 //batch the batch
                 for (let i = 0; i < requestMessage.numSteps; i += ITER_CHUNK) {
-                    let data: [GridState,boolean] = g_worker.universe.next_batch_calculate(ITER_CHUNK);
 
-                    sendUpdate(data[0]);
-
-                    let progressMessage: ResponseProgressMessage = {
-                        tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
-                        startedMs,
-                        currentMs: performance.now(),
-                        stepsCompleted: i
-                    };
-
-                    ctx.postMessage(progressMessage);
+                    const calcResponse: CalculationResponse = g_worker.universe.next_batch_calculate(ITER_CHUNK);
+                    handleWasmCalcResponse(startedMs, calcResponse);
 
                     //should stop
-                    if ( data[1]) {
+                    if (calcResponse.success) {
+                        console.log("Success!");
+                        break;
+                    }
+                    if (!_.isNil(calcResponse.error_message)) {
+                        console.error("Received error: ", calcResponse.error_message);
                         break;
                     }
                 }
@@ -104,7 +100,7 @@ ctx.addEventListener("message", ev => {
 
 });
 
-function  sendUpdate(data: GridState) {
+function sendUpdate(data: GridState) {
     if (_.isNil(data)) {
         console.log("Null grid state after batch");
     } else {
@@ -115,7 +111,25 @@ function  sendUpdate(data: GridState) {
 
         ctx.postMessage(dataLoadedMessage);
     }
+}
 
+function handleWasmCalcResponse(
+    startedMs: number,
+    calcResponse: CalculationResponse) {
+    if (!_.isNil(calcResponse.grid_state)) {
+
+        sendUpdate(calcResponse.grid_state);
+    }
+
+    let progressMessage: ResponseProgressMessage = {
+        tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
+        startedMs,
+        currentMs: performance.now(),
+        success: calcResponse.success,
+        stepsCompleted: calcResponse.iteration_count
+    };
+
+    ctx.postMessage(progressMessage);
 }
 
 class RgbWasmWorker {
@@ -257,4 +271,6 @@ class RgbWasmWorker {
 
         }
     }
+
+
 }

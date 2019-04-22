@@ -21,6 +21,9 @@ RMDIR /S /Q "%WEB_WORKER_BUILD_DIR%dist"
 
 ECHO Building Web Worker...
 
+rem make sure we are using the local one
+CALL npm link rgb-solver
+
 CALL .\node_modules\.bin\webpack
 
 if %errorlevel% neq 0 exit /b %errorlevel%

@@ -6317,11 +6317,11 @@ for json_file in LEVEL_DIR.glob('*.json'):
             let cd = universe.process_queue_item();
             assert!(cd.is_some(), "Failed after {}", i);
 
-            if universe.success.is_some() {
+            if universe.success_state.is_some() {
                 break;
             }
         }
 
-        assert!(universe.success.is_some());
+        assert!(universe.success_state.is_some());
     }
 }

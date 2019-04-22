@@ -607,7 +607,9 @@ impl GridState {
         other_van
     }
 
-    //basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
+    ///basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color    
+    //warning on component_number
+    #[allow(unused_variables)]
     pub(crate) fn check_graph_validity(&self) -> bool {
 
         let mut ds = DisjointSet::new(self.tiles.len());
