@@ -13,7 +13,9 @@ use crate::solver::grid_state::ComponentMapIdx::*;
 pub struct GridAnalysis {
 
     //important because if there are none, then a van can only pick up its color
-    pub has_poppers: bool
+    pub has_poppers: bool,
+
+    pub forced_choices: Vec<ChoiceOverride>
 }
 
 #[derive(Default,Clone)]
@@ -617,7 +619,7 @@ impl GridState {
                     let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
 
                     //log_trace!("Merging cells {} and {}", idx, adj_idx);
-                    ds.merge_sets(idx, adj_idx);
+                    ds.merge_sets(idx, adj_idx.0);
                 }
             }
 

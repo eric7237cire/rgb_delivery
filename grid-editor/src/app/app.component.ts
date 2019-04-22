@@ -139,6 +139,7 @@ export class AppComponent implements OnInit {
 
   mouseMoveRow = 0;
   mouseMoveCol = 0;
+  mouseMoveIndex = 0;
 
   progressMessage: string = "No Progress Info";
 
@@ -183,8 +184,10 @@ export class AppComponent implements OnInit {
 
       this.initCalculations();
 
-      //temp
+
       this.sendOverrideList();
+
+      //temp
       //this.nextCalculateStep(100000);
     }
     //this.nextCalculateStep(this.numCalcSteps);
@@ -199,13 +202,13 @@ export class AppComponent implements OnInit {
     const overRideList: Array<ChoiceOverride> = [
 
 
-
+/*
       {
          row_index: 0,
          col_index: 6,
          //van_index: 1,
          direction_index: DIRECTION_INDEX.EAST
-       },
+       },*/
       /*{
          row_index: 2,
          col_index: 8,
@@ -527,6 +530,7 @@ export class AppComponent implements OnInit {
 
     this.mouseMoveRow = _.floor(y / this.GRID_SIZE);
     this.mouseMoveCol = _.floor(x / this.GRID_SIZE);
+    this.mouseMoveIndex = this.mouseMoveRow * this.gridStateService.gridState$.value.width + this.mouseMoveCol;
   }
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
@@ -617,7 +621,6 @@ export class AppComponent implements OnInit {
           this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
-              used_mask: 0,
               is_up: this.selectedIsOpenOrUp,
               color: this.selectedColor.color_index
 

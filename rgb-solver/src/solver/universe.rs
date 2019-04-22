@@ -1,7 +1,7 @@
 use crate::solver::grid_state::{GridState, GridAnalysis, GridGraph};
-use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum};
+use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road};
 use std::collections::vec_deque::VecDeque;
-use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, is_tile_navigable};
+use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, is_tile_navigable, GraphBridge};
 use crate::solver::struct_defs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
 use crate::solver::van::Van;
 use wasm_bindgen::JsValue;
@@ -31,7 +31,8 @@ pub struct Universe {
 impl Universe {
     /// Gets adj indexes, checking grid limits
     fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
-                                   is_connected_mask: u8) -> Vec<AdjSquareInfo> {
+                                   is_connected_mask: u8) -> Vec<AdjSquareInfo>
+    {
         ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index, dir)| {
 
             //first check the mask
@@ -39,10 +40,10 @@ impl Universe {
                 return None;
             }
 
-            let adj_index: Option<usize> = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
+            let adj_index = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
 
             if let Some(adj_index) = adj_index {
-                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index.into(), direction_index: dir_index })
+                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index, direction_index: dir_index })
             } else {
                 None
             }
@@ -54,7 +55,10 @@ impl Universe {
     fn get_fixed_choice(&self, cur_state: &GridState) -> Option<ChoiceOverride> {
         let (cur_row_index, cur_col_index) = cur_state.current_cell_index().to_row_col(cur_state.width);
 
-        let o = self.choice_override_list.iter().find(|co| {
+        let o = self.choice_override_list.iter()
+            //also any system generated forced choices
+            .chain( self.analysis.forced_choices.iter())
+            .find(|co| {
             if let Some(forced_tick) = co.tick {
                 if forced_tick != cur_state.tick {
                     return false;
@@ -111,15 +115,15 @@ impl Universe {
             }
 
             for (dir_idx, adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
-                let adj_square_index: Option<usize> = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
+                let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
 
                 if let Some(adj_square_index) = adj_square_index {
-                    if is_tile_navigable(&self.data.tiles[adj_square_index])
+                    if is_tile_navigable(&self.data.tiles[adj_square_index.0])
                     {
                         assert_eq!(*adj_dir as u8, 1 << dir_idx);
                         is_connected |= 1 << dir_idx;
                     } else if adj_dir == &NORTH {
-                        if let TileWarehouse(_) = &self.data.tiles[adj_square_index] {
+                        if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                             //special case that we want warehouses to be connected to the cell to their south
                             assert_eq!(*adj_dir as u8, 1 << dir_idx);
                             is_connected |= 1 << dir_idx;
@@ -132,6 +136,89 @@ impl Universe {
         }).collect();
 
         GridGraph { is_connected: is_connected_list }
+    }
+
+    pub(crate) fn initial_graph_analysis(&self) -> GridAnalysis {
+
+        //for the moment, not useful since this basically finds warehouses and dead ends
+        //later might be interesting to use to make sure if a van & warehouse are on one side of a bridge
+        //and the block on another, we can eliminate a gridstate candidate
+        let mut b: GraphBridge = Default::default();
+        log_trace!("Finding bridges");
+        b.do_it(&self.data.graph, self.data.height, self.data.width);
+
+
+        let mut ga = GridAnalysis {
+            has_poppers: self.data.tiles.iter().any(|t| if let TileRoad(r) = t {
+                return r.has_popper;
+            } else { false }),
+            ..Default::default()
+        };
+
+        //if a van starts on a square that has 2 options, see if there is a block on that path (no warehouse), if so, we must go towards the block
+
+        for (van_index,van) in self.data.vans.iter().enumerate() {
+
+            let van_index = VanIndex(van_index);
+
+            if  self.data.graph.is_connected[van.cell_index.0].count_ones() != 2 {
+                continue;
+            }
+
+            let van_adj_cells = self.get_adjacent_square_indexes(van.cell_index, self.data.graph.is_connected[van.cell_index.0]);
+
+            assert_eq!(2, van_adj_cells.len());
+
+            let forced_adj_cell = van_adj_cells.iter().find( | potential_force_cell | {
+                let mut last_cell_index:CellIndex = van.cell_index;
+                let mut cur_cell_index:CellIndex = potential_force_cell.cell_index;
+                loop {
+                    let next_cell_index = self.get_adjacent_square_indexes(cur_cell_index, self.data.graph.is_connected[cur_cell_index.0])
+                       .into_iter().filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<AdjSquareInfo>>();
+
+                    if next_cell_index.len() > 1 {
+                        break;
+                    }
+
+                    last_cell_index = cur_cell_index;
+                    cur_cell_index = next_cell_index[0].cell_index;
+
+                    //don't neet to check if warehouse to north because there would be a connection
+
+                    if let TileRoad( Road{ block: Some(_block),..}) = &self.data.tiles[cur_cell_index.0] {
+
+                        return true;
+                    }
+
+                    
+
+                }
+
+                false 
+
+            });
+
+            if let Some( forced_adj_cell ) = forced_adj_cell {
+                //found a force choice
+                let rc = van.cell_index.to_row_col(self.data.width);
+                
+                ga.forced_choices.push(ChoiceOverride {
+                    row_index: rc.0,
+                    col_index: rc.1,
+                    van_index: Some(van_index),
+                    direction_index: forced_adj_cell.direction_index,
+                    ..Default::default()
+                });
+
+                log!("Found a forced choice: {:?}", ga.forced_choices);
+                break;
+            }
+        }
+
+        ga
+
+
+
     }
 
     pub(crate) fn initial_bridge_list(&self) -> Vec<Bridge> {
@@ -484,11 +571,7 @@ impl Universe {
             }
         }
 
-        self.analysis = GridAnalysis {
-            has_poppers: self.data.tiles.iter().any(|t| if let TileRoad(r) = t {
-                return r.has_popper;
-            } else { false })
-        };
+        self.analysis = self.initial_graph_analysis();
 
         self.queue.push_back(self.data.clone());
     }

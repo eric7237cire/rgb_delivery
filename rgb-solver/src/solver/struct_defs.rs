@@ -147,7 +147,7 @@ impl Default for CellData {
     }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct ChoiceOverride {
     pub row_index: usize,
     pub col_index: usize,
@@ -172,5 +172,7 @@ pub(crate) enum Directions {
 pub(crate) struct AdjSquareInfo {
     pub(crate) direction: Directions,
     pub(crate) cell_index: CellIndex,
+
+    //direction from original cell to the cell_index in this struct
     pub(crate) direction_index: usize
 }
