@@ -28,6 +28,7 @@ import {
   ResponseWasmLoaded,
   WasmWebWorkerResponse
 } from "web_worker";
+import {LogService} from "./log.service";
 
 
 interface DirectionMarker {
@@ -152,7 +153,8 @@ export class AppComponent implements OnInit {
 
   constructor(
     private gridStorageService: GridStorageService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private log: LogService
   ) {
   }
 
@@ -169,10 +171,10 @@ export class AppComponent implements OnInit {
     if (!this.selectedTile) {
       this.selectedTile = this.tiles[0];
     }
-    console.log("Color", this.colors);
-    console.log("Tiles", this.tiles);
+    this.log.debug("Color", this.colors);
+    this.log.debug("Tiles", this.tiles);
 
-    console.log("All modules loaded");
+    this.log.info("All modules loaded");
 
 
     //see if we have one from local storage
@@ -281,7 +283,7 @@ export class AppComponent implements OnInit {
   }
 
   handleGridStateFromWasm() {
-    console.log("Data is now", this.gridState);
+    this.log.debug("Data is now", this.gridState);
 
 
     //strip out empty cells
@@ -297,7 +299,7 @@ export class AppComponent implements OnInit {
       cell => cell.tile.type !== "Empty"
     );
 
-    //console.log("Non empty cells", nonEmptyCells);
+    //this.log.debug("Non empty cells", nonEmptyCells);
 
     //Only continue processing on initial tick/load
     if (this.gridState.tick > 0) {
@@ -307,7 +309,7 @@ export class AppComponent implements OnInit {
     this.sendOverrideList();
 
     if (nonEmptyCells.length > 0) {
-      console.log("STORING GRID");
+      this.log.debug("STORING GRID");
       this.gridStorageService.storeGrid(this.gridState);
     }
 
@@ -333,7 +335,7 @@ export class AppComponent implements OnInit {
 
       const savedData: GridState = JSON.parse(fileTextData);
 
-      console.log("Loading saved grid from File", savedData);
+      this.log.debug("Loading saved grid from File", savedData);
       this.loadJsonFromClient(savedData);
     };
 
@@ -379,7 +381,7 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
 
-    console.log("ng on init");
+    this.log.debug("ng on init");
 
     const numSteps = localStorage.getItem(LOCAL_STORAGE_KEY_NUM_STEPS);
 
@@ -390,7 +392,7 @@ export class AppComponent implements OnInit {
     //RustRGBProject/pkg works but not in PyCharm
 
     this.worker = new Worker('assets/worker.js');
-    //console.log("Load", workerPath);
+    //this.log.debug("Load", workerPath);
     //this.worker = new EricWorker();
 
     const requestLoad: RequestWasmLoad = {
@@ -398,19 +400,19 @@ export class AppComponent implements OnInit {
     };
 
     this.worker.addEventListener("message", ev => {
-      console.log("Got message", ev);
+      this.log.info("Got message", ev);
 
       const message: WasmWebWorkerResponse = ev.data;
 
       switch (message.tag) {
         case ResponseTypes.WASM_LOADED: {
-          console.log("Angular got web worker load");
+          this.log.debug("Angular got web worker load");
           this.handleWasmLoaded(message);
           break;
         }
         case ResponseTypes.GRID_STATE_LOADED:
 
-          console.log("New grid state data");
+          this.log.debug("New grid state data");
           this.gridState = message.data;
           this.handleGridStateFromWasm();
           break;
@@ -447,7 +449,7 @@ export class AppComponent implements OnInit {
         throttleTime(25),
         takeUntil(this.gridMouseUp$)))
     ).subscribe((event) => {
-      console.log(`Drag event ${event.buttons}`);
+      this.log.debug(`Drag event ${event.buttons}`);
 
       this.handleGridClick(event, event.buttons === 2);
 
@@ -455,7 +457,7 @@ export class AppComponent implements OnInit {
   }
 
   handleGridMouseEvent(mouseEventType: "down" | "up" | "move" | "right" | "left", mouseEvent: MouseEvent): boolean {
-    //console.log("mouse event", mouseEventType);
+    //this.log.debug("mouse event", mouseEventType);
     switch (mouseEventType) {
       case "down":
         this.gridMouseDown$.next(mouseEvent);
@@ -532,8 +534,8 @@ export class AppComponent implements OnInit {
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
 
-    //console.log(clickEvent);
-    // console.log(clickEvent.target);
+    //this.log.debug(clickEvent);
+    // this.log.debug(clickEvent.target);
 
     const rect = (clickEvent.target as any).getBoundingClientRect();
 
@@ -543,7 +545,7 @@ export class AppComponent implements OnInit {
     const colIndex = _.floor(x / this.GRID_SIZE);
     const rowIndex = _.floor(y / this.GRID_SIZE);
 
-    console.log(`Clicked on row ${rowIndex}, col ${colIndex}.  Right click? ${isRightClick}`);
+    this.log.debug(`Clicked on row ${rowIndex}, col ${colIndex}.  Right click? ${isRightClick}`);
 
     if (_.isNil(this.gridState)) {
       return false;
@@ -775,7 +777,7 @@ export class AppComponent implements OnInit {
   //if the data comes from the user (a file, local storage, etc.)
   loadJsonFromClient(data: GridState | null) {
     if (!_.isNil(data)) {
-      console.log("Loading saved grid from local storage", data);
+      this.log.debug("Loading saved grid from local storage", data);
 
       //convert cells to tiles
       if (_.isArray((data as any).cells)) {
@@ -804,7 +806,7 @@ export class AppComponent implements OnInit {
     }).then(jsonData => {
       this.loadJsonFromClient(jsonData);
     }).catch((error) => {
-      console.log(error);
+      this.log.debug(error);
     });
 
   }

@@ -519,7 +519,7 @@ impl Universe {
 
         self.choice_override_list = lo.clone();
 
-        log!("Set override list {:?}", lo);
+        //log!("Set override list {:?}", lo);
     }
 
     pub fn init_calculate(&mut self) {

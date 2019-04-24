@@ -22,7 +22,7 @@ ctx.addEventListener("message", ev => {
 
     let requestMessage: WasmWebWorkerRequest = ev.data;
 
-    console.log("Got message", requestMessage.tag);
+    //console.log("Got message", requestMessage.tag);
 
     switch (requestMessage.tag) {
         case RequestTypes.LOAD_WASM: {
@@ -87,7 +87,7 @@ ctx.addEventListener("message", ev => {
             break;
         }
         case RequestTypes.SET_OVERRIDE_LIST: {
-            console.log("Setting Overrides", requestMessage.overRideList);
+            //console.log("Setting Overrides", requestMessage.overRideList);
             g_worker.universe.set_overrides(requestMessage.overRideList);
             break;
         }
