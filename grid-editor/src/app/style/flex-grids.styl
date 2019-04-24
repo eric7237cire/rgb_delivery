@@ -1,3 +1,36 @@
+  // layout
+blackboard_width = 440px
+
+.page-wrapper {
+  margin: 15px;
+}
+
+.main-layout {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  overflow: auto
+
+  .column {
+
+
+    flex-basis 50%;
+    flex-grow 1
+    flex-shrink 0
+
+    min-width 50%
+  }
+
+  .column:first-of-type {
+    width blackboard_width
+    min-width blackboard_width
+    height 500px
+  }
+
+}
+
+
 .row-height-container {
   display: flex;
   flex-wrap: wrap;
