@@ -553,7 +553,16 @@
         null,
         null
       ],
-      "used_popper_tick": null
+      "used_popper_tick": null,
+      "van": {
+        "boxes": [
+          null,
+          null,
+          null
+        ],
+        "color": 0,
+        "is_done": false
+      }
     },
     {
       "type": "TileRoad",
@@ -1225,7 +1234,17 @@
     }
   ],
   "tick": 0,
-  "vans": [],
+  "vans": [
+    {
+      "boxes": [
+        null,
+        null,
+        null
+      ],
+      "color": 0,
+      "is_done": false
+    }
+  ],
   "bridges": [],
   "buttons": [],
   "warehouses_remaining": 6

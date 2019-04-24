@@ -116,18 +116,25 @@ function sendUpdate(data: GridState) {
 function handleWasmCalcResponse(
     startedMs: number,
     calcResponse: CalculationResponse) {
-    if (!_.isNil(calcResponse.grid_state)) {
-
-        sendUpdate(calcResponse.grid_state);
-    }
 
     let progressMessage: ResponseProgressMessage = {
         tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
         startedMs,
         currentMs: performance.now(),
-        success: calcResponse.success,
         stepsCompleted: calcResponse.iteration_count
     };
+
+    if (!_.isNil(calcResponse.grid_state)) {
+        sendUpdate(calcResponse.grid_state);
+    } else {
+        progressMessage.success = false;
+    }
+
+
+
+    if (calcResponse.success) {
+        progressMessage.success = true;
+    }
 
     ctx.postMessage(progressMessage);
 }
