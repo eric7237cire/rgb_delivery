@@ -35,6 +35,8 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 
 CALL npm link
 
+CD "%GRID_EDITOR_BUILD_DIR%"
+CALL npm link web_worker
 
 
 
