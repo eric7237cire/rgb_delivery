@@ -423,7 +423,9 @@ export class AppComponent implements OnInit {
 
           let failure = !_.isNil(message.success) && !message.success;
 
-          this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ':''}Iteration Count: [${message.stepsCompleted.toLocaleString()}].  min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
+          this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ':''}` +
+            `Iteration Count: [${message.stepsCompleted.toLocaleString()}].  ` +
+            `min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
 
           break;
       }
