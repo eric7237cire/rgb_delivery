@@ -21,6 +21,8 @@ cargo watch -x "test test_london_h10 --target x86_64-pc-windows-msvc --lib -- --
 
 ## Cog with WSL
 python3 -m cogapp -r "/mnt/e/git/rgb_delivery/rgb-solver/src/solver/tests.rs"
+D:\git\rgb_delivery\rgb-solver\pkg>d:\Miniconda3\envs\scripts\python -m cogapp -r D:\git\rgb_delivery\rgb-solver\src\solver\tests.rs
+
 
 ## Publishing to npm 
 https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/packaging-and-publishing.html
