@@ -13,7 +13,7 @@ RUN cargo install wasm-pack
 WORKDIR /gitroot
 COPY . .
 RUN cd rgb-solver && wasm-pack build --release && cd pkg && npm link
-RUN cd ../web_worker && npm link && npm link rgb-solver && npm run build
+RUN cd ../../web_worker && npm link && npm link rgb-solver && npm run build
 RUN cd ../grid-editor && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
 
 #COPY /grid-editor/package.json /grid-editor/package-lock.json ./gitroot/grid-editor/

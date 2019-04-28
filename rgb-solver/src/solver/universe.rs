@@ -110,7 +110,7 @@ impl Universe {
         let is_connected_list = self.data.tiles.iter().enumerate().map(|(cur_square_index, tile)| {
 
 
-            if let Some(cur_tile_connection) = tile.get_road_connection() {
+            if let Some(connection_mask) = tile.get_connection_mask() {
 
                 let mut is_connected: u8 = 0;
 
@@ -118,9 +118,9 @@ impl Universe {
                     let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
 
                     if let Some(adj_square_index) = adj_square_index {
-                        if let Some(adj_tile_connection) = self.data.tiles[adj_square_index.0].get_road_connection()
+                        if let Some(adj_connection_mask) = self.data.tiles[adj_square_index.0].get_connection_mask()
                         {
-                            if cur_tile_connection.is_ok(*adj_dir) && adj_tile_connection.is_ok(adj_dir.opposite()) {
+                            if (connection_mask & (*adj_dir as u8)) > 0 && (adj_connection_mask & (adj_dir.opposite() as u8) > 0) {
                                 assert_eq!(*adj_dir as u8, 1 << dir_idx);
                                 is_connected |= 1 << dir_idx;
                             }

@@ -75,25 +75,33 @@ file-input-bottom-margin = 5px
 
 .connection-container
   position absolute
-  right: 100px;
+  right: 15px;
   top: 200px
+  width: 170px;
   flex-wrap: wrap;
+  display: flex;
   flex-direction: row;
 
-  .connection
+
+  .item
     flex-basis: 80px;
-    height: 25px;
+    width: 80px;
+    height: 50px;
     line-height: 25px;
     flex-grow: 0;
     flex-shrink: 0;
     font-size: .9em;
-    button()
-    margin-top: 0
     margin-bottom: 0
     padding: 0
 
-    &.selected
-      selected-button()
+    > label
+      margin-top 20px
+      //overflow visible
+      //height: 25px
+    .toggle-switch
+      display inline
+
+
 
 
 .color-container

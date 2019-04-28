@@ -26,8 +26,7 @@ import {
   RequestWasmLoad,
   ResponseTypes,
   ResponseWasmLoaded,
-  WasmWebWorkerResponse,
-  RoadConnection, RoadConnection_type
+  WasmWebWorkerResponse
 } from "web_worker";
 import {LogService} from "./log.service";
 
@@ -135,8 +134,10 @@ export class AppComponent implements OnInit {
 
   selectedIsOpenOrUp: boolean = true;
 
-  selectedConnection: RoadConnection = {type: "AllDirections"};
-  connections: Array<RoadConnection_type> = ["AllDirections", "NorthSouth", "EastWest"];
+  isDirectionOn: Array<boolean> = [true, true, true, true];
+  directions: Array<string> = ["North", "East",
+    "South", "West"
+  ];
 
   jsonSaveAs: SafeUrl;
 
@@ -428,7 +429,7 @@ export class AppComponent implements OnInit {
           const minutesElapsed = _.floor( secElapsed / 60);
           secElapsed -= minutesElapsed * 60;
 
-          let failure = !_.isNil(message.success) && !message.success;
+          const failure = !_.isNil(message.success) && !message.success;
 
           this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ' : ''}` +
             `Iteration Count: [${message.stepsCompleted.toLocaleString()}].  ` +
@@ -512,9 +513,19 @@ export class AppComponent implements OnInit {
     this.selectedColor = c;
   }
 
-  onConnectionClick(c: RoadConnection_type) {
-    const rc: RoadConnection = {type: c} as RoadConnection;
-    this.selectedConnection = rc;
+  buildConnectionMask() {
+    let mask = 0;
+    for (let i = 0; i < 4; ++i) {
+      if (this.isDirectionOn[i]) {
+        mask |= 1 << i ;
+      }
+    }
+
+    return mask;
+  }
+
+  isAllowed(connectionMask: number, direction: number) : boolean {
+    return (connectionMask & (1 << direction)) > 0;
   }
 
   onThingClick(thing) {
@@ -576,7 +587,7 @@ export class AppComponent implements OnInit {
         tile = {
           type: "TileRoad",
           has_popper: false,
-          connections: this.selectedConnection
+          connection_mask: this.buildConnectionMask()
         };
       }
 
@@ -621,7 +632,7 @@ export class AppComponent implements OnInit {
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               has_popper: false,
-              connections: this.selectedConnection
+              connection_mask: this.buildConnectionMask()
             }
           });
           break;
@@ -640,7 +651,7 @@ export class AppComponent implements OnInit {
               type: this.selectedTile,
               is_up: this.selectedIsOpenOrUp,
               color: this.selectedColor.color_index,
-              connections: this.selectedConnection
+              connection_mask: this.buildConnectionMask()
 
             }
           });

@@ -1,23 +1,13 @@
-use crate::solver::struct_defs::{TileEnum, RoadConnection, Road, Bridge, Directions};
+use crate::solver::struct_defs::{TileEnum, Road, Bridge};
 use crate::solver::struct_defs::TileEnum::{TileRoad, TileBridge};
-use crate::solver::struct_defs::Directions::{NORTH, EAST, WEST, SOUTH};
+//use crate::solver::struct_defs::Directions::{NORTH, EAST, WEST, SOUTH};
 
 impl TileEnum {
-    pub(crate) fn get_road_connection(&self) -> Option<RoadConnection> {
+    pub(crate) fn get_connection_mask(&self) -> Option<u8> {
         match self {
-            TileRoad(Road { connections, .. }) => Some(*connections),
-            TileBridge(Bridge { connections, .. }) => Some(*connections),
+            TileRoad(Road { connection_mask, .. }) => Some(*connection_mask),
+            TileBridge(Bridge { connection_mask, .. }) => Some(*connection_mask),
             _ => None
-        }
-    }
-}
-
-impl RoadConnection {
-    pub(crate) fn is_ok(&self, dir: Directions) -> bool {
-        match self {
-            RoadConnection::AllDirections => true,
-            RoadConnection::NorthSouth=> dir == NORTH || dir == SOUTH,
-            RoadConnection::EastWest => dir == EAST || dir == WEST
         }
     }
 }

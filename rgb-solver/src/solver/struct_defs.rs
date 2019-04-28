@@ -4,20 +4,6 @@ use wasm_typescript_definition::TypescriptDefinition;
 use super::van::Van;
 use crate::solver::grid_state::GridState;
 
-#[derive(Clone, Copy, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
-#[serde(tag = "type")]
-pub enum RoadConnection
-{
-    AllDirections,
-    NorthSouth,
-    EastWest
-}
-
-impl Default for RoadConnection {
-    fn default() -> Self {
-        RoadConnection::AllDirections
-    }
-}
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
@@ -111,8 +97,12 @@ pub struct Road {
     pub button_snapshot: Option<Button>,
 
 
-    #[serde(default)]
-    pub connections: RoadConnection
+    #[serde(default = "all_mask")]
+    pub connection_mask: u8
+}
+
+fn all_mask() -> u8 {
+    15
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -136,8 +126,8 @@ pub struct Bridge {
     #[serde(skip)]
     pub cell_index: CellIndex,
 
-    #[serde(default)]
-    pub connections: RoadConnection
+    #[serde(default = "all_mask")]
+    pub connection_mask: u8
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
