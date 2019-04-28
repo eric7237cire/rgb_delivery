@@ -41,7 +41,7 @@ export class LogEntry {
     if (params.some(p => typeof p == "object")) {
       ret = "";
       // Build comma-delimited string
-      for (let item of params) {
+      for (const item of params) {
         ret += JSON.stringify(item) + ",";
       }
     }
@@ -56,7 +56,7 @@ export class LogEntry {
 export class LogService {
 
 
-  readonly level: LogLevel = LogLevel.Warn;
+  readonly level: LogLevel = LogLevel.All;
 
   debug(msg: string, ...optionalParams: any[]) {
     this.writeToLog(msg, LogLevel.Debug,

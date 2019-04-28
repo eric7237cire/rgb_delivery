@@ -112,6 +112,15 @@
             </div>
           </div>
 
+          <div class="connection-container">
+            <div class="connection" (click)="onConnectionClick(c)"
+                 [class.selected]="c == selectedConnection.type"
+                 *ngFor="let c of connections">
+              {{c}}
+            </div>
+
+          </div>
+
 
           <div class="console-text">
             <div>Current mouse coords: Row [{{mouseMoveRow}}] Col [{{mouseMoveCol}}] Idx [{{mouseMoveIndex}}] </div>
@@ -160,13 +169,27 @@
         <ng-container *ngFor="let cell of cells">
 
 
-          <rect *ngIf="cell.tile.type == 'TileRoad'"
+          <rect *ngIf="cell.tile.type == 'TileRoad' && cell.tile.connections.type == 'AllDirections'"
                 (click)="handleClickSvgText()"
                 fill="rgb(70,70,70)"
                 [attr.x]="cell.col_index * GRID_SIZE "
                 [attr.y]="cell.row_index * GRID_SIZE"
                 [attr.width]="GRID_SIZE"
                 [attr.height]="GRID_SIZE"></rect>
+          <rect *ngIf="cell.tile.type == 'TileRoad' && cell.tile.connections.type == 'NorthSouth'"
+                (click)="handleClickSvgText()"
+                fill="rgb(70,70,70)"
+                [attr.x]="cell.col_index * GRID_SIZE + 10"
+                [attr.y]="cell.row_index * GRID_SIZE"
+                [attr.width]="GRID_SIZE - 20"
+                [attr.height]="GRID_SIZE"></rect>
+          <rect *ngIf="cell.tile.type == 'TileRoad' && cell.tile.connections.type == 'EastWest'"
+                (click)="handleClickSvgText()"
+                fill="rgb(70,70,70)"
+                [attr.x]="cell.col_index * GRID_SIZE "
+                [attr.y]="cell.row_index * GRID_SIZE + 10"
+                [attr.width]="GRID_SIZE"
+                [attr.height]="GRID_SIZE - 20"></rect>
 
           <rect *ngIf="cell.tile.type == 'TileBridge'"
                 (click)="handleClickSvgText()"

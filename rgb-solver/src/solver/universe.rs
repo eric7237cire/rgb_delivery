@@ -524,8 +524,7 @@ impl Universe {
 
     pub fn init_calculate(&mut self) {
         set_panic_hook();
-
-
+        
         self.queue = VecDeque::new();
 
         self.iter_count = 0;

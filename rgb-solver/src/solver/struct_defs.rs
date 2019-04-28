@@ -4,6 +4,21 @@ use wasm_typescript_definition::TypescriptDefinition;
 use super::van::Van;
 use crate::solver::grid_state::GridState;
 
+#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
+#[serde(tag = "type")]
+pub enum RoadConnection
+{
+    AllDirections,
+    NorthSouth,
+    EastWest
+}
+
+impl Default for RoadConnection {
+    fn default() -> Self {
+        RoadConnection::AllDirections
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
     pub label: String,
@@ -93,7 +108,11 @@ pub struct Road {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "button")]
-    pub button_snapshot: Option<Button>
+    pub button_snapshot: Option<Button>,
+
+
+    #[serde(default)]
+    pub connections: RoadConnection
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -115,7 +134,10 @@ pub struct Bridge {
 
     //set by init calc
     #[serde(skip)]
-    pub cell_index: CellIndex
+    pub cell_index: CellIndex,
+
+    #[serde(default)]
+    pub connections: RoadConnection
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]

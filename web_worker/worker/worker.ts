@@ -39,6 +39,8 @@ ctx.addEventListener("message", ev => {
 
 
                 ctx.postMessage(readyMsg);
+
+                g_worker.reloadGridData();
             });
             break;
         }

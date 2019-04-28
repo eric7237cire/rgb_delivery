@@ -1,5 +1,6 @@
   // layout
 blackboard_width = 440px
+first_column_width = blackboard_width + 30px
 
 .page-wrapper {
   margin: 15px;
@@ -23,9 +24,11 @@ blackboard_width = 440px
   }
 
   .column:first-of-type {
-    width blackboard_width
-    min-width blackboard_width
+    width first_column_width
+    min-width first_column_width
     height 500px
+    flex-basis  first_column_width
+    flex-grow 0
   }
 
 }
@@ -68,6 +71,30 @@ selected-button()
 
 file-input-height = 35px
 file-input-bottom-margin = 5px
+
+
+.connection-container
+  position absolute
+  right: 100px;
+  top: 200px
+  flex-wrap: wrap;
+  flex-direction: row;
+
+  .connection
+    flex-basis: 80px;
+    height: 25px;
+    line-height: 25px;
+    flex-grow: 0;
+    flex-shrink: 0;
+    font-size: .9em;
+    button()
+    margin-top: 0
+    margin-bottom: 0
+    padding: 0
+
+    &.selected
+      selected-button()
+
 
 .color-container
   position: absolute;

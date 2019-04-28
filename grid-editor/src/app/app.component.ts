@@ -29,6 +29,7 @@ import {
   WasmWebWorkerResponse
 } from "web_worker";
 import {LogService} from "./log.service";
+import {RoadConnection, RoadConnection_type} from "../../../rgb-solver/pkg";
 
 
 interface DirectionMarker {
@@ -132,6 +133,9 @@ export class AppComponent implements OnInit {
   selectedTile: TileEnum_type = this.tiles[0];
 
   selectedIsOpenOrUp: boolean = true;
+
+  selectedConnection: RoadConnection = {type: "AllDirections"};
+  connections: Array<RoadConnection_type> = ["AllDirections", "NorthSouth", "EastWest"];
 
   jsonSaveAs: SafeUrl;
 
@@ -425,7 +429,7 @@ export class AppComponent implements OnInit {
 
           let failure = !_.isNil(message.success) && !message.success;
 
-          this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ':''}` +
+          this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ' : ''}` +
             `Iteration Count: [${message.stepsCompleted.toLocaleString()}].  ` +
             `min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
 
@@ -457,6 +461,12 @@ export class AppComponent implements OnInit {
   }
 
   handleGridMouseEvent(mouseEventType: "down" | "up" | "move" | "right" | "left", mouseEvent: MouseEvent): boolean {
+
+    if (this.colors.length === 0) {
+      //wasm not loaded
+      return false;
+    }
+
     //this.log.debug("mouse event", mouseEventType);
     switch (mouseEventType) {
       case "down":
@@ -499,6 +509,11 @@ export class AppComponent implements OnInit {
 
   onColorClick(c) {
     this.selectedColor = c;
+  }
+
+  onConnectionClick(c: RoadConnection_type) {
+    const rc: RoadConnection = {type: c} as RoadConnection;
+    this.selectedConnection = rc;
   }
 
   onThingClick(thing) {
@@ -559,7 +574,8 @@ export class AppComponent implements OnInit {
       if (tile.type !== "TileRoad") {
         tile = {
           type: "TileRoad",
-          has_popper: false
+          has_popper: false,
+          connections: this.selectedConnection
         };
       }
 
@@ -603,7 +619,8 @@ export class AppComponent implements OnInit {
           this.setGridSquare({
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
-              has_popper: false
+              has_popper: false,
+              connections: this.selectedConnection
             }
           });
           break;
@@ -621,7 +638,8 @@ export class AppComponent implements OnInit {
             row_index: rowIndex, col_index: colIndex, tile: {
               type: this.selectedTile,
               is_up: this.selectedIsOpenOrUp,
-              color: this.selectedColor.color_index
+              color: this.selectedColor.color_index,
+              connections: this.selectedConnection
 
             }
           });
