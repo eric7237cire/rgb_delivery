@@ -8,7 +8,7 @@ cd /D "%RGB_SOLVER_DIR%"
 
 ECHO Building Web Assembly...
 
-REM wasm-pack build --dev
+rem wasm-pack build --dev
 wasm-pack build --release
 if %errorlevel% neq 0 exit /b %errorlevel%
 

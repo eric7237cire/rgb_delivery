@@ -171,7 +171,6 @@ pub struct ChoiceOverride {
 }
 
 
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum Directions {
     NORTH = 1,

@@ -182,7 +182,7 @@ impl Universe {
                     let next_cell_index = self.get_adjacent_square_indexes(cur_cell_index, self.data.graph.is_connected[cur_cell_index.0])
                        .into_iter().filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<AdjSquareInfo>>();
 
-                    if next_cell_index.len() > 1 {
+                    if next_cell_index.len() != 1  {
                         break;
                     }
 
@@ -530,6 +530,8 @@ impl Universe {
 
     pub fn init_calculate(&mut self) {
         set_panic_hook();
+
+        log!("Init calculate");
         
         self.queue = VecDeque::new();
 
@@ -541,6 +543,9 @@ impl Universe {
         self.data.vans = self.initial_van_list();
         self.data.buttons = self.initial_button_list();
         self.data.bridges = self.initial_bridge_list();
+
+        log!("Init graph");
+
         self.data.graph = self.initial_graph();
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
@@ -581,6 +586,8 @@ impl Universe {
                 panic!("Van is not on a road");
             }
         }
+
+        log!("Initial graph analysis");
 
         self.analysis = self.initial_graph_analysis();
 
