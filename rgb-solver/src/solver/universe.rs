@@ -1,7 +1,7 @@
 use crate::solver::grid_state::{GridState, GridAnalysis, GridGraph};
 use crate::solver::struct_defs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse};
 use std::collections::vec_deque::VecDeque;
-use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, is_tile_navigable, GraphBridge};
+use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, GraphBridge};
 use crate::solver::struct_defs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
 use crate::solver::van::Van;
 use wasm_bindgen::JsValue;
@@ -108,33 +108,37 @@ impl Universe {
 
     pub(crate) fn initial_graph(&self) -> GridGraph {
         let is_connected_list = self.data.tiles.iter().enumerate().map(|(cur_square_index, tile)| {
-            let mut is_connected: u8 = 0;
 
-            if !is_tile_navigable(tile) {
-                return 0;
-            }
 
-            for (dir_idx, adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
-                let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
+            if let Some(cur_tile_connection) = tile.get_road_connection() {
 
-                if let Some(adj_square_index) = adj_square_index {
-                    if let Some(conn) = self.data.tiles[adj_square_index.0].get_road_connection()
-                    {
-                        if conn.is_ok(*adj_dir) {
-                            assert_eq!(*adj_dir as u8, 1 << dir_idx);
-                            is_connected |= 1 << dir_idx;
-                        }
-                    } else if adj_dir == &NORTH {
-                        if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
-                            //special case that we want warehouses to be connected to the cell to their south
-                            assert_eq!(*adj_dir as u8, 1 << dir_idx);
-                            is_connected |= 1 << dir_idx;
+                let mut is_connected: u8 = 0;
+
+                for (dir_idx, adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
+                    let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
+
+                    if let Some(adj_square_index) = adj_square_index {
+                        if let Some(adj_tile_connection) = self.data.tiles[adj_square_index.0].get_road_connection()
+                        {
+                            if cur_tile_connection.is_ok(*adj_dir) && adj_tile_connection.is_ok(adj_dir.opposite()) {
+                                assert_eq!(*adj_dir as u8, 1 << dir_idx);
+                                is_connected |= 1 << dir_idx;
+                            }
+                        } else if adj_dir == &NORTH {
+                            if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
+                                //special case that we want warehouses to be connected to the cell to their south
+                                assert_eq!(*adj_dir as u8, 1 << dir_idx);
+                                is_connected |= 1 << dir_idx;
+                            }
                         }
                     }
                 }
+
+                is_connected
+            } else {
+                0
             }
 
-            is_connected
         }).collect();
 
         GridGraph { is_connected: is_connected_list }

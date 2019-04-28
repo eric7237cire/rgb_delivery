@@ -1,6 +1,6 @@
 use crate::solver::struct_defs::*;
 
-use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
+use crate::solver::struct_defs::TileEnum::{TileWarehouse};
 
 //use crate::solver::public_func::build_color_list;
 

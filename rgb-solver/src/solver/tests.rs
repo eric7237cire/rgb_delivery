@@ -10,8 +10,8 @@ mod tests {
         /* [[[cog
 
 from pathlib import Path
-LEVEL_DIR = Path(r'D:\git\rgb_delivery\levels\levels_to_unit_test')
-#LEVEL_DIR = Path(r'/mnt/e/git/rgb_delivery/levels/levels_to_unit_test')
+#LEVEL_DIR = Path(r'D:\git\rgb_delivery\levels\levels_to_unit_test')
+LEVEL_DIR = Path(r'/mnt/e/git/rgb_delivery/levels/levels_to_unit_test')
 
 for json_file in LEVEL_DIR.glob('*.json'):
     with open(json_file, 'r') as f:
