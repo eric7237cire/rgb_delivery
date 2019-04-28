@@ -24,6 +24,9 @@ rem RMDIR /S /Q "%WEB_WORKER_BUILD_DIR%lib"
 
 ECHO Building Web Worker...
 
+rem link will erase other links
+CALL npm link
+
 rem make sure we are using the local one
 CALL npm link rgb-solver
 
@@ -33,7 +36,7 @@ if %errorlevel% neq 0 exit /b %errorlevel%
 CALL npm run build-lib
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-CALL npm link
+
 
 CD "%GRID_EDITOR_BUILD_DIR%"
 CALL npm link web_worker

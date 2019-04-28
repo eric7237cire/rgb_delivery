@@ -26,10 +26,11 @@ import {
   RequestWasmLoad,
   ResponseTypes,
   ResponseWasmLoaded,
-  WasmWebWorkerResponse
+  WasmWebWorkerResponse,
+  RoadConnection, RoadConnection_type
 } from "web_worker";
 import {LogService} from "./log.service";
-import {RoadConnection, RoadConnection_type} from "../../../rgb-solver/pkg";
+
 
 
 interface DirectionMarker {
