@@ -10,7 +10,7 @@ RUN npm install -g @angular/cli && npm install -g angular-cli-ghpages
 
 RUN cargo install wasm-pack
 
-WORKDIR /gitroot
+WORKDIR /initial_build
 COPY . .
 RUN cd rgb-solver && wasm-pack build --release && cd pkg && npm link
 RUN cd ../../web_worker && npm link && npm link rgb-solver && npm run build

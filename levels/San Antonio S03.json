@@ -684,7 +684,7 @@
     },
     {
       "type": "TileRoad",
-      "has_popper": false,
+      "has_popper": true,
       "used_van_index": [
         null,
         null,
@@ -1527,7 +1527,7 @@
     },
     {
       "type": "TileRoad",
-      "has_popper": false,
+      "has_popper": true,
       "used_van_index": [
         null,
         null,
