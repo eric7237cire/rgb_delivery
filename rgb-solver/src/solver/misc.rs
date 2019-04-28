@@ -88,13 +88,6 @@ pub (crate) fn get_adjacent_index(square_index: CellIndex, grid_height: usize, g
     }
 }
 
-pub (crate) fn is_tile_navigable(tile: &TileEnum) -> bool {
-    match tile {
-        TileRoad(_) => true,
-        TileBridge(_) => true,
-        _ => false
-    }
-}
 
 //Copyright © 2000–2017, Robert Sedgewick and Kevin Wayne.  (Modified to be in Rust...)
 /******************************************************************************

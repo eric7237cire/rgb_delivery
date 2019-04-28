@@ -4,7 +4,7 @@ use wasm_typescript_definition::TypescriptDefinition;
 use super::van::Van;
 use crate::solver::grid_state::GridState;
 
-#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
+#[derive(Clone, Copy, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 #[serde(tag = "type")]
 pub enum RoadConnection
 {

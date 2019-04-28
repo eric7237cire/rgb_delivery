@@ -118,10 +118,12 @@ impl Universe {
                 let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
 
                 if let Some(adj_square_index) = adj_square_index {
-                    if is_tile_navigable(&self.data.tiles[adj_square_index.0])
+                    if let Some(conn) = self.data.tiles[adj_square_index.0].get_road_connection()
                     {
-                        assert_eq!(*adj_dir as u8, 1 << dir_idx);
-                        is_connected |= 1 << dir_idx;
+                        if conn.is_ok(*adj_dir) {
+                            assert_eq!(*adj_dir as u8, 1 << dir_idx);
+                            is_connected |= 1 << dir_idx;
+                        }
                     } else if adj_dir == &NORTH {
                         if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                             //special case that we want warehouses to be connected to the cell to their south
