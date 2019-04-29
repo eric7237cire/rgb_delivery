@@ -11,9 +11,11 @@ RUN npm install -g @angular/cli && npm install -g angular-cli-ghpages
 RUN cargo install wasm-pack
 
 #WORKDIR /initial_build
-#COPY /rgb-solver rgb-solver/
-#COPY /wasm-typescript-definition wasm-typescript-definition/
-#RUN cd rgb-solver && wasm-pack build --release && cd pkg && npm link
+COPY /rgb-solver rgb-solver/
+COPY /wasm-typescript-definition wasm-typescript-definition/
+RUN cd rgb-solver && cargo test --target x86_64-unknown-linux-gnu --lib --verbose
+RUN cd rgb-solver && wasm-pack build --release
+#&& cd pkg && npm link
 #COPY /web_worker web_worker/
 #RUN cd web_worker && npm link && npm link rgb-solver && npm run build
 #COPY /grid-editor grid-editor/
