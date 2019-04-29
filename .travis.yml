@@ -7,6 +7,7 @@ before_install:
 
 script:
   - docker exec -ti build bash -c "mv /initial_build/rgb-solver/target /gitroot/rgb-solver/target &&  du --max-depth=1 -h /gitroot/rgb-solver/target"
+  - docker exec -ti build bash -c "mv -v /initial_build/rgb-solver/Cargo.* /gitroot/rgb-solver"
   - docker exec -ti build bash -c "cd /gitroot/rgb-solver && cargo test --target x86_64-unknown-linux-gnu --lib --verbose"
   - docker exec -ti build bash -c "cd /gitroot/rgb-solver && wasm-pack build --release && cd pkg && npm link"
   - docker exec -ti build bash -c "cd /gitroot/web_worker && npm link && npm link rgb-solver && npm run build && npm run build-lib"
