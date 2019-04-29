@@ -10,12 +10,16 @@ RUN npm install -g @angular/cli && npm install -g angular-cli-ghpages
 
 RUN cargo install wasm-pack
 
-WORKDIR /initial_build
-COPY . .
-RUN cd rgb-solver && wasm-pack build --release && cd pkg && npm link
-RUN cd web_worker && npm link && npm link rgb-solver && npm run build
-RUN cd ../grid-editor && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
-
+#WORKDIR /initial_build
+#COPY /rgb-solver rgb-solver/
+#COPY /wasm-typescript-definition wasm-typescript-definition/
+#RUN cd rgb-solver && wasm-pack build --release && cd pkg && npm link
+#COPY /web_worker web_worker/
+#RUN cd web_worker && npm link && npm link rgb-solver && npm run build
+#COPY /grid-editor grid-editor/
+#RUN cd grid-editor && npm ci && npm link web_worker && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
+#
+#RUN cd grid-editor && ngh --no-silent --dir dist/grid-editor
 #COPY /grid-editor/package.json /grid-editor/package-lock.json ./gitroot/grid-editor/
 #RUN cd /grid-editor/npm ci --prod
 

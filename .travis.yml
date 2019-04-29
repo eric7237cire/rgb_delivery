@@ -1,50 +1,13 @@
-matrix:
-  include:
-    - language: rust
-      cache: cargo
+services:
+  - docker
 
-      before_install:
-        - cd rgb-solver
+before_install:
+  - docker pull eric7237cire/rgb
+  - docker run -it -d --name build -v $TRAVIS_BUILD_DIR:/gitroot --env GITHUB_TOKEN=$GITHUB_TOKEN /bin/bash
 
-      # https://github.com/rustwasm/wasm-pack-template/blob/master/.travis.yml
-      before_script:
+script:
+  - docker exec -ti build bash -c "cd rgb-solver && wasm-pack build --release && cd pkg && npm link"
 
-        #- rustup target add wasm32-unknown-unknown
-        #- curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh -s -- -f
+after_script:
+  - docker stop build
 
-      script:
-        #- cargo build --verbose --all
-        - cargo test --target x86_64-unknown-linux-gnu --lib --verbose --all
-
-        # - wasm-pack build
-
-    - language: node_js
-
-      node_js:
-        - "9"
-      dist: trusty
-      before_script:
-        - npm install -g @angular/cli
-      script:
-        - cd web_worker
-        - npm install
-        # Builds the asset worker.js
-        - npm run build
-        # Builds the node export (for the typings basically)
-        - npm run build-lib
-        - npm link
-        - cd ../grid-editor
-        - npm install
-        - npm link web_worker
-        - ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/
-        - ls -l ./dist/grid-editor/assets
-
-      deploy:
-        provider: pages
-        skip_cleanup: true
-        github_token: $GITHUB_TOKEN
-        # from root
-        local_dir: grid-editor/dist/grid-editor
-        verbose: true
-        on:
-          all_branches: true
