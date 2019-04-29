@@ -10,11 +10,15 @@ RUN npm install -g @angular/cli && npm install -g angular-cli-ghpages
 
 RUN cargo install wasm-pack
 
+# Idea is to warm up the docker image by building the dependencies it will need
 WORKDIR /initial_build
 COPY /rgb-solver /initial_build/rgb-solver/
 COPY /wasm-typescript-definition /initial_build/wasm-typescript-definition/
 RUN cd rgb-solver && cargo test --target x86_64-unknown-linux-gnu --lib --verbose
 RUN cd rgb-solver && wasm-pack build --release
+
+# For the moment, not prefetching node modules
+
 #&& cd pkg && npm link
 #COPY /web_worker web_worker/
 #RUN cd web_worker && npm link && npm link rgb-solver && npm run build

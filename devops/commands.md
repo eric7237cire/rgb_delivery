@@ -36,6 +36,7 @@ npm publish --access=public
 
 
 docker build . -t eric7237cire/rgb
+docker login --username=eric7237cire
 docker push eric7237cire/rgb
 
 docker run --rm  -it eric7237cire/rgb bash
