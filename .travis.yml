@@ -15,6 +15,7 @@ script:
   - docker exec -ti build bash -c "cd /gitroot/grid-editor && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/"
   - docker exec -ti build bash -c "cd /gitroot/grid-editor && ngh --no-silent --dir dist/grid-editor --name='Travis CI' --email='314512+eric7237cire@users.noreply.github.com'"
 
+
 after_script:
   - docker stop build
 
