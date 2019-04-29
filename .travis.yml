@@ -6,7 +6,7 @@ before_install:
   - docker run -it -d --name build -v $TRAVIS_BUILD_DIR:/gitroot --env GITHUB_TOKEN=$GITHUB_TOKEN eric7237cire/rgb /bin/bash
 
 script:
-  - docker exec -ti build bash -c "cd rgb-solver && wasm-pack build --release && cd pkg && npm link"
+  - docker exec -ti build bash -c "cd /gitroot/rgb-solver && wasm-pack build --release && cd pkg && npm link"
 
 after_script:
   - docker stop build
