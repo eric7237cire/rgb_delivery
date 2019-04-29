@@ -22,7 +22,7 @@ ctx.addEventListener("message", ev => {
 
     let requestMessage: WasmWebWorkerRequest = ev.data;
 
-    console.log("Got message", requestMessage.tag);
+    //console.log("Got message", requestMessage.tag);
 
     switch (requestMessage.tag) {
         case RequestTypes.LOAD_WASM: {
@@ -39,6 +39,8 @@ ctx.addEventListener("message", ev => {
 
 
                 ctx.postMessage(readyMsg);
+
+                g_worker.reloadGridData();
             });
             break;
         }
@@ -87,7 +89,7 @@ ctx.addEventListener("message", ev => {
             break;
         }
         case RequestTypes.SET_OVERRIDE_LIST: {
-            console.log("Setting Overrides", requestMessage.overRideList);
+            //console.log("Setting Overrides", requestMessage.overRideList);
             g_worker.universe.set_overrides(requestMessage.overRideList);
             break;
         }
@@ -116,18 +118,25 @@ function sendUpdate(data: GridState) {
 function handleWasmCalcResponse(
     startedMs: number,
     calcResponse: CalculationResponse) {
-    if (!_.isNil(calcResponse.grid_state)) {
-
-        sendUpdate(calcResponse.grid_state);
-    }
 
     let progressMessage: ResponseProgressMessage = {
         tag: ResponseTypes.BATCH_PROGRESS_MESSAGE,
         startedMs,
         currentMs: performance.now(),
-        success: calcResponse.success,
         stepsCompleted: calcResponse.iteration_count
     };
+
+    if (!_.isNil(calcResponse.grid_state)) {
+        sendUpdate(calcResponse.grid_state);
+    } else {
+        progressMessage.success = false;
+    }
+
+
+
+    if (calcResponse.success) {
+        progressMessage.success = true;
+    }
 
     ctx.postMessage(progressMessage);
 }

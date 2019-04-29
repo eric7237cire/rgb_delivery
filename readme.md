@@ -52,7 +52,7 @@ WASM Source.  Unit tests run in x86 (or linux on travis)
 
 Language: Rust
 
-To setup, see the [Travis Configuration](.travis.yml) 
+To setup, see the [The Watch Bat File](/devops/build-wasm.bat) 
 
 
 

@@ -18,7 +18,7 @@ macro_rules! log {
 #[cfg( target_arch = "x86_64")]
 macro_rules! log_trace {
      ( $( $t:tt )* ) => {
-        println!( $( $t )* );
+        //println!( $( $t )* );
     }
 }
 
@@ -28,6 +28,7 @@ macro_rules! log_trace {
        //web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
+
 
 //macro_rules! expr_nop { ($body:expr) => { $body } }
 

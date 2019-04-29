@@ -6,7 +6,7 @@
   "license": "Apache-2.0/MIT",
   "scripts": {
     "build": "webpack --mode production",
-    "clean-lib" : "rmdir /s /q lib",
+    "clean-lib": "rmdir /s /q lib",
     "build-lib": "tsc --project tsconfig-lib.json"
   },
   "devDependencies": {
@@ -18,7 +18,7 @@
   "dependencies": {
     "@types/lodash": "^4.14.123",
     "lodash": "^4.17.11",
-    "rgb-solver": "=0.1.0-progress.1"
+    "rgb-solver": "=0.1.0-progress.3"
   },
   "browser": "./dist/worker.js",
   "files": [

@@ -11,5 +11,6 @@ pub mod func_public;
 pub mod disjointset;
 
 pub(crate) mod utils;
+pub(crate) mod tile;
 pub(crate) mod misc;
 pub(crate) mod tests;

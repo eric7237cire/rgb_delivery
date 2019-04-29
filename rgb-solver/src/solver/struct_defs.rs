@@ -4,6 +4,7 @@ use wasm_typescript_definition::TypescriptDefinition;
 use super::van::Van;
 use crate::solver::grid_state::GridState;
 
+
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
     pub label: String,
@@ -93,7 +94,15 @@ pub struct Road {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "button")]
-    pub button_snapshot: Option<Button>
+    pub button_snapshot: Option<Button>,
+
+
+    #[serde(default = "all_mask")]
+    pub connection_mask: u8
+}
+
+fn all_mask() -> u8 {
+    15
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -115,7 +124,10 @@ pub struct Bridge {
 
     //set by init calc
     #[serde(skip)]
-    pub cell_index: CellIndex
+    pub cell_index: CellIndex,
+
+    #[serde(default = "all_mask")]
+    pub connection_mask: u8
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
@@ -157,7 +169,6 @@ pub struct ChoiceOverride {
 
     pub tick: Option<usize>
 }
-
 
 
 #[derive(Clone, Copy, Debug, PartialEq)]

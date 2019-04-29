@@ -1,9 +1,11 @@
 [package]
 name = "rgb-solver"
-version = "0.1.0-progress.2"
+version = "0.1.0-progress.4"
 authors = ["Eric <eric7237cire@gmail.com>"]
 edition = "2018"
 license = "MIT"
+repository = "https://github.com/eric7237cire/rgb_delivery"
+description = "WASM made in rust to solve RGB Express puzzles"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

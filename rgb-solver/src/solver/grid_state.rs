@@ -233,7 +233,9 @@ impl GridState {
 
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
 
-                if !analysis.has_poppers && self.vans[self.current_van_index.0].color != block_color{
+                if !analysis.has_poppers
+                    && !self.vans[self.current_van_index.0].color.is_white()
+                    && self.vans[self.current_van_index.0].color != block_color{
                     log_trace!("No way of dropping block off");
                     return Err(());
                 }

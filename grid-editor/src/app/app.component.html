@@ -3,7 +3,7 @@
 
 
 
-  <div class='row'>
+  <div class='main-layout'>
 
 
 
@@ -112,6 +112,23 @@
             </div>
           </div>
 
+          <div class="connection-container">
+            <ng-container
+                 *ngFor="let d of directions; let i = index">
+              <div class="item">
+                <label > {{d}} </label>
+                <div class="toggle-switch ">
+                  <input id="isDirOn{{d}}"
+                         type="checkbox"
+                         [(ngModel)]="isDirectionOn[i]">
+                  <label for="isDirOn{{d}}">Toggle</label>
+                </div>
+              </div>
+
+            </ng-container>
+
+          </div>
+
 
           <div class="console-text">
             <div>Current mouse coords: Row [{{mouseMoveRow}}] Col [{{mouseMoveCol}}] Idx [{{mouseMoveIndex}}] </div>
@@ -160,13 +177,46 @@
         <ng-container *ngFor="let cell of cells">
 
 
-          <rect *ngIf="cell.tile.type == 'TileRoad'"
+          <rect *ngIf="cell.tile.type == 'TileRoad' "
+                (click)="handleClickSvgText()"
+                fill="rgb(70,70,70)"
+                [attr.x]="cell.col_index * GRID_SIZE + GRID_SIZE/4"
+                [attr.y]="cell.row_index * GRID_SIZE + GRID_SIZE/4"
+                [attr.width]="GRID_SIZE - GRID_SIZE/2"
+                [attr.height]="GRID_SIZE - GRID_SIZE/2"></rect>
+          <!--north-->
+          <rect *ngIf="cell.tile.type == 'TileRoad' && isAllowed(cell.tile.connection_mask, 0)"
+                (click)="handleClickSvgText()"
+                fill="rgb(70,70,70)"
+                [attr.x]="cell.col_index * GRID_SIZE + 10"
+                [attr.y]="cell.row_index * GRID_SIZE"
+                [attr.width]="GRID_SIZE - GRID_SIZE/2"
+                [attr.height]="GRID_SIZE / 4"></rect>
+          <!--east-->
+          <rect *ngIf="cell.tile.type == 'TileRoad' && isAllowed(cell.tile.connection_mask, 1)"
+                (click)="handleClickSvgText()"
+                fill="rgb(70,70,70)"
+                [attr.x]="cell.col_index * GRID_SIZE + 3 * GRID_SIZE / 4"
+                [attr.y]="cell.row_index * GRID_SIZE + GRID_SIZE / 4"
+                [attr.width]="GRID_SIZE/4"
+                [attr.height]="GRID_SIZE / 2"></rect>
+          <!--south-->
+          <rect *ngIf="cell.tile.type == 'TileRoad' && isAllowed(cell.tile.connection_mask, 2)"
+                (click)="handleClickSvgText()"
+                fill="rgb(70,70,70)"
+                [attr.x]="cell.col_index * GRID_SIZE + 10"
+                [attr.y]="cell.row_index * GRID_SIZE  + 3 * GRID_SIZE / 4"
+                [attr.width]="GRID_SIZE - GRID_SIZE/2"
+                [attr.height]="GRID_SIZE / 4"></rect>
+          <!--west-->
+          <rect *ngIf="cell.tile.type == 'TileRoad' && isAllowed(cell.tile.connection_mask, 3)"
                 (click)="handleClickSvgText()"
                 fill="rgb(70,70,70)"
                 [attr.x]="cell.col_index * GRID_SIZE "
-                [attr.y]="cell.row_index * GRID_SIZE"
-                [attr.width]="GRID_SIZE"
-                [attr.height]="GRID_SIZE"></rect>
+                [attr.y]="cell.row_index * GRID_SIZE + GRID_SIZE / 4"
+                [attr.width]="GRID_SIZE/4"
+                [attr.height]="GRID_SIZE / 2"></rect>
+
 
           <rect *ngIf="cell.tile.type == 'TileBridge'"
                 (click)="handleClickSvgText()"
