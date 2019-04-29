@@ -9,7 +9,9 @@ script:
   - docker exec -ti build bash -c "cd /gitroot/rgb-solver && cargo test --target x86_64-unknown-linux-gnu --lib --verbose"
   - docker exec -ti build bash -c "cd /gitroot/rgb-solver && wasm-pack build --release && cd pkg && npm link"
   - docker exec -ti build bash -c "cd /gitroot/web_worker && npm link && npm link rgb-solver && npm run build"
-  - docker exec -ti build bash -c "cd /gitroot/grid-editor && npm ci && npm link web_worker && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/"
+  - docker exec -ti build bash -c "cd /gitroot/grid-editor && npm ci"
+  - docker exec -ti build bash -c "cd /gitroot/grid-editor && npm link web_worker && ls -al node_modules/web_worker"
+  - docker exec -ti build bash -c "cd /gitroot/grid-editor && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/"
   - docker exec -ti build bash -c "cd /gitroot/grid-editor && ngh --no-silent --dir dist/grid-editor"
 
 after_script:
