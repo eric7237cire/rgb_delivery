@@ -459,12 +459,35 @@ impl GridState {
                         let mut if_van_stops_state = self.clone();
                         if_van_stops_state.current_van_mut().is_done = true;
 
+                        let stopped_cell_index = if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
                         {
-                            let tile = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0];
+                            let tile = &if_van_stops_state.tiles[stopped_cell_index.0];
                             if let TileRoad(_) = tile {
                                 assert!(tile.get_van().is_some());
                             }
                         }
+
+                        //disconnect this square
+                        if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
+
+                        //and everything adjacent to it
+                        for (adj_idx, opp_dir_idx) in ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_idx, dir)| {
+
+                            if let Some(adj_idx) = get_adjacent_index(stopped_cell_index,
+                                                             self.height,
+                                                             self.width,
+                                                             *dir) {
+
+                                    Some( (adj_idx, opposite_dir_index(dir_idx)) )
+                            } else {
+                                None
+                            }
+                            }) {
+
+                                if_van_stops_state.graph.is_connected[adj_idx.0] &= !(1 << opp_dir_idx);
+                            }
+
+
                         Ok(Some(if_van_stops_state))
                     } else {
                         Ok(None)

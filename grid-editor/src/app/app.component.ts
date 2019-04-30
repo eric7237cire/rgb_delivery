@@ -191,7 +191,6 @@ export class AppComponent implements OnInit {
   sendOverrideList() {
     const overRideList: Array<ChoiceOverride> = [
 
-
 /*
       {
          row_index: 0,
