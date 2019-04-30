@@ -1,2 +1,2 @@
-export { CellData, ChoiceOverride, GridState, TileEnum_type, TileEnum, ColorIndex, Color, Button, TileRoad } from "rgb-solver";
+export { Color, ColorIndex, CellIndex, VanIndex, Button, NavigableTileStatic, NavigableTileDynamic, Road, Bridge, Warehouse, TileEnum, TileRoad, TileWarehouse, TileBridge, Empty, TileEnum_type, CellData, ChoiceOverride, CalculationResponse, Van, GridState } from "rgb-solver";
 export * from "./interface_types";
