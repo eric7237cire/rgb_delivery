@@ -1,12 +1,16 @@
 extern crate proc_macro;
+extern crate proc_macro2;
 #[macro_use]
 extern crate quote;
 extern crate serde_derive_internals;
 extern crate syn;
 extern crate serde;
 
-use serde_derive_internals::{ast, Ctxt};
+use serde_derive_internals::{ast, Ctxt, Derive};
 use syn::{DeriveInput, Lit, Expr};
+//use proc_macro::Span;
+use proc_macro2::{Span, Ident};
+//syn::DeriveInput
 
 mod derive_enum;
 mod derive_struct;
@@ -23,7 +27,7 @@ pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macr
     let input: DeriveInput = syn::parse(input).unwrap();
 
     let cx = Ctxt::new();
-    let container = ast::Container::from_ast(&cx, &input);
+    let container = ast::Container::from_ast(&cx, &input, Derive::Serialize);
 
     let typescript = match container.data {
         ast::Data::Enum(variants) => {
@@ -35,8 +39,10 @@ pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macr
     };
 
     let typescript_string = typescript.to_string();
-    let typescript_ident = syn::Ident::from(format!("{}___typescript_definition", container.ident));
-    let export_ident = syn::Ident::from(format!("TS_EXPORT_{}", container.ident.to_string().to_uppercase()));
+    //let typescript_ident = format!("{}___typescript_definition", container.ident);
+    let export_ident = Ident::new( &format!("TS_EXPORT_{}", container.ident.to_string().to_uppercase()),
+                                        Span::call_site());
+    // ).to_string() ;
 
     //eprintln!("....[typescript] {:?}", typescript_string);
     //eprintln!("........[export_ident] {:?}", export_ident);
@@ -44,26 +50,29 @@ pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macr
     // eprintln!();
     // eprintln!();
 
-    let mut expanded = quote!{
+    let expanded = quote!{
 
         #[wasm_bindgen(typescript_custom_section)]
         const #export_ident : &'static str = #typescript_string;
 
     };
 
-    if cfg!(any(debug_assertions, feature = "test-export")) {
+    /*if cfg!(any(debug_assertions, feature = "test-export")) {
         expanded.append_all(quote!{
             fn #typescript_ident ( ) -> &'static str {
                 #typescript_string
             }
         });
-    }
+    }*/
 
     cx.check().unwrap();
+
+    eprintln!("Tokens {}", expanded);
 
     expanded.into()
 }
 
+/*
 fn collapse_list_bracket(body: Vec<quote::Tokens>) -> quote::Tokens {
     if body.len() == 1 {
         body[0].clone()
@@ -71,7 +80,7 @@ fn collapse_list_bracket(body: Vec<quote::Tokens>) -> quote::Tokens {
         let tokens = body.into_iter().fold(quote!{}, |mut agg, tokens| { agg.append_all(quote!{ #tokens , }); agg });
         quote!{ [ #tokens ] }
     }
-}
+}*/
 
 fn parse_non_primitive(s: &str) -> (String, bool) {
 
@@ -169,7 +178,7 @@ fn type_to_ts_string(ty: &syn::Type) -> (String, bool) {
 
     (q_tokens, is_optional)
 }
-
+/*
 fn type_to_ts(ty: &syn::Type) -> (quote::Tokens, bool) {
    // println!("Type: ??? {:?}", ty);
     use syn::Type::*;
@@ -206,7 +215,7 @@ fn type_to_ts(ty: &syn::Type) -> (quote::Tokens, bool) {
     };
 
         (q_tokens, is_optional)
-}
+}*/
 
 fn derive_field_str(field: &ast::Field) -> String {
     let field_name = field.attrs.name().serialize_name();

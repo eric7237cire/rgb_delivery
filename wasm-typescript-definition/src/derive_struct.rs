@@ -1,7 +1,7 @@
-use ::{quote, type_to_ts_string};
+use ::{ type_to_ts_string};
 use serde_derive_internals::{ast, attr};
-use type_to_ts;
-use collapse_list_bracket;
+//use type_to_ts;
+//use collapse_list_bracket;
 
 use super::{ derive_field_str};
 
@@ -34,10 +34,10 @@ pub fn derive_struct(
 }
 
 
-fn derive_struct_unit(_attr_container: &attr::Container) -> quote::Tokens {
-    quote!{
+fn derive_struct_unit(_attr_container: &attr::Container) -> String {
+    (quote!{
         {}
-    }
+    }).to_string()
 }
 
 fn derive_struct_named_fields(
@@ -56,10 +56,11 @@ fn derive_struct_named_fields(
 }
 
 fn derive_struct_tuple(
-    fields: Vec<ast::Field>,
+    _fields: Vec<ast::Field>,
     _attr_container: &attr::Container,
-) -> quote::Tokens {
-    collapse_list_bracket(fields.into_iter()
-        .map(|field| type_to_ts(field.ty).0)
-        .collect::<Vec<_>>())
+) -> String {
+    "derive_struct_tuple TODO".to_string()
+    /*collapse_list_bracket(fields.into_iter()
+        .map(|field| type_to_ts_string(field.ty).0)
+        .collect::<Vec<_>>())*/
 }
