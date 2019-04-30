@@ -6,7 +6,7 @@ RUN apt-get -y install curl gnupg
 RUN curl -sL https://deb.nodesource.com/setup_11.x  | bash -
 RUN apt-get -y install nodejs
 
-RUN npm install -g @angular/cli && npm install -g angular-cli-ghpages
+RUN npm install -g npm && npm install -g @angular/cli && npm install -g angular-cli-ghpages
 
 RUN cargo install wasm-pack
 

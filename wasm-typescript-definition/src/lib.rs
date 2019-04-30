@@ -8,9 +8,8 @@ extern crate serde;
 
 use serde_derive_internals::{ast, Ctxt, Derive};
 use syn::{DeriveInput, Lit, Expr};
-//use proc_macro::Span;
 use proc_macro2::{Span, Ident};
-//syn::DeriveInput
+
 
 mod derive_enum;
 mod derive_struct;
@@ -18,7 +17,6 @@ mod derive_struct;
 
 #[cfg(feature = "bytes")]
 extern crate serde_bytes;
-
 
 
 #[proc_macro_derive(TypescriptDefinition)]
@@ -39,35 +37,17 @@ pub fn derive_typescript_definition(input: proc_macro::TokenStream) -> proc_macr
     };
 
     let typescript_string = typescript.to_string();
-    //let typescript_ident = format!("{}___typescript_definition", container.ident);
     let export_ident = Ident::new( &format!("TS_EXPORT_{}", container.ident.to_string().to_uppercase()),
                                         Span::call_site());
-    // ).to_string() ;
-
-    //eprintln!("....[typescript] {:?}", typescript_string);
-    //eprintln!("........[export_ident] {:?}", export_ident);
-   //eprintln!("............[container] {:?}", container);
-    // eprintln!();
-    // eprintln!();
 
     let expanded = quote!{
-
         #[wasm_bindgen(typescript_custom_section)]
         const #export_ident : &'static str = #typescript_string;
-
     };
-
-    /*if cfg!(any(debug_assertions, feature = "test-export")) {
-        expanded.append_all(quote!{
-            fn #typescript_ident ( ) -> &'static str {
-                #typescript_string
-            }
-        });
-    }*/
 
     cx.check().unwrap();
 
-    eprintln!("Tokens {}", expanded);
+    //eprintln!("Tokens {}", expanded);
 
     expanded.into()
 }

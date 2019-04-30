@@ -87,21 +87,18 @@ impl Universe {
 
     pub(crate) fn initial_van_list(&self) -> Vec<Van> {
         self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
-            if let TileRoad(road) = &tile {
-                if let Some(van) = &road.van_snapshot {
+            if let Some(van) = tile.get_van() {
 
-                    //found a van
-                    let mut m_van = van.clone();
-                    m_van.tick = 0;
-                    m_van.is_done = false;
-                    m_van.cell_index = cell_index.into();
-                    Some(m_van)
-                } else {
-                    None
-                }
+                //found a van
+                let mut m_van = van.clone();
+                m_van.tick = 0;
+                m_van.is_done = false;
+                m_van.cell_index = cell_index.into();
+                Some(m_van)
             } else {
                 None
             }
+        
         }).collect()
     }
 
@@ -562,29 +559,16 @@ impl Universe {
 
         //reset road history
         for tile in self.data.tiles.iter_mut() {
-            match tile {
-                TileRoad(road) => {
-                    road.used_van_index = Default::default();
-                    road.van_snapshot = None;
-                }
-                TileBridge(bridge) => {
-                    bridge.used_tick = None;
-                    bridge.used_van_index = None;
-                    bridge.van_snapshot = None;
-                }
-                _ => {}
-            }
+            tile.reset();
         }
 
         //vans should start on roads
         let van_cells: Vec<CellIndex> = self.data.vans.iter().map(|v| v.cell_index).collect();
 
         for (van_idx, v_cell_index) in van_cells.iter().enumerate() {
-            if let TileRoad(road) = &mut self.data.tiles[v_cell_index.0] {
-                road.van_snapshot = Some(self.data.vans[van_idx].clone());
-            } else {
-                panic!("Van is not on a road");
-            }
+
+            self.data.tiles[v_cell_index.0].set_van(&self.data.vans[van_idx]);
+            
         }
 
         log!("Initial graph analysis");

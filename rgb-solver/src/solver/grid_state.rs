@@ -3,7 +3,7 @@ use wasm_typescript_definition::TypescriptDefinition;
 use crate::solver::struct_defs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
 use crate::solver::van::Van;
 use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
-use crate::solver::misc::{ALL_DIRECTIONS, opposite_dir_index, get_adjacent_index};
+use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, opposite_dir_index};
 use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
@@ -414,38 +414,7 @@ impl GridState {
         assert_eq!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 , 0);
 
         //remove van & set used mask
-        match &mut self.tiles[van_cell_index.0] {
-            TileRoad( current_tile_road ) => 
-            {
-                //see comment van consistency
-                //assert!(current_tile_road.van_snapshot.is_some());
-                
-                current_tile_road.van_snapshot = None;
-                
-                current_tile_road.used_tick[adj_info.direction_index] = Some(self.tick);
-                current_tile_road.used_van_index[adj_info.direction_index] = Some(self.current_van_index);
-
-            },
-            TileBridge(current_tile_bridge) => 
-            {
-                assert!(!current_tile_bridge.is_up);
-                
-                //These are set when moved to
-                assert_eq!(current_tile_bridge.used_van_index, Some(self.current_van_index));
-                assert_eq!(current_tile_bridge.used_tick, Some(self.tick - 1));
-                
-
-                assert!(current_tile_bridge.van_snapshot.is_some());
-
-                //current_tile_bridge.used_van_index = Some(self.current_van_index);
-                //current_tile_bridge.used_tick = Some(self.tick);
-                current_tile_bridge.van_snapshot = None;
-            },
-            _ => {
-                panic!("Not a road or bridge");
-            }
-        }
-
+        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction_index); 
 
         //add van to next square
 
@@ -465,31 +434,10 @@ impl GridState {
 
         assert_eq!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8, 0);
 
-        match &mut self.tiles[moving_to_cell_index.0] {
-            TileRoad( next_road ) => 
-            {
-                //keep a history
-                next_road.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
-
-                let opp_dir_index = ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap();
-
-                next_road.used_van_index[opp_dir_index] = Some(self.current_van_index);
-                next_road.used_tick[opp_dir_index] = Some( self.tick );
-            },
-            TileBridge( next_bridge) => 
-            {
-                assert!(next_bridge.van_snapshot.is_none());
-                assert!(next_bridge.used_van_index.is_none());
-                assert!(next_bridge.used_tick.is_none());
-
-                next_bridge.van_snapshot = Some(self.vans[self.current_van_index.0].clone());
-
-                next_bridge.used_van_index = Some(self.current_van_index);
-
-                next_bridge.used_tick = Some( self.tick );
-            },
-            _ => panic!("not a road or bridge")
-        }
+        self.tiles[moving_to_cell_index.0].set_arriving_van(self.current_van_index, &self.vans[self.current_van_index.0], self.tick, 
+            //opposite direction index
+            ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap());
+           
     }
 
 
@@ -512,8 +460,9 @@ impl GridState {
                         if_van_stops_state.current_van_mut().is_done = true;
 
                         {
-                            if let TileRoad(road) = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0] {
-                                assert!(road.van_snapshot.is_some());
+                            let tile = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0];
+                            if let TileRoad(_) = tile {
+                                assert!(tile.get_van().is_some());
                             }
                         }
                         Ok(Some(if_van_stops_state))

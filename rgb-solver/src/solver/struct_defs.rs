@@ -50,67 +50,12 @@ pub struct Button  {
     pub(crate) was_pressed_this_tick: bool
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
-pub struct Road {
-
-    //togglable thing that if activated, will remove the top block and put it back on the street
-    #[serde(default)]
-    pub has_popper: bool,
-
-    #[serde(default)]
-    pub used_van_index: [Option<VanIndex>; 4],
-
-    #[serde(default)]
-    pub used_tick: [Option<usize>; 4],
-
-    #[serde(default)]
-    pub used_popper_tick: Option<usize>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "block")]
-    pub block: Option<ColorIndex>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "van")]
-    pub van_snapshot: Option<Van>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[serde(rename = "button")]
-    pub button_snapshot: Option<Button>,
-
-
-    #[serde(default = "all_mask")]
-    pub connection_mask: u8
-}
-
 fn all_mask() -> u8 {
     15
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
-pub struct Bridge {
-
-    //once van leaves, is set to the van that used this bridge
-    #[serde(default)]
-    pub used_van_index: Option<VanIndex>,
-
-    #[serde(default)]
-    pub used_tick: Option<usize>,
-
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub van_snapshot: Option<Van>,
-
-    pub is_up: bool,
-
-    pub color: ColorIndex,
-
-    //set by init calc
-    #[serde(skip)]
-    pub cell_index: CellIndex,
-
-    #[serde(default = "all_mask")]
-    pub connection_mask: u8
-}
+include!("structs/road.rs");
+include!("structs/bridge.rs");
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Warehouse {
@@ -118,15 +63,7 @@ pub struct Warehouse {
     pub is_filled: bool
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
-#[serde(tag = "type")]
-pub enum TileEnum {
-    TileRoad(Road),
-    TileWarehouse (Warehouse),
-    TileBridge(Bridge),
-    Empty
-}
-
+include!("structs/tile.rs");
 
 #[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct CellData {
