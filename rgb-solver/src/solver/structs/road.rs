@@ -1,4 +1,4 @@
-#[derive(Clone, Serialize, Deserialize, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug, Hash, Eq, PartialEq)]
 struct NavigableTileStatic {
 
     #[serde(default = "all_mask")]
@@ -12,7 +12,7 @@ impl Default for NavigableTileStatic {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug, Hash, Eq, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug, Hash, Eq, PartialEq)]
 struct NavigableTileDynamic {
 
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -47,7 +47,8 @@ pub struct Road {
     #[serde(rename = "button")]
     pub button_snapshot: Option<Button>,
 
-
+    #[serde(flatten)]
     static_attrs: NavigableTileStatic,
+    #[serde(flatten)]
     dynamic_attrs: NavigableTileDynamic
 }

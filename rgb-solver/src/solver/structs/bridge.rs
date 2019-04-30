@@ -20,6 +20,9 @@ pub struct Bridge {
     #[serde(skip)]
     pub cell_index: CellIndex,
 
+    #[serde(flatten)]
     static_attrs: NavigableTileStatic,
+
+    #[serde(flatten)]
     dynamic_attrs: NavigableTileDynamic
 }
