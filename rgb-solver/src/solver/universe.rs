@@ -478,7 +478,7 @@ impl Universe {
             "Building a new Grid.  [{}, {}] Build #: {}",
             w,
             h,
-            env!("TRAVIS_BUILD_NUMBER");
+            env!("TRAVIS_BUILD_NUMBER")
         );
 
         utils::set_panic_hook();
