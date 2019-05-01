@@ -8,6 +8,7 @@ cd /D "%RGB_SOLVER_DIR%"
 
 ECHO Building Web Assembly...
 
+SET TRAVIS_BUILD_NUMBER=%date%_%time%
 rem wasm-pack build --dev
 wasm-pack build --release
 if %errorlevel% neq 0 exit /b %errorlevel%

@@ -3,7 +3,7 @@ services:
 
 before_install:
   - docker pull eric7237cire/rgb
-  - docker run -it -d --name build -v $TRAVIS_BUILD_DIR:/gitroot --env GH_TOKEN=$GITHUB_TOKEN eric7237cire/rgb /bin/bash
+  - docker run -it -d --name build -v $TRAVIS_BUILD_DIR:/gitroot --env GH_TOKEN=$GITHUB_TOKEN --env TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER eric7237cire/rgb /bin/bash
 
 script:
   # Use the 'warmed up' build from rgb-solver that is already in the docker container

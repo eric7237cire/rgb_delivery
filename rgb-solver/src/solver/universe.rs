@@ -475,9 +475,10 @@ impl Universe {
 
     pub fn new(h: usize, w: usize) -> Universe {
         log!(
-            "Building a new Grid.  [{}, {}] ",
+            "Building a new Grid.  [{}, {}] Build #: {}",
             w,
-            h
+            h,
+            env!("TRAVIS_BUILD_NUMBER");
         );
 
         utils::set_panic_hook();
