@@ -191,16 +191,170 @@ export class AppComponent implements OnInit {
   sendOverrideList() {
     const overRideList: Array<ChoiceOverride> = [
 
-
 /*
       {
-         row_index: 0,
-         col_index: 6,
-         //van_index: 1,
+         row_index: 6,
+         col_index: 0,
+         van_index: 2,
          direction_index: DIRECTION_INDEX.EAST
-       },*/
+       },
+      {
+         row_index: 6,
+         col_index: 2,
+         van_index: 2,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+      {
+         row_index: 8,
+         col_index: 6,
+         van_index: 2,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 8,
+         col_index: 5,
+         van_index: 2,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+       {
+         row_index: 7,
+         col_index: 6,
+         van_index: 2,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+      {
+         row_index: 7,
+         col_index: 7,
+         van_index: 2,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+       {
+         row_index: 7,
+         col_index: 8,
+         van_index: 2,
+         direction_index: DIRECTION_INDEX.WEST
+       },
 
 
+       {
+         row_index: 5,
+         col_index: 4,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+      {
+         row_index: 5,
+         col_index: 5,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+      {
+         row_index: 5,
+         col_index: 6,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+      {
+         row_index: 5,
+         col_index: 7,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+      {
+         row_index: 5,
+         col_index: 8,
+         van_index: 0,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+
+
+
+      {
+         row_index: 6,
+         col_index: 4,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+      {
+         row_index: 6,
+         col_index: 5,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+
+      {
+         row_index: 6,
+         col_index: 3,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 5,
+         col_index: 3,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 4,
+         col_index: 3,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.NORTH
+       },
+      {
+         row_index: 3,
+         col_index: 3,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+       {
+         row_index: 3,
+         col_index: 4,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+      {
+         row_index: 3,
+         col_index: 5,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+       {
+         row_index: 4,
+         col_index: 5,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+      {
+         row_index: 5,
+         col_index: 5,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+      {
+         row_index: 6,
+         col_index: 5,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.SOUTH
+       },
+      {
+         row_index: 7,
+         col_index: 5,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.EAST
+       },
+      {
+         row_index: 6,
+         col_index: 6,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+       {
+         row_index: 6,
+         col_index: 7,
+         van_index: 3,
+         direction_index: DIRECTION_INDEX.WEST
+       },
+*/
     ];
 
     const request: RequestSetOverrideList = {
@@ -515,7 +669,7 @@ export class AppComponent implements OnInit {
 
       switch (this.selectedThing) {
         case "Van":
-          tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false};
+          tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false, cell_index: cellIndex};
           break;
         case "Block":
           tile.block = this.selectedColor.color_index;

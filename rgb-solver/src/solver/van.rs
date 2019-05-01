@@ -10,7 +10,7 @@ pub struct Van {
 
     #[serde(skip)]
     pub(crate) tick: usize,
-    #[serde(skip)]
+    #[serde(default)]
     pub(crate) cell_index: CellIndex 
 }
 

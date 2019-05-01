@@ -459,12 +459,31 @@ impl GridState {
                         let mut if_van_stops_state = self.clone();
                         if_van_stops_state.current_van_mut().is_done = true;
 
-                        {
-                            let tile = &if_van_stops_state.tiles[if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index.0];
-                            if let TileRoad(_) = tile {
-                                assert!(tile.get_van().is_some());
+                        let stopped_cell_index = if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
+
+                        assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
+
+                        //disconnect this square
+                        if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
+
+                        //and everything adjacent to it
+                        for (adj_idx, opp_dir_idx) in ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_idx, dir)| {
+
+                            if let Some(adj_idx) = get_adjacent_index(stopped_cell_index,
+                                                             self.height,
+                                                             self.width,
+                                                             *dir) {
+
+                                    Some( (adj_idx, opposite_dir_index(dir_idx)) )
+                            } else {
+                                None
                             }
-                        }
+                            }) {
+
+                                if_van_stops_state.graph.is_connected[adj_idx.0] &= !(1 << opp_dir_idx);
+                            }
+
+
                         Ok(Some(if_van_stops_state))
                     } else {
                         Ok(None)
@@ -582,6 +601,8 @@ impl GridState {
 
         let mut component_to_counts: HashMap<usize, [ [usize;3]; NUM_COLORS ]> = HashMap::new();
 
+        let mut component_to_has_popper: HashMap<usize, bool> = HashMap::new();
+
         for (idx, tile) in self.tiles.iter().enumerate() {
 
             let component_number = ds.get_repr(idx);
@@ -590,11 +611,21 @@ impl GridState {
                 TileRoad(Road { block: Some(block), .. }) => {
                     log_trace!("Block in cell {}, component {}, color {}", idx, component_number, block.0);
                     add_component_to_map(&mut component_to_counts, component_number, *block, BLOCK);
+
                 },
                 TileWarehouse( Warehouse{is_filled: false, color}) => {
                     log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
                     add_component_to_map(&mut component_to_counts, component_number, *color, WAREHOUSE);
                 }
+                _ => {}
+            }
+
+            match tile {
+                TileRoad(Road { has_popper:true, .. }) => {
+                    log_trace!("in cell {}, component {}, has popper {}", idx, component_number, true);
+
+                    *component_to_has_popper.entry(component_number).or_insert(false) = true;
+                },
                 _ => {}
             }
         }
@@ -639,6 +670,28 @@ impl GridState {
                     return false;
                 }
             }
+
+
+        }
+
+        //do we have a van that has a box of a different color
+        for van in self.vans.iter().filter(|v| !v.color.is_white()) {
+            let component_number = ds.get_repr(van.cell_index.0);
+
+            let has_box_other_color = van.boxes.iter().any(|c| {
+                if let Some(color) = c {
+                    if *color != van.color {
+                        return true;
+                    }
+                }
+                return false;
+            });
+
+            if has_box_other_color && *component_to_has_popper.entry(component_number).or_insert(false) == false {
+                log_trace!("No popper available!");
+                return false;
+            }
+
         }
 
 
