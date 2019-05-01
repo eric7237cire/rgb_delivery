@@ -6,9 +6,11 @@ before_install:
   - docker run -it -d --name build -v $TRAVIS_BUILD_DIR:/gitroot --env GH_TOKEN=$GITHUB_TOKEN --env TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER eric7237cire/rgb /bin/bash
 
 script:
+  # fail fast
+  - set -e
   # Use the 'warmed up' build from rgb-solver that is already in the docker container
   - docker exec -ti build bash -c "mv /initial_build/rgb-solver/target /gitroot/rgb-solver/target &&  du --max-depth=1 -h /gitroot/rgb-solver/target"
-  - docker exec -ti build bash -c "mv -v /initial_build/rgb-solver/Cargo.* /gitroot/rgb-solver"
+  - docker exec -ti build bash -c "mv -v /initial_build/rgb-solver/Cargo.lock /gitroot/rgb-solver"
   # Run the unit tests (non wasm)
   - docker exec -ti build bash -c "cd /gitroot/rgb-solver && cargo test --target x86_64-unknown-linux-gnu --lib --verbose"
   # Build & link the WASM module

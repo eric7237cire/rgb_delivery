@@ -141,7 +141,9 @@ mod tests {
                 }
 
                 //test max
-                assert_eq!(GridConnections::get_edge_index((num_rows, num_cols), CellIndex(num_rows*num_cols-1), WEST), Some(num_rows * (num_cols-1) + num_cols * (num_rows-1)));
+                if num_cols > 1 {
+                    assert_eq!(GridConnections::get_edge_index((num_rows, num_cols), CellIndex(num_rows * num_cols - 1), WEST), Some(num_rows * (num_cols - 1) + num_cols * (num_rows - 1) - 1));
+                }
             }
         }
     }
