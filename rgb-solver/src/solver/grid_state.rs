@@ -391,24 +391,25 @@ impl GridState {
 
         log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
 
-        
+        let moving_to_cell_index =adj_info.cell_index;
+
         //must have a connection in the direction we are moving
         assert_eq!(1 << adj_info.direction.index(), adj_info.direction as u8);
 
         assert!(self.graph.is_connected(van_cell_index, adj_info.direction));
+        assert!(self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite() ));
 
         //Now we remove the edge
         self.graph.set_is_connected(van_cell_index, adj_info.direction, false);
 
         assert!(!self.graph.is_connected(van_cell_index, adj_info.direction));
+        //Edge is already removed because DRY; we cant do a U turn
+        assert!(!self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite() ));
 
         //remove van & set used mask
         self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction.index());
 
         //add van to next square
-
-        let moving_to_cell_index =adj_info.cell_index;
-
         {
             let van = self.current_van_mut();
             van.cell_index = moving_to_cell_index;
@@ -417,13 +418,7 @@ impl GridState {
 
         assert_eq!(1 << adj_info.direction.opposite().index() , adj_info.direction.opposite() as u8);
 
-        assert!(self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite() ));
-        //Now we remove the edge; we cant do a U turn
-        self.graph.set_is_connected(moving_to_cell_index, adj_info.direction.opposite(), false);
-
-        assert!(!self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite()));
-
-        self.tiles[moving_to_cell_index.0].set_arriving_van(self.current_van_index, &self.vans[self.current_van_index.0], self.tick, 
+        self.tiles[moving_to_cell_index.0].set_arriving_van(self.current_van_index, &self.vans[self.current_van_index.0], self.tick,
             //opposite direction index
             ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap());
            

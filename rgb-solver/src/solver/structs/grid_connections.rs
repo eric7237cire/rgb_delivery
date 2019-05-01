@@ -14,8 +14,8 @@ impl GridConnections {
 
     pub fn new(num_rows: usize, num_cols: usize) -> Self {
         GridConnections {
-            is_connected: BitVec::with_capacity(
-                num_rows * (num_cols - 1) + num_cols * (num_rows - 1)),
+            is_connected: bitvec![0;
+                num_rows * (num_cols - 1) + num_cols * (num_rows - 1)],
             num_rows,
             num_cols
         }
