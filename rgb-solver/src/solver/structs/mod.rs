@@ -18,7 +18,7 @@ pub use self::tile::TileEnum;
 
 pub use self::road::Road;
 pub use self::bridge::Bridge;
-pub use self::grid_connections::GridConnections;
+pub use self::grid_connections::{GridConnections,GridConnectionsStaticInfo,AdjSquareInfo};
 
 pub use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index};
 
@@ -104,12 +104,6 @@ pub struct ChoiceOverride {
 }
 
 
-//internal helper
-#[derive(Debug)]
-pub struct AdjSquareInfo {
-    pub direction: Direction,
-    pub cell_index: CellIndex,
-}
 
 #[derive(Default, Serialize, Deserialize, TypescriptDefinition)]
 pub struct CalculationResponse {

@@ -1,5 +1,5 @@
 use crate::solver::grid_state::{GridState, GridAnalysis};
-use super::structs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse,ALL_DIRECTIONS,get_adjacent_index};
+use super::structs::{ChoiceOverride, CellIndex, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse,ALL_DIRECTIONS,get_adjacent_index};
 use std::collections::vec_deque::VecDeque;
 
 use super::structs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
@@ -9,7 +9,7 @@ use wasm_bindgen::prelude::*;
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
 use super::structs::Direction::NORTH;
-use crate::solver::structs::GridConnections;
+use crate::solver::structs::{GridConnections, GridConnectionsStaticInfo};
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -26,6 +26,10 @@ pub struct Universe {
     pub(crate) iter_count: usize,
 
     pub(crate) analysis: GridAnalysis,
+
+    pub(crate) gc_static_info: GridConnectionsStaticInfo
+
+
 }
 
 //private
@@ -84,9 +88,11 @@ impl Universe {
     }
 
 
-    pub(crate) fn initial_graph(&self) -> GridConnections {
+    pub(crate) fn initial_graph(&self) -> (GridConnections,GridConnectionsStaticInfo) {
 
         let mut gc = GridConnections::new( self.data.height, self.data.width );
+
+        let so = gc.build_static_info();
 
         for (cur_square_index, tile) in self.data.tiles.iter().enumerate() {
 
@@ -103,14 +109,14 @@ impl Universe {
                         {
                             if (connection_mask & (*adj_dir as u8)) > 0 && (adj_connection_mask & (adj_dir.opposite() as u8) > 0) {
                                 assert_eq!(*adj_dir as u8, 1 << dir_idx);
-                                gc.set_is_connected(cell_index, *adj_dir, true);
+                                gc.set_is_connected(&so, cell_index, *adj_dir, true);
 
                             }
                         } else if adj_dir == &NORTH {
                             if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
                                 assert_eq!(*adj_dir as u8, 1 << dir_idx);
-                                gc.set_is_connected(cell_index, *adj_dir, true);
+                                gc.set_is_connected(&so, cell_index, *adj_dir, true);
                             }
                         }
                     }
@@ -121,7 +127,7 @@ impl Universe {
 
         }
 
-        gc
+        (gc,so)
     }
 
     pub(crate) fn initial_graph_analysis(&self) -> GridAnalysis {
@@ -147,7 +153,7 @@ impl Universe {
 
             let van_index = VanIndex(van_index);
 
-            let van_adj_cells:Vec<_> = self.data.graph.get_adjacent_square_indexes(
+            let van_adj_cells:Vec<_> = self.data.graph.get_adjacent_square_indexes(&self.gc_static_info,
                 van.cell_index).collect();
 
             if van_adj_cells.len() != 2 {
@@ -161,7 +167,8 @@ impl Universe {
                 let mut cur_cell_index:CellIndex = potential_force_cell.cell_index;
                 loop {
                     let next_cell_index = self.data.graph.get_adjacent_square_indexes(
-                 cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<AdjSquareInfo>>();
+                        &self.gc_static_info,
+                 cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<_>>();
 
                     if next_cell_index.len() != 1  {
                         break;
@@ -302,7 +309,7 @@ impl Universe {
                      self.iter_count, self.queue.len(), cur_state.tick);
             }
 
-            if !cur_state.check_graph_validity() {
+            if !cur_state.check_graph_validity(&self.gc_static_info) {
                 log_trace!("Rejecting state");
                 continue;
             }
@@ -318,7 +325,7 @@ impl Universe {
             };
 
             //check if we can drop a block off
-            match cur_state.handle_warehouse_drop_off() {
+            match cur_state.handle_warehouse_drop_off(&self.gc_static_info) {
                 Ok(Some(next_state)) => {
                     self.queue.push_front(next_state);
                 }
@@ -347,7 +354,7 @@ impl Universe {
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
             //Where could we move?  (looks at mask & grid)
-            let adj_info_filtered_list =  cur_state.graph.get_adjacent_square_indexes(van_cell_index).filter_map(
+            let adj_info_filtered_list =  cur_state.graph.get_adjacent_square_indexes(&self.gc_static_info, van_cell_index).filter_map(
                 |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt,a_info));
 
             //log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
@@ -359,7 +366,7 @@ impl Universe {
                 //make the move
                 let mut next_state = cur_state.clone();
 
-                next_state.handle_move(van_cell_index, &adj_info);
+                next_state.handle_move(&self.gc_static_info, van_cell_index, &adj_info);
 
                 //checking tile consistency
                 {
@@ -522,7 +529,11 @@ impl Universe {
 
         log!("Init graph");
 
-        self.data.graph = self.initial_graph();
+        let ab = self.initial_graph();
+        self.data.graph = ab.0;
+        self.gc_static_info =ab.1;
+
+
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
             if let TileWarehouse(_) = t {

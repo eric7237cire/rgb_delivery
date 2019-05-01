@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
-use crate::solver::structs::{Van, GridConnections, get_adjacent_index};
+use crate::solver::structs::{Van, GridConnections, get_adjacent_index, GridConnectionsStaticInfo};
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -335,10 +335,10 @@ impl GridState {
         }
     }
 
-    pub (crate) fn filter_map_by_can_have_van(
+    pub (crate) fn filter_map_by_can_have_van<'a>(
         &self,
         fixed_choice_opt: &Option<ChoiceOverride>,
-        adj_square_info: AdjSquareInfo) -> Option<AdjSquareInfo> 
+        adj_square_info: &'a AdjSquareInfo) -> Option<&'a AdjSquareInfo>
         
     {
 
@@ -383,6 +383,7 @@ impl GridState {
 
     pub(crate) fn handle_move(
         &mut self,
+        gc_static_info: &GridConnectionsStaticInfo,
         van_cell_index: CellIndex, 
         adj_info: &AdjSquareInfo) {
         //now we have checked it is a road without a van in it, the mask is ok, etc.
@@ -396,15 +397,15 @@ impl GridState {
         //must have a connection in the direction we are moving
         assert_eq!(1 << adj_info.direction.index(), adj_info.direction as u8);
 
-        assert!(self.graph.is_connected(van_cell_index, adj_info.direction));
-        assert!(self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite() ));
+        assert!(self.graph.is_connected(gc_static_info, van_cell_index, adj_info.direction));
+        assert!(self.graph.is_connected(gc_static_info, moving_to_cell_index, adj_info.direction.opposite() ));
 
         //Now we remove the edge
-        self.graph.set_is_connected(van_cell_index, adj_info.direction, false);
+        self.graph.set_is_connected(gc_static_info, van_cell_index, adj_info.direction, false);
 
-        assert!(!self.graph.is_connected(van_cell_index, adj_info.direction));
+        assert!(!self.graph.is_connected(gc_static_info, van_cell_index, adj_info.direction));
         //Edge is already removed because DRY; we cant do a U turn
-        assert!(!self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite() ));
+        assert!(!self.graph.is_connected(gc_static_info, moving_to_cell_index, adj_info.direction.opposite() ));
 
         //remove van & set used mask
         self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction.index());
@@ -426,7 +427,7 @@ impl GridState {
 
 
     //if did a drop off, returns a grid state to enqueue
-    pub fn handle_warehouse_drop_off(&mut self) -> Result<Option<Self>, ()> {
+    pub fn handle_warehouse_drop_off(&mut self, gc_static_info: &GridConnectionsStaticInfo) -> Result<Option<Self>, ()> {
         //check if we can drop a block off
         if self.empty_warehouse_color().is_some() {
             match self.can_drop_off_block() {
@@ -449,7 +450,7 @@ impl GridState {
 
                         //disconnect this square and everything adjacent to it
                         for dir in ALL_DIRECTIONS.iter() {
-                            if_van_stops_state.graph.set_is_connected(stopped_cell_index, *dir, false);
+                            if_van_stops_state.graph.set_is_connected(gc_static_info, stopped_cell_index, *dir, false);
                         }
 
 
@@ -549,13 +550,13 @@ impl GridState {
     ///basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color    
     //warning on component_number
     #[allow(unused_variables)]
-    pub(crate) fn check_graph_validity(&self) -> bool {
+    pub(crate) fn check_graph_validity(&self, gs_static_info: &GridConnectionsStaticInfo) -> bool {
 
         let mut ds = DisjointSet::new(self.tiles.len());
 
         for cell_index in (0..self.height * self.width).map( |i| CellIndex(i)) {
 
-            for  dir in ALL_DIRECTIONS.iter().filter( | &dir | self.graph.is_connected(cell_index, *dir)) {
+            for  dir in ALL_DIRECTIONS.iter().filter( | &dir | self.graph.is_connected(gs_static_info, cell_index, *dir)) {
                 let adj_idx = get_adjacent_index(
                     cell_index, self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
 
