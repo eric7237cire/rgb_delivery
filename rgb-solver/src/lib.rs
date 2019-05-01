@@ -6,8 +6,8 @@ extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 
-#[macro_use]
-extern crate bitvec;
+//#[macro_use]
+//extern crate bitvec;
 
 //use bitvec::prelude::*;
 

@@ -108,13 +108,13 @@ impl Universe {
                         if let Some(adj_connection_mask) = self.data.tiles[adj_square_index.0].get_connection_mask()
                         {
                             if (connection_mask & (1 << *adj_dir as u8)) > 0 && (adj_connection_mask & (1 << adj_dir.opposite() as u8) > 0) {
-                                gc.set_is_connected(&so, cell_index, *adj_dir, true);
+                                gc.set_is_connected( cell_index, *adj_dir, true);
 
                             }
                         } else if adj_dir == &NORTH {
                             if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
-                                gc.set_is_connected(&so, cell_index, *adj_dir, true);
+                                gc.set_is_connected( cell_index, *adj_dir, true);
                             }
                         }
                     }
@@ -364,7 +364,7 @@ impl Universe {
                 //make the move
                 let mut next_state = cur_state.clone();
 
-                next_state.handle_move(&self.gc_static_info, van_cell_index, &adj_info);
+                next_state.handle_move(van_cell_index, adj_info);
 
                 //checking tile consistency
                 {

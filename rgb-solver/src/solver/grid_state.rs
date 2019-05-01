@@ -4,7 +4,6 @@ use super::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Bu
 
 use super::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 
-use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
@@ -383,8 +382,7 @@ impl GridState {
 
     pub(crate) fn handle_move(
         &mut self,
-        gc_static_info: &GridConnectionsStaticInfo,
-        van_cell_index: CellIndex, 
+        van_cell_index: CellIndex,
         adj_info: &AdjSquareInfo) {
         //now we have checked it is a road without a van in it, the mask is ok, etc.
 
@@ -395,15 +393,16 @@ impl GridState {
         let moving_to_cell_index =adj_info.cell_index;
 
         //must have a connection in the direction we are moving
-        assert!(self.graph.is_connected(gc_static_info, van_cell_index, adj_info.direction));
-        assert!(self.graph.is_connected(gc_static_info, moving_to_cell_index, adj_info.direction.opposite() ));
+        assert!(self.graph.is_connected( van_cell_index, adj_info.direction));
+        assert!(self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
 
         //Now we remove the edge
-        self.graph.set_is_connected(gc_static_info, van_cell_index, adj_info.direction, false);
+        self.graph.set_is_connected( van_cell_index, adj_info.direction, false);
+        self.graph.set_is_connected( moving_to_cell_index, adj_info.direction.opposite(), false);
 
-        assert!(!self.graph.is_connected(gc_static_info, van_cell_index, adj_info.direction));
+        assert!(!self.graph.is_connected( van_cell_index, adj_info.direction));
         //Edge is already removed because DRY; we cant do a U turn
-        assert!(!self.graph.is_connected(gc_static_info, moving_to_cell_index, adj_info.direction.opposite() ));
+        assert!(!self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
 
         //remove van & set used mask
         self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction as usize);
@@ -445,8 +444,11 @@ impl GridState {
                         assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
 
                         //disconnect this square and everything adjacent to it
-                        for dir in ALL_DIRECTIONS.iter() {
-                            if_van_stops_state.graph.set_is_connected(gc_static_info, stopped_cell_index, *dir, false);
+                        let adj: Vec<_> =  if_van_stops_state.graph.get_adjacent_square_indexes(gc_static_info, stopped_cell_index).cloned().collect();
+
+                        for a in adj.into_iter() {
+                            if_van_stops_state.graph.set_is_connected( stopped_cell_index, a.direction, false);
+                            if_van_stops_state.graph.set_is_connected( a.cell_index, a.direction.opposite(), false);
                         }
 
 
@@ -550,23 +552,17 @@ impl GridState {
 
         let mut ds = DisjointSet::new(self.tiles.len());
 
-        for cell_index in (0..self.height * self.width).map( |i| CellIndex(i)) {
-
-            for  dir in ALL_DIRECTIONS.iter().filter( | &dir | self.graph.is_connected(gs_static_info, cell_index, *dir)) {
-                let adj_idx = get_adjacent_index(
-                    cell_index, self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
-
+        for cell_index in 0..self.height * self.width {
+            for ai in self.graph.get_adjacent_square_indexes(gs_static_info, CellIndex(cell_index)) {
                 //log_trace!("Merging cells {} and {}", idx, adj_idx);
-                ds.merge_sets(cell_index.0, adj_idx.0);
-
+                ds.merge_sets(cell_index, ai.cell_index.0);
             }
-
         }
 
         //for each color, get unfilled warehouse count & block count
 
-        let mut component_to_counts: HashMap<usize, [ [usize;3]; NUM_COLORS ]> = HashMap::new();
-
+        let mut component_to_counts: Vec< [ [usize;3]; NUM_COLORS ]> = vec![ Default::default(); ds.number_of_elems() ];
+        //let index_to_comp_num
         //let mut component_to_has_popper: HashMap<usize, bool> = HashMap::new();
 
         for (idx, tile) in self.tiles.iter().enumerate() {
@@ -615,7 +611,7 @@ impl GridState {
         }
 
         //now we can check for consistency
-        for (component_number, color_count) in component_to_counts.iter() {
+        for (component_number, color_count) in component_to_counts.iter().enumerate() {
 
             for color_index in 0..NUM_COLORS {
                 if color_count[color_index][BLOCK as usize] != color_count[color_index][WAREHOUSE as usize] {
@@ -677,10 +673,8 @@ enum ComponentMapIdx {
 }
 
 //indexs block 0, warehouse 1, van 2
-fn add_component_to_map(component_to_counts: &mut HashMap<usize, [ [usize;3]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
+fn add_component_to_map(component_to_counts: &mut Vec< [ [usize;3]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
 
-    let counts = component_to_counts.entry(component_number).or_insert(Default::default());
-
-    counts[color.0][thing_idx as usize] += 1
+    component_to_counts[component_number][color.0][thing_idx as usize] += 1
 
 }
