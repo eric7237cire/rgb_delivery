@@ -11,7 +11,12 @@ Version History:
 
 # 0.1.0-progress.5 
 
-* Fix bug where a stopped van could be passed through 
+* Fix bug where a stopped van could be passed through
+
+# 0.1.1
+
+* Refactoring grid connections to be more compact
+* Reorg structs to use modules 
 
 00
 01

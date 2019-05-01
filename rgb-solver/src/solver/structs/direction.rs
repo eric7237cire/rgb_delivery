@@ -1,6 +1,6 @@
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[repr(u8)]
-pub(crate) enum Direction {
+pub enum Direction {
     NORTH = 1,
     EAST = 2,
     SOUTH = 4,
@@ -30,7 +30,7 @@ impl Direction {
     }
 }
 
-pub (crate) fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_width: usize, dir: Direction) -> Option<CellIndex> {
+pub fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_width: usize, dir: Direction) -> Option<CellIndex> {
 
     let (cell_row_index, cell_col_index) = square_index.to_row_col(grid_width);
 
@@ -66,4 +66,4 @@ pub (crate) fn get_adjacent_index(square_index: CellIndex, grid_height: usize, g
     }
 }
 
-pub(crate) const ALL_DIRECTIONS: [Direction; 4] = [NORTH, EAST, SOUTH, WEST];
+pub const ALL_DIRECTIONS: [Direction; 4] = [NORTH, EAST, SOUTH, WEST];

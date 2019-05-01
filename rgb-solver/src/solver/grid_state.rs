@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use super::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex,ALL_DIRECTIONS,get_adjacent_index};
+use super::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex,ALL_DIRECTIONS};
 
 use super::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 
@@ -8,7 +8,7 @@ use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
-use crate::solver::structs::Van;
+use crate::solver::structs::{Van, GridConnections, get_adjacent_index};
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -19,14 +19,6 @@ pub struct GridAnalysis {
     pub forced_choices: Vec<ChoiceOverride>
 }
 
-#[derive(Default,Clone)]
-pub struct GridGraph {
-
-    //contains adj node, indexs are ALL_DIRECTIONS.  Stores index to adj square
-
-    //index is tile index; 4 bits are used to determine if connected
-    pub is_connected: Vec<u8>
-}
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct GridState {
@@ -36,7 +28,7 @@ pub struct GridState {
     pub tiles: Vec<TileEnum>,
 
     #[serde(skip)]
-    pub graph: GridGraph,
+    pub graph: GridConnections,
 
     //Js=>Rust will ignore this
     #[serde(skip_deserializing)]
@@ -343,14 +335,10 @@ impl GridState {
         }
     }
 
-    pub (crate) fn get_cur_is_connected_mask(&self) -> u8 {
-        self.graph.is_connected[ self.current_cell_index().0 ]        
-    }
-
-    pub (crate) fn filter_map_by_can_have_van<'a>(
+    pub (crate) fn filter_map_by_can_have_van(
         &self,
         fixed_choice_opt: &Option<ChoiceOverride>,
-        adj_square_info: &'a AdjSquareInfo) -> Option<&'a AdjSquareInfo> 
+        adj_square_info: AdjSquareInfo) -> Option<AdjSquareInfo> 
         
     {
 
@@ -407,12 +395,12 @@ impl GridState {
         //must have a connection in the direction we are moving
         assert_eq!(1 << adj_info.direction.index(), adj_info.direction as u8);
 
-        assert!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 > 0);
+        assert!(self.graph.is_connected(van_cell_index, adj_info.direction));
 
         //Now we remove the edge
-        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction.index());
+        self.graph.set_is_connected(van_cell_index, adj_info.direction, false);
 
-        assert_eq!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 , 0);
+        assert!(!self.graph.is_connected(van_cell_index, adj_info.direction));
 
         //remove van & set used mask
         self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction.index());
@@ -429,11 +417,11 @@ impl GridState {
 
         assert_eq!(1 << adj_info.direction.opposite().index() , adj_info.direction.opposite() as u8);
 
-        assert!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8 > 0);
+        assert!(self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite() ));
         //Now we remove the edge; we cant do a U turn
-        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << adj_info.direction.opposite().index());
+        self.graph.set_is_connected(moving_to_cell_index, adj_info.direction.opposite(), false);
 
-        assert_eq!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8, 0);
+        assert!(!self.graph.is_connected(moving_to_cell_index, adj_info.direction.opposite()));
 
         self.tiles[moving_to_cell_index.0].set_arriving_van(self.current_van_index, &self.vans[self.current_van_index.0], self.tick, 
             //opposite direction index
@@ -464,25 +452,10 @@ impl GridState {
 
                         assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
 
-                        //disconnect this square
-                        if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
-
-                        //and everything adjacent to it
-                        for (adj_idx, opp_dir) in ALL_DIRECTIONS.iter().filter_map(| dir| {
-
-                            if let Some(adj_idx) = get_adjacent_index(stopped_cell_index,
-                                                             self.height,
-                                                             self.width,
-                                                             *dir) {
-
-                                    Some( (adj_idx, dir.opposite()) )
-                            } else {
-                                None
-                            }
-                            }) {
-
-                                if_van_stops_state.graph.is_connected[adj_idx.0] &= !(1 << opp_dir.index());
-                            }
+                        //disconnect this square and everything adjacent to it
+                        for dir in ALL_DIRECTIONS.iter() {
+                            if_van_stops_state.graph.set_is_connected(stopped_cell_index, *dir, false);
+                        }
 
 
                         Ok(Some(if_van_stops_state))
@@ -585,15 +558,15 @@ impl GridState {
 
         let mut ds = DisjointSet::new(self.tiles.len());
 
-        for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
+        for cell_index in (0..self.height * self.width).map( |i| CellIndex(i)) {
 
-            for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate() {
-                if is_connected_mask & (1 << dir_idx) > 0 {
-                    let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
+            for  dir in ALL_DIRECTIONS.iter().filter( | &dir | self.graph.is_connected(cell_index, *dir)) {
+                let adj_idx = get_adjacent_index(
+                    cell_index, self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
 
-                    //log_trace!("Merging cells {} and {}", idx, adj_idx);
-                    ds.merge_sets(idx, adj_idx.0);
-                }
+                //log_trace!("Merging cells {} and {}", idx, adj_idx);
+                ds.merge_sets(cell_index.0, adj_idx.0);
+
             }
 
         }

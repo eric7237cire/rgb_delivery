@@ -18,8 +18,9 @@ pub use self::tile::TileEnum;
 
 pub use self::road::Road;
 pub use self::bridge::Bridge;
+pub use self::grid_connections::GridConnections;
 
-pub (crate) use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index};
+pub use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index};
 
 pub use self::road::{NavigableTileStatic, NavigableTileDynamic};
 
@@ -105,9 +106,9 @@ pub struct ChoiceOverride {
 
 //internal helper
 #[derive(Debug)]
-pub(crate) struct AdjSquareInfo {
-    pub(crate) direction: Direction,
-    pub(crate) cell_index: CellIndex,
+pub struct AdjSquareInfo {
+    pub direction: Direction,
+    pub cell_index: CellIndex,
 }
 
 #[derive(Default, Serialize, Deserialize, TypescriptDefinition)]

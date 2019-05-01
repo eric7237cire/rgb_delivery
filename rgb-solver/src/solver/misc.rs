@@ -7,10 +7,6 @@ use crate::solver::structs::TileEnum::{TileWarehouse};
 //use crate::solver::utils::VAN_LABEL;
 
 use crate::solver::structs::Warehouse;
-use crate::solver::grid_state::GridGraph;
-use core::cmp;
-
-
 
 impl TileEnum {
     pub(crate) fn mut_warehouse(&mut self) -> &mut Warehouse {
@@ -46,6 +42,7 @@ impl TileEnum {
 
 //https://stackoverflow.com/questions/11218746/bridges-in-a-connected-graph/11221469#11221469
 
+/*
 #[derive(Default)]
 pub(crate) struct GraphBridge {
     bridges: usize,      // number of bridges
@@ -53,9 +50,11 @@ pub(crate) struct GraphBridge {
     pre: Vec<Option<usize>>,        // pre[v] = order in which dfs examines v
     low: Vec<Option<usize>>         // low[v] = lowest preorder of any vertex connected to v
 }
+*/
 
-impl GraphBridge {
+//impl GraphBridge {
 
+    /*
     pub(crate) fn do_it(&mut self, graph: &GridGraph, grid_height: usize, grid_width: usize) {
 
         let n_vertices = graph.is_connected.len();
@@ -110,7 +109,7 @@ impl GraphBridge {
 
 
 
-    }
+    }*/
 
     // test client
     /*
@@ -125,5 +124,5 @@ impl GraphBridge {
     }*/
 
 
-}
+//}
 

@@ -1,7 +1,7 @@
-use crate::solver::grid_state::{GridState, GridAnalysis, GridGraph};
+use crate::solver::grid_state::{GridState, GridAnalysis};
 use super::structs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse,ALL_DIRECTIONS,get_adjacent_index};
 use std::collections::vec_deque::VecDeque;
-use crate::solver::misc::{ GraphBridge};
+
 use super::structs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
 use super::structs::Van;
 use wasm_bindgen::JsValue;
@@ -9,6 +9,7 @@ use wasm_bindgen::prelude::*;
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
 use super::structs::Direction::NORTH;
+use crate::solver::structs::GridConnections;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -29,26 +30,6 @@ pub struct Universe {
 
 //private
 impl Universe {
-    /// Gets adj indexes, checking grid limits
-    fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
-                                   is_connected_mask: u8) -> Vec<AdjSquareInfo>
-    {
-        ALL_DIRECTIONS.iter().filter_map(| dir | {
-
-            //first check the mask
-            if is_connected_mask & *dir as u8 == 0 {
-                return None;
-            }
-
-            let adj_index = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
-
-            if let Some(adj_index) = adj_index {
-                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index })
-            } else {
-                None
-            }
-        }).collect()
-    }
 
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
@@ -103,13 +84,16 @@ impl Universe {
     }
 
 
-    pub(crate) fn initial_graph(&self) -> GridGraph {
-        let is_connected_list = self.data.tiles.iter().enumerate().map(|(cur_square_index, tile)| {
+    pub(crate) fn initial_graph(&self) -> GridConnections {
 
+        let mut gc = GridConnections::new( self.data.height, self.data.width );
+
+        for (cur_square_index, tile) in self.data.tiles.iter().enumerate() {
 
             if let Some(connection_mask) = tile.get_connection_mask() {
 
-                let mut is_connected: u8 = 0;
+                let cell_index = CellIndex(cur_square_index);
+
 
                 for (dir_idx, adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
                     let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
@@ -119,26 +103,25 @@ impl Universe {
                         {
                             if (connection_mask & (*adj_dir as u8)) > 0 && (adj_connection_mask & (adj_dir.opposite() as u8) > 0) {
                                 assert_eq!(*adj_dir as u8, 1 << dir_idx);
-                                is_connected |= 1 << dir_idx;
+                                gc.set_is_connected(cell_index, *adj_dir, true);
+
                             }
                         } else if adj_dir == &NORTH {
                             if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
                                 assert_eq!(*adj_dir as u8, 1 << dir_idx);
-                                is_connected |= 1 << dir_idx;
+                                gc.set_is_connected(cell_index, *adj_dir, true);
                             }
                         }
                     }
                 }
-
-                is_connected
             } else {
-                0
+                continue;
             }
 
-        }).collect();
+        }
 
-        GridGraph { is_connected: is_connected_list }
+        gc
     }
 
     pub(crate) fn initial_graph_analysis(&self) -> GridAnalysis {
@@ -146,9 +129,9 @@ impl Universe {
         //for the moment, not useful since this basically finds warehouses and dead ends
         //later might be interesting to use to make sure if a van & warehouse are on one side of a bridge
         //and the block on another, we can eliminate a gridstate candidate
-        let mut b: GraphBridge = Default::default();
-        log_trace!("Finding bridges");
-        b.do_it(&self.data.graph, self.data.height, self.data.width);
+        //let mut b: GraphBridge = Default::default();
+        //log_trace!("Finding bridges");
+        //b.do_it(&self.data.graph, self.data.height, self.data.width);
 
 
         let mut ga = GridAnalysis {
@@ -164,11 +147,12 @@ impl Universe {
 
             let van_index = VanIndex(van_index);
 
-            if  self.data.graph.is_connected[van.cell_index.0].count_ones() != 2 {
+            let van_adj_cells:Vec<_> = self.data.graph.get_adjacent_square_indexes(
+                van.cell_index).collect();
+
+            if van_adj_cells.len() != 2 {
                 continue;
             }
-
-            let van_adj_cells = self.get_adjacent_square_indexes(van.cell_index, self.data.graph.is_connected[van.cell_index.0]);
 
             assert_eq!(2, van_adj_cells.len());
 
@@ -176,8 +160,8 @@ impl Universe {
                 let mut last_cell_index:CellIndex = van.cell_index;
                 let mut cur_cell_index:CellIndex = potential_force_cell.cell_index;
                 loop {
-                    let next_cell_index = self.get_adjacent_square_indexes(cur_cell_index, self.data.graph.is_connected[cur_cell_index.0])
-                       .into_iter().filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<AdjSquareInfo>>();
+                    let next_cell_index = self.data.graph.get_adjacent_square_indexes(
+                 cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<AdjSquareInfo>>();
 
                     if next_cell_index.len() != 1  {
                         break;
@@ -354,34 +338,28 @@ impl Universe {
             };
 
 
-            let cur_is_connected_mask = cur_state.get_cur_is_connected_mask();
-
-            log_trace!("Current used mask: {:#07b}", cur_is_connected_mask);
 
             //now attempt to move
-
-            //Where could we move?  (looks at mask & grid)
-            let adj_square_indexes = self.get_adjacent_square_indexes(
-                van_cell_index, cur_is_connected_mask);
 
             log_trace!("Adj squares: {:?}", adj_square_indexes);
             let mut any_moved = false;
 
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
-            let adj_info_filtered_list: Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
-                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt, a_info)).collect();
+            //Where could we move?  (looks at mask & grid)
+            let adj_info_filtered_list =  cur_state.graph.get_adjacent_square_indexes(van_cell_index).filter_map(
+                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt,a_info));
 
-            log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
+            //log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
 
-            for adj_info in adj_info_filtered_list.into_iter() {
+            for adj_info in adj_info_filtered_list {
 
                 //now we have checked it is a road without a van in it, the mask is ok, etc.
 
                 //make the move
                 let mut next_state = cur_state.clone();
 
-                next_state.handle_move(van_cell_index, adj_info);
+                next_state.handle_move(van_cell_index, &adj_info);
 
                 //checking tile consistency
                 {
