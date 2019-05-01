@@ -20,14 +20,7 @@ impl Direction {
         }
     }
 
-    pub(crate) fn index(&self) -> usize {
-        match self {
-            NORTH => 0,
-            EAST => 1,
-            SOUTH => 2,
-            WEST => 3
-        }
-    }
+
 }
 
 pub fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_width: usize, dir: Direction) -> Option<CellIndex> {

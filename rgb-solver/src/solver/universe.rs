@@ -101,21 +101,19 @@ impl Universe {
                 let cell_index = CellIndex(cur_square_index);
 
 
-                for (dir_idx, adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
+                for adj_dir in ALL_DIRECTIONS.iter() {
                     let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
 
                     if let Some(adj_square_index) = adj_square_index {
                         if let Some(adj_connection_mask) = self.data.tiles[adj_square_index.0].get_connection_mask()
                         {
-                            if (connection_mask & (*adj_dir as u8)) > 0 && (adj_connection_mask & (adj_dir.opposite() as u8) > 0) {
-                                assert_eq!(*adj_dir as u8, 1 << dir_idx);
+                            if (connection_mask & (1 << *adj_dir as u8)) > 0 && (adj_connection_mask & (1 << adj_dir.opposite() as u8) > 0) {
                                 gc.set_is_connected(&so, cell_index, *adj_dir, true);
 
                             }
                         } else if adj_dir == &NORTH {
                             if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
-                                assert_eq!(*adj_dir as u8, 1 << dir_idx);
                                 gc.set_is_connected(&so, cell_index, *adj_dir, true);
                             }
                         }
@@ -197,7 +195,7 @@ impl Universe {
                     row_index: rc.0,
                     col_index: rc.1,
                     van_index: Some(van_index),
-                    direction_index: forced_adj_cell.direction.index(),
+                    direction_index: forced_adj_cell.direction as usize,
                     ..Default::default()
                 });
 

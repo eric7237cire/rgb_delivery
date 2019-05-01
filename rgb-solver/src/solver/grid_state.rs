@@ -342,7 +342,7 @@ impl GridState {
         
     {
 
-        let direction_index = adj_square_info.direction.index();
+        let direction_index = adj_square_info.direction as usize;
         let adj_cell_index = adj_square_info.cell_index;
 
         if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
@@ -395,8 +395,6 @@ impl GridState {
         let moving_to_cell_index =adj_info.cell_index;
 
         //must have a connection in the direction we are moving
-        assert_eq!(1 << adj_info.direction.index(), adj_info.direction as u8);
-
         assert!(self.graph.is_connected(gc_static_info, van_cell_index, adj_info.direction));
         assert!(self.graph.is_connected(gc_static_info, moving_to_cell_index, adj_info.direction.opposite() ));
 
@@ -408,7 +406,7 @@ impl GridState {
         assert!(!self.graph.is_connected(gc_static_info, moving_to_cell_index, adj_info.direction.opposite() ));
 
         //remove van & set used mask
-        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction.index());
+        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction as usize);
 
         //add van to next square
         {
@@ -416,8 +414,6 @@ impl GridState {
             van.cell_index = moving_to_cell_index;
             van.tick += 1;
         }
-
-        assert_eq!(1 << adj_info.direction.opposite().index() , adj_info.direction.opposite() as u8);
 
         self.tiles[moving_to_cell_index.0].set_arriving_van(self.current_van_index, &self.vans[self.current_van_index.0], self.tick,
             //opposite direction index
