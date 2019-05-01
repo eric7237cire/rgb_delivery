@@ -6,38 +6,10 @@ use crate::solver::structs::TileEnum::{TileWarehouse};
 
 //use crate::solver::utils::VAN_LABEL;
 
-use crate::solver::structs::Directions::*;
-
 use crate::solver::structs::Warehouse;
 use crate::solver::grid_state::GridGraph;
 use core::cmp;
 
-
-impl Directions {
-    pub(crate) fn opposite(&self) -> Directions {
-        match self {
-            NORTH => SOUTH,
-            EAST => WEST,
-            SOUTH => NORTH,
-            WEST => EAST
-        }
-    }
-}
-
-pub(crate) fn opposite_dir_index(dir_index: usize) -> usize {
-        match dir_index {
-            0 => 2,
-            1 => 3,
-            2 => 0,
-            3 => 1,
-            _ => panic!("Not a valid dir index")
-        }
-    }
-
-
-
-
-pub (crate) const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];
 
 
 impl TileEnum {
@@ -51,42 +23,6 @@ impl TileEnum {
     }
 }
 
-
-pub (crate) fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_width: usize,  dir: Directions) -> Option<CellIndex> {
-
-    let (cell_row_index, cell_col_index) = square_index.to_row_col(grid_width);
-
-    match dir {
-        NORTH => {
-            if cell_row_index == 0 {
-                None
-            } else {
-                Some(CellIndex(square_index.0 - grid_width))
-            }
-        }
-        SOUTH => {
-            if cell_row_index >= grid_height - 1 {
-                None
-            } else {
-                Some(CellIndex(square_index.0 + grid_width))
-            }
-        }
-        EAST => {
-            if cell_col_index >= grid_width - 1 {
-                None
-            } else {
-                Some(CellIndex(square_index.0 + 1))
-            }
-        }
-        WEST => {
-            if cell_col_index == 0 {
-                None
-            } else {
-                Some(CellIndex(square_index.0 - 1))
-            }
-        }
-    }
-}
 
 
 //Copyright © 2000–2017, Robert Sedgewick and Kevin Wayne.  (Modified to be in Rust...)

@@ -6,6 +6,10 @@ extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 
+//extern crate bitvec;
+
+//use bitvec::prelude::*;
+
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]

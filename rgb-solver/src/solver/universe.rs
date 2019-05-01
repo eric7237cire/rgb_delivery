@@ -1,14 +1,14 @@
 use crate::solver::grid_state::{GridState, GridAnalysis, GridGraph};
-use super::structs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse};
+use super::structs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse,ALL_DIRECTIONS,get_adjacent_index};
 use std::collections::vec_deque::VecDeque;
-use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, GraphBridge};
+use crate::solver::misc::{ GraphBridge};
 use super::structs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
 use super::structs::Van;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
-use super::structs::Directions::NORTH;
+use super::structs::Direction::NORTH;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -33,7 +33,7 @@ impl Universe {
     fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
                                    is_connected_mask: u8) -> Vec<AdjSquareInfo>
     {
-        ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index, dir)| {
+        ALL_DIRECTIONS.iter().filter_map(| dir | {
 
             //first check the mask
             if is_connected_mask & *dir as u8 == 0 {
@@ -43,7 +43,7 @@ impl Universe {
             let adj_index = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
 
             if let Some(adj_index) = adj_index {
-                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index, direction_index: dir_index })
+                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index })
             } else {
                 None
             }
@@ -206,7 +206,7 @@ impl Universe {
                     row_index: rc.0,
                     col_index: rc.1,
                     van_index: Some(van_index),
-                    direction_index: forced_adj_cell.direction_index,
+                    direction_index: forced_adj_cell.direction.index(),
                     ..Default::default()
                 });
 

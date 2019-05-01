@@ -1,9 +1,9 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use super::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
+use super::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex,ALL_DIRECTIONS,get_adjacent_index};
 
 use super::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
-use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, opposite_dir_index};
+
 use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
@@ -354,7 +354,7 @@ impl GridState {
         
     {
 
-        let direction_index = adj_square_info.direction_index;
+        let direction_index = adj_square_info.direction.index();
         let adj_cell_index = adj_square_info.cell_index;
 
         if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
@@ -405,17 +405,17 @@ impl GridState {
 
         
         //must have a connection in the direction we are moving
-        assert_eq!(1 << adj_info.direction_index, adj_info.direction as u8);
+        assert_eq!(1 << adj_info.direction.index(), adj_info.direction as u8);
 
         assert!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 > 0);
 
         //Now we remove the edge
-        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction_index); 
+        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction.index());
 
         assert_eq!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 , 0);
 
         //remove van & set used mask
-        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction_index); 
+        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction.index());
 
         //add van to next square
 
@@ -427,11 +427,11 @@ impl GridState {
             van.tick += 1;
         }
 
-        assert_eq!(1 << opposite_dir_index( adj_info.direction_index ), adj_info.direction.opposite() as u8);
+        assert_eq!(1 << adj_info.direction.opposite().index() , adj_info.direction.opposite() as u8);
 
         assert!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8 > 0);
         //Now we remove the edge; we cant do a U turn
-        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << opposite_dir_index(adj_info.direction_index)); 
+        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << adj_info.direction.opposite().index());
 
         assert_eq!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8, 0);
 
@@ -468,20 +468,20 @@ impl GridState {
                         if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
 
                         //and everything adjacent to it
-                        for (adj_idx, opp_dir_idx) in ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_idx, dir)| {
+                        for (adj_idx, opp_dir) in ALL_DIRECTIONS.iter().filter_map(| dir| {
 
                             if let Some(adj_idx) = get_adjacent_index(stopped_cell_index,
                                                              self.height,
                                                              self.width,
                                                              *dir) {
 
-                                    Some( (adj_idx, opposite_dir_index(dir_idx)) )
+                                    Some( (adj_idx, dir.opposite()) )
                             } else {
                                 None
                             }
                             }) {
 
-                                if_van_stops_state.graph.is_connected[adj_idx.0] &= !(1 << opp_dir_idx);
+                                if_van_stops_state.graph.is_connected[adj_idx.0] &= !(1 << opp_dir.index());
                             }
 
 

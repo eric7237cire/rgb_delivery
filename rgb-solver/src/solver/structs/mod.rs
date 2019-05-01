@@ -5,6 +5,8 @@ pub mod tile;
 mod van;
 mod road;
 mod bridge;
+mod grid_connections;
+mod direction;
 
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
@@ -16,6 +18,8 @@ pub use self::tile::TileEnum;
 
 pub use self::road::Road;
 pub use self::bridge::Bridge;
+
+pub (crate) use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index};
 
 pub use self::road::{NavigableTileStatic, NavigableTileDynamic};
 
@@ -99,22 +103,11 @@ pub struct ChoiceOverride {
 }
 
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) enum Directions {
-    NORTH = 1,
-    EAST = 2,
-    SOUTH = 4,
-    WEST = 8,
-}
-
 //internal helper
 #[derive(Debug)]
 pub(crate) struct AdjSquareInfo {
-    pub(crate) direction: Directions,
+    pub(crate) direction: Direction,
     pub(crate) cell_index: CellIndex,
-
-    //direction from original cell to the cell_index in this struct
-    pub(crate) direction_index: usize
 }
 
 #[derive(Default, Serialize, Deserialize, TypescriptDefinition)]
