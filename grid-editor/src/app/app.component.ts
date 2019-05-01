@@ -507,9 +507,12 @@ export class AppComponent implements OnInit {
 
           const failure = !_.isNil(message.success) && !message.success;
 
+          const msPerIteration = secElapsed * 1000 /  message.stepsCompleted;
+
           this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ' : ''}` +
             `Iteration Count: [${message.stepsCompleted.toLocaleString()}].  ` +
-            `min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
+            `min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)} ` +
+            ` per iteration: ${msPerIteration.toFixed(5)} ms`;
 
           break;
       }
