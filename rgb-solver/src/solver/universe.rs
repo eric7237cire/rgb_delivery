@@ -301,11 +301,11 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-            if self.iter_count % 10000 == 0 {
+            /*if self.iter_count % 50000 == 0 {
                 log!("\n\nLoop count: {} \
                  Queue Length: {} Current Tick: {} ",
                      self.iter_count, self.queue.len(), cur_state.tick);
-            }
+            }*/
 
             if !cur_state.check_graph_validity(&self.gc_static_info) {
                 log_trace!("Rejecting state");

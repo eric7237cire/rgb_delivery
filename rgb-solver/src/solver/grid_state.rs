@@ -567,7 +567,7 @@ impl GridState {
 
         let mut component_to_counts: HashMap<usize, [ [usize;3]; NUM_COLORS ]> = HashMap::new();
 
-        let mut component_to_has_popper: HashMap<usize, bool> = HashMap::new();
+        //let mut component_to_has_popper: HashMap<usize, bool> = HashMap::new();
 
         for (idx, tile) in self.tiles.iter().enumerate() {
 
@@ -586,6 +586,7 @@ impl GridState {
                 _ => {}
             }
 
+            /*
             match tile {
                 TileRoad(Road { has_popper:true, .. }) => {
                     log_trace!("in cell {}, component {}, has popper {}", idx, component_number, true);
@@ -593,7 +594,7 @@ impl GridState {
                     *component_to_has_popper.entry(component_number).or_insert(false) = true;
                 },
                 _ => {}
-            }
+            }*/
         }
 
         for van in self.vans.iter() {
@@ -641,6 +642,7 @@ impl GridState {
         }
 
         //do we have a van that has a box of a different color
+        /*
         for van in self.vans.iter().filter(|v| !v.color.is_white()) {
             let component_number = ds.get_repr(van.cell_index.0);
 
@@ -658,7 +660,7 @@ impl GridState {
                 return false;
             }
 
-        }
+        }*/
 
 
         return true;
