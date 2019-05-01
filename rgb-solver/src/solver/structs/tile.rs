@@ -1,3 +1,11 @@
+
+use wasm_bindgen::prelude::*;
+use wasm_typescript_definition::TypescriptDefinition;
+use super::*;
+
+use crate::solver::structs::Road;
+use crate::solver::structs::Bridge;
+
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 #[serde(tag = "type")]
 pub enum TileEnum {
@@ -7,7 +15,7 @@ pub enum TileEnum {
     Empty,
 }
 
-use TileEnum::*;
+use self::TileEnum::*;
 
 impl TileEnum {
 

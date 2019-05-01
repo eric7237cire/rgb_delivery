@@ -1,11 +1,10 @@
 
 #[macro_use]
 pub mod macros;
-pub mod struct_defs;
+pub mod structs;
 pub mod universe;
 
 pub mod grid_state;
-pub mod van;
 pub mod func_public;
 
 pub mod disjointset;

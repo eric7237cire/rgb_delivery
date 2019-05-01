@@ -1,13 +1,14 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::struct_defs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
-use crate::solver::van::Van;
-use crate::solver::struct_defs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
+use super::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex};
+
+use super::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 use crate::solver::misc::{ALL_DIRECTIONS, get_adjacent_index, opposite_dir_index};
 use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
+use crate::solver::structs::Van;
 
 #[derive(Default)]
 pub struct GridAnalysis {

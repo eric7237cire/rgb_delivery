@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::struct_defs::{ColorIndex, CellIndex};
+use super::{ColorIndex, CellIndex};
 
 #[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Van {

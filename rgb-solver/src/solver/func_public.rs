@@ -1,7 +1,9 @@
 
 use wasm_bindgen::prelude::*;
 
-use crate::solver::struct_defs::*;
+//use crate::solver::structs::*;
+use crate::solver::structs::color::Color;
+use crate::solver::structs::color::ColorIndex;
 
 #[wasm_bindgen]
     pub fn get_colors() -> JsValue {

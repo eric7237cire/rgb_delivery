@@ -1,4 +1,10 @@
 
+use wasm_bindgen::prelude::*;
+use wasm_typescript_definition::TypescriptDefinition;
+use crate::solver::structs::{VanIndex, CellIndex, NavigableTileStatic, NavigableTileDynamic};
+use crate::solver::structs::van::Van;
+use crate::solver::structs::color::ColorIndex;
+
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Bridge {
 
@@ -21,8 +27,8 @@ pub struct Bridge {
     pub cell_index: CellIndex,
 
     #[serde(flatten)]
-    static_attrs: NavigableTileStatic,
+    pub static_attrs: NavigableTileStatic,
 
     #[serde(flatten)]
-    dynamic_attrs: NavigableTileDynamic
+    pub dynamic_attrs: NavigableTileDynamic
 }

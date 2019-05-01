@@ -1,11 +1,16 @@
-use crate::solver::struct_defs::*;
+use crate::solver::structs::*;
 
-use crate::solver::struct_defs::TileEnum::{TileWarehouse};
+use crate::solver::structs::TileEnum::{TileWarehouse};
 
 //use crate::solver::public_func::build_color_list;
 
 //use crate::solver::utils::VAN_LABEL;
 
+use crate::solver::structs::Directions::*;
+
+use crate::solver::structs::Warehouse;
+use crate::solver::grid_state::GridGraph;
+use core::cmp;
 
 
 impl Directions {
@@ -30,11 +35,6 @@ pub(crate) fn opposite_dir_index(dir_index: usize) -> usize {
     }
 
 
-use crate::solver::struct_defs::Directions::*;
-
-use crate::solver::struct_defs::Warehouse;
-use crate::solver::grid_state::GridGraph;
-use core::cmp;
 
 
 pub (crate) const ALL_DIRECTIONS: [Directions; 4] = [NORTH, EAST, SOUTH, WEST];

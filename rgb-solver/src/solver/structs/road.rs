@@ -1,5 +1,14 @@
+
+use wasm_bindgen::prelude::*;
+use wasm_typescript_definition::TypescriptDefinition;
+use crate::solver::structs::van::Van;
+use crate::solver::structs::{VanIndex, Button};
+use crate::solver::structs::color::ColorIndex;
+
+use super::all_mask;
+
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug, Hash, Eq, PartialEq)]
-struct NavigableTileStatic {
+pub struct NavigableTileStatic {
 
     #[serde(default = "all_mask")]
     pub connection_mask: u8,
@@ -13,7 +22,7 @@ impl Default for NavigableTileStatic {
 }
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Debug, Hash, Eq, PartialEq)]
-struct NavigableTileDynamic {
+pub struct NavigableTileDynamic {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename = "van")]
@@ -48,7 +57,7 @@ pub struct Road {
     pub button_snapshot: Option<Button>,
 
     #[serde(flatten)]
-    static_attrs: NavigableTileStatic,
+    pub static_attrs: NavigableTileStatic,
     #[serde(flatten)]
-    dynamic_attrs: NavigableTileDynamic
+    pub dynamic_attrs: NavigableTileDynamic
 }

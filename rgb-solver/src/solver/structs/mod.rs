@@ -1,10 +1,23 @@
+
+pub mod color;
+pub mod tile;
+
+mod van;
+mod road;
+mod bridge;
+
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
 
-use super::van::Van;
+pub use self::van::Van;
 use crate::solver::grid_state::GridState;
+pub use self::color::ColorIndex;
+pub use self::tile::TileEnum;
 
-include!("structs/color.rs");
+pub use self::road::Road;
+pub use self::bridge::Bridge;
+
+pub use self::road::{NavigableTileStatic, NavigableTileDynamic};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct CellIndex(pub usize);
@@ -33,7 +46,7 @@ impl From<usize> for VanIndex {
 }
 impl From<VanIndex> for usize {
     fn from(index: VanIndex) -> Self {
-        index.0 
+        index.0
     }
 }
 
@@ -50,20 +63,16 @@ pub struct Button  {
     pub(crate) was_pressed_this_tick: bool
 }
 
-fn all_mask() -> u8 {
+pub fn all_mask() -> u8 {
     15
 }
 
-include!("structs/road.rs");
-include!("structs/bridge.rs");
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Warehouse {
     pub color: ColorIndex,
     pub is_filled: bool
 }
-
-include!("structs/tile.rs");
 
 #[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct CellData {

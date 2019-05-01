@@ -1,4 +1,6 @@
 
+use wasm_bindgen::prelude::*;
+use wasm_typescript_definition::TypescriptDefinition;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct Color {
