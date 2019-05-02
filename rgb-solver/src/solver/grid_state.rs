@@ -447,13 +447,11 @@ impl GridState {
                         assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
 
                         //disconnect this square and everything adjacent to it
-                        let adj: Vec<_> =  if_van_stops_state.graph.get_adjacent_square_indexes(gc_static_info, stopped_cell_index).cloned().collect();
+                        if_van_stops_state.graph.is_connected[ stopped_cell_index.0] = 0;
 
-                        for a in adj.into_iter() {
-                            if_van_stops_state.graph.set_is_connected( stopped_cell_index, a.direction, false);
-                            if_van_stops_state.graph.set_is_connected( a.cell_index, a.direction.opposite(), false);
+                        for adj in gc_static_info.adj_info[stopped_cell_index.0].iter().filter_map( |a| a.as_ref()) {
+                            if_van_stops_state.graph.is_connected[ adj.cell_index.0] &= !(1 << adj.direction.opposite() as u8);
                         }
-
 
                         Ok(Some(if_van_stops_state))
                     } else {
