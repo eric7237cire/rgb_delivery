@@ -1,10 +1,10 @@
 #[derive(Clone, Copy, Debug, PartialEq)]
 #[repr(u8)]
 pub enum Direction {
-    NORTH = 1,
-    EAST = 2,
-    SOUTH = 4,
-    WEST = 8,
+    NORTH = 0,
+    EAST = 1,
+    SOUTH = 2,
+    WEST = 3,
 }
 
 use self::Direction::*;
