@@ -7,7 +7,7 @@ use super::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
-use crate::solver::structs::{Van, GridConnections, GridConnectionsStaticInfo};
+use crate::solver::structs::{Van, GridConnections, GridConnectionsStaticInfo, get_adjacent_index};
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -553,10 +553,14 @@ impl GridState {
 
         let mut ds = DisjointSet::new(self.tiles.len());
 
-        for cell_index in 0..self.height * self.width {
-            for ai in self.graph.get_adjacent_square_indexes(gs_static_info, CellIndex(cell_index)) {
+        for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
+            for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate() {
                 //log_trace!("Merging cells {} and {}", idx, adj_idx);
-                ds.merge_sets(cell_index, ai.cell_index.0);
+                if is_connected_mask & (1 << dir_idx) > 0 {
+                    let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
+                    //log_trace!("Merging cells {} and {}", idx, adj_idx);
+                    ds.merge_sets(idx, adj_idx.0);
+                }
             }
         }
 
