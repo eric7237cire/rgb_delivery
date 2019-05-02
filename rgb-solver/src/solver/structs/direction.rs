@@ -19,9 +19,8 @@ impl Direction {
             WEST => EAST
         }
     }
-
-
 }
+
 
 pub fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_width: usize, dir: Direction) -> Option<CellIndex> {
 

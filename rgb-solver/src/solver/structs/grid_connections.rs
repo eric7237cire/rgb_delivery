@@ -18,7 +18,7 @@ pub struct GridConnectionsStaticInfo {
 #[derive(Debug,Clone)]
 pub struct AdjSquareInfo {
     pub direction: Direction,
-    pub cell_index: CellIndex,
+    pub cell_index: CellIndex
 }
 
 

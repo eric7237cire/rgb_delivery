@@ -1,15 +1,17 @@
-use crate::solver::grid_state::{GridState, GridAnalysis};
-use super::structs::{ChoiceOverride, CellIndex, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse,ALL_DIRECTIONS,get_adjacent_index};
 use std::collections::vec_deque::VecDeque;
 
-use super::structs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
-use super::structs::Van;
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
+
+use crate::solver::grid_state::{GridAnalysis, GridState};
+use crate::solver::structs::{
+    ALL_DIRECTIONS, Bridge, Button, CalculationResponse,
+    CellData, CellIndex, ChoiceOverride, get_adjacent_index,
+    GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex};
+use crate::solver::structs::Direction::NORTH;
+use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
-use super::structs::Direction::NORTH;
-use crate::solver::structs::{GridConnections, GridConnectionsStaticInfo};
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -28,8 +30,6 @@ pub struct Universe {
     pub(crate) analysis: GridAnalysis,
 
     pub(crate) gc_static_info: GridConnectionsStaticInfo,
-
-
 }
 
 //private
@@ -56,7 +56,7 @@ impl Universe {
                 }
             }
 
-            
+
             cur_row_index == co.row_index
                 && cur_col_index == co.col_index
         }
@@ -83,13 +83,12 @@ impl Universe {
             } else {
                 None
             }
-        
+
         }).collect()
     }
 
 
-    pub(crate) fn initial_graph(&self) -> (GridConnections,GridConnectionsStaticInfo) {
-
+    pub(crate) fn initial_graph(&self) -> (GridConnections, GridConnectionsStaticInfo) {
         let mut gc = GridConnections::new( self.data.height, self.data.width );
 
         let so = gc.build_static_info();
@@ -125,7 +124,7 @@ impl Universe {
 
         }
 
-        (gc,so)
+        (gc, so)
     }
 
     pub(crate) fn initial_graph_analysis(&self) -> GridAnalysis {
@@ -183,14 +182,14 @@ impl Universe {
                     }
                 }
 
-                false 
+                false
 
             });
 
             if let Some( forced_adj_cell ) = forced_adj_cell {
                 //found a force choice
                 let rc = van.cell_index.to_row_col(self.data.width);
-                
+
                 ga.forced_choices.push(ChoiceOverride {
                     row_index: rc.0,
                     col_index: rc.1,
@@ -301,13 +300,13 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-            /*if self.iter_count % 50000 == 0 {
+            if self.iter_count % 10000 == 0 {
                 log!("\n\nLoop count: {} \
                  Queue Length: {} Current Tick: {} ",
                      self.iter_count, self.queue.len(), cur_state.tick);
-            }*/
+            }
 
-            if !cur_state.check_graph_validity(&self.gc_static_info) {
+            if !cur_state.check_graph_validity() {
                 log_trace!("Rejecting state");
                 continue;
             }
@@ -430,13 +429,13 @@ impl Universe {
                  q_len, cur_state.current_van_index,
                  cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
-            CalculationResponse{               
+            CalculationResponse{
                 grid_state: Some(cur_state.clone()),
                 iteration_count: self.iter_count,
                 success,
                 ..Default::default()
             }
-        } else {            
+        } else {
             CalculationResponse{
                 error_message: Some( "No grid state".to_string() ),
                 iteration_count: self.iter_count,
@@ -513,7 +512,7 @@ impl Universe {
         set_panic_hook();
 
         log!("Init calculate");
-        
+
         self.queue = VecDeque::new();
 
         self.iter_count = 0;
@@ -530,7 +529,6 @@ impl Universe {
         let ab = self.initial_graph();
         self.data.graph = ab.0;
         self.gc_static_info =ab.1;
-
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
             if let TileWarehouse(_) = t {
