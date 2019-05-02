@@ -41,6 +41,7 @@ export interface RequestSetGridSquare {
 }
 export interface RequestInitCalculations {
     tag: RequestTypes.INIT_CALCULATIONS;
+    maxSteps: number;
 }
 export interface RequestRunCalculateSteps {
     tag: RequestTypes.RUN_CALCULATE_STEPS;
