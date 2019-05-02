@@ -56,7 +56,7 @@ impl GridConnections {
         ALL_DIRECTIONS.iter().filter_map(move |dir|
             {
                 if self.is_connected(cell_index, *dir) {
-                        static_info.adj_info[cell_index.0][*dir as usize].as_ref()
+                      static_info.adj_info[cell_index.0][*dir as usize].as_ref()
                 } else {
                     None
                 }

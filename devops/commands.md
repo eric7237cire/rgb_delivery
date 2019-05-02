@@ -34,7 +34,7 @@ cd pkg
 npm publish --access=public
 ```
 
-
+https://github.com/eric7237cire/rgb_delivery/compare/0529801910e8f1ea9d8d3a4274ef976f6353a47e..2c57c7f19cdf639b48cd58fd25a41cb923bc37a5
 
 docker build . -t eric7237cire/rgb
 docker login --username=eric7237cire
