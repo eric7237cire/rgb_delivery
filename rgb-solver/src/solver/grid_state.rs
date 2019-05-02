@@ -566,7 +566,9 @@ impl GridState {
 
         //for each color, get unfilled warehouse count & block count
 
-        let mut component_to_counts: Vec< [ [usize;3]; NUM_COLORS ]> = vec![ Default::default(); ds.number_of_elems() ];
+        let mut component_to_counts: Vec< [ [usize;3]; NUM_COLORS ]> = Vec::new();
+        let mut comp_to_idx = vec![self.tiles.len(); self.tiles.len()];
+
         //let index_to_comp_num
         //let mut component_to_has_popper: HashMap<usize, bool> = HashMap::new();
 
@@ -574,15 +576,23 @@ impl GridState {
 
             let component_number = ds.get_repr(idx);
 
+            let component_index = {
+                if comp_to_idx[component_number] == self.tiles.len() {
+                    comp_to_idx[component_number] = component_to_counts.len();
+                    component_to_counts.push(Default::default());
+                }
+                comp_to_idx[component_number]
+            };
+
             match tile {
                 TileRoad(Road { block: Some(block), .. }) => {
                     log_trace!("Block in cell {}, component {}, color {}", idx, component_number, block.0);
-                    add_component_to_map(&mut component_to_counts, component_number, *block, BLOCK);
+                    component_to_counts[component_index][block.0][BLOCK as usize] += 1;
 
                 },
                 TileWarehouse( Warehouse{is_filled: false, color}) => {
                     log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
-                    add_component_to_map(&mut component_to_counts, component_number, *color, WAREHOUSE);
+                    component_to_counts[component_index][color.0][WAREHOUSE as usize] += 1;
                 }
                 _ => {}
             }
@@ -606,26 +616,31 @@ impl GridState {
                 continue;
             }
 
-            add_component_to_map(&mut component_to_counts, component_number, van.color, VAN);
+            let component_index = comp_to_idx[component_number];
+
+            assert!(component_index < self.tiles.len());
+
+            component_to_counts[component_index][van.color.0][VAN as usize] += 1;
 
             for opt_box in van.boxes.iter() {
                 if let Some(color) = opt_box {
-                    add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
+                    //add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
+                    component_to_counts[component_index][color.0][BLOCK as usize] += 1;
                 }
             }
         }
 
         //now we can check for consistency
-        for (component_number, color_count) in component_to_counts.iter().enumerate() {
+        for (component_index, color_count) in component_to_counts.iter().enumerate() {
 
             for color_index in 0..NUM_COLORS {
                 if color_count[color_index][BLOCK as usize] != color_count[color_index][WAREHOUSE as usize] {
-                    log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    //log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
 
                 if color_count[color_index][BLOCK as usize] > 0 && (color_count[WHITE_COLOR_INDEX][VAN as usize] + color_count[color_index][VAN as usize] == 0) {
-                    log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    //log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
 
@@ -634,7 +649,7 @@ impl GridState {
                     color_index != WHITE_COLOR_INDEX &&
                     color_count[color_index][BLOCK as usize] == 0 &&
                     color_count[color_index][VAN as usize] > 0 {
-                    log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    //log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
             }
@@ -671,15 +686,9 @@ impl GridState {
 
 }
 
+#[repr(u8)]
 enum ComponentMapIdx {
     BLOCK = 0,
     WAREHOUSE = 1,
     VAN = 2
-}
-
-//indexs block 0, warehouse 1, van 2
-fn add_component_to_map(component_to_counts: &mut Vec< [ [usize;3]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
-
-    component_to_counts[component_number][color.0][thing_idx as usize] += 1
-
 }

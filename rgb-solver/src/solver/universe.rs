@@ -27,7 +27,7 @@ pub struct Universe {
 
     pub(crate) analysis: GridAnalysis,
 
-    pub(crate) gc_static_info: GridConnectionsStaticInfo
+    pub(crate) gc_static_info: GridConnectionsStaticInfo,
 
 
 }
@@ -530,7 +530,6 @@ impl Universe {
         let ab = self.initial_graph();
         self.data.graph = ab.0;
         self.gc_static_info =ab.1;
-
 
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
