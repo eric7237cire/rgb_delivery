@@ -501,13 +501,13 @@ export class AppComponent implements OnInit {
 
         case ResponseTypes.BATCH_PROGRESS_MESSAGE:
 
-          let secElapsed = (message.currentMs - message.startedMs) / 1000;
-          const minutesElapsed = _.floor( secElapsed / 60);
-          secElapsed -= minutesElapsed * 60;
+          const totalSecElapsed = (message.currentMs - message.startedMs) / 1000;
+          const minutesElapsed = _.floor( totalSecElapsed / 60);
+          const secElapsed =  totalSecElapsed - minutesElapsed * 60;
 
           const failure = !_.isNil(message.success) && !message.success;
 
-          const microSecsPerIteration = secElapsed * 1000 * 1000 /  message.stepsCompleted;
+          const microSecsPerIteration = (totalSecElapsed * 1000 * 1000) /  message.stepsCompleted;
 
           this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ' : ''}` +
             `Iteration Count: [${message.stepsCompleted.toLocaleString()}].  ` +

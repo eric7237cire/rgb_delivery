@@ -21,8 +21,9 @@ pub(crate) fn build_color_list() -> Vec<Color> {
         Color{ label: "Yellow".to_string(), red: 255, green: 255, blue: 0, ..Default::default()},
         Color{ label: "Blue".to_string(), red: 50, green: 50, blue: 255, ..Default::default()},
         Color{ label: "Green".to_string(), red: 0, green: 255, blue: 0, ..Default::default()},
-        Color{ label: "Purple".to_string(), red: 167, green: 152, blue: 253, ..Default::default()},
 
+        //for bridges / buttons
+        Color{ label: "Purple".to_string(), red: 167, green: 152, blue: 253, ..Default::default()},
         Color{ label: "PinkPurple".to_string(), red: 185, green: 95, blue: 167, ..Default::default()},
         Color{ label: "Teal".to_string(), red: 169, green: 162, blue: 107, ..Default::default()},
         Color{ label: "Orange".to_string(), red: 219, green: 103, blue: 0, ..Default::default()},

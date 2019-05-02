@@ -575,7 +575,7 @@ impl GridState {
 
         //now we can check for consistency
         for (component_number, color_count) in component_to_counts.iter() {
-            for color_index in 0..NUM_COLORS {
+            for color_index in 0..5 {
                 if color_count[color_index][BLOCK as usize] != color_count[color_index][WAREHOUSE as usize] {
                     log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
@@ -585,6 +585,9 @@ impl GridState {
                     log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
+
+                //we don't need to check for warehouses and vans since we know the block count must == the warehouse count
+                //and each block has a van that can handle it
 
                 //a van shouldn't be without blocks, should have set is_done.  Need to skip the first tick though since we haven't yet set that
                 if self.tick > 1 &&
