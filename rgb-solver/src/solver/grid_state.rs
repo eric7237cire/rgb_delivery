@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex, Van, ALL_DIRECTIONS, opposite_dir_index, get_adjacent_index, GridConnections};
+use crate::solver::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride,
+                             AdjSquareInfo, CellIndex, Van, ALL_DIRECTIONS, get_adjacent_index, GridConnections, GridConnectionsStaticInfo};
 use crate::solver::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 
 use std::collections::HashMap;
@@ -431,8 +432,8 @@ log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell
 
 
     //if did a drop off, returns a grid state to enqueue
-    pub fn handle_warehouse_drop_off(&mut self) -> Result<Option<Self>, ()> {
-        //check if we can drop a block off
+    pub fn handle_warehouse_drop_off(&mut self, gc_static_info: &GridConnectionsStaticInfo) -> Result<Option<Self>, ()> {
+       //check if we can drop a block off
         if self.empty_warehouse_color().is_some() {
             match self.can_drop_off_block() {
                 Err(_) => Err(()),
@@ -449,33 +450,15 @@ log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell
                         if_van_stops_state.current_van_mut().is_done = true;
 
                         let stopped_cell_index = if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
-                        {
-                            let tile = &if_van_stops_state.tiles[stopped_cell_index.0];
-                            if let TileRoad(_) = tile {
-                                assert!(tile.get_van().is_some());
-                            }
+
+                        assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
+
+                        //disconnect this square and everything adjacent to it
+                        if_van_stops_state.graph.is_connected[ stopped_cell_index.0] = 0;
+
+                        for adj in gc_static_info.adj_info[stopped_cell_index.0].iter().filter_map( |a| a.as_ref()) {
+                            if_van_stops_state.graph.is_connected[ adj.cell_index.0] &= !(1 << adj.direction.opposite() as u8);
                         }
-
-                        //disconnect this square
-                        if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
-
-                        //and everything adjacent to it
-                        for (adj_idx, opp_dir_idx) in ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_idx, dir)| {
-
-                            if let Some(adj_idx) = get_adjacent_index(stopped_cell_index,
-                                                             self.height,
-                                                             self.width,
-                                                             *dir) {
-
-                                    Some( (adj_idx, opposite_dir_index(dir_idx)) )
-                            } else {
-                                None
-                            }
-                            }) {
-
-                                if_van_stops_state.graph.is_connected[adj_idx.0] &= !(1 << opp_dir_idx);
-                            }
-
 
                         Ok(Some(if_van_stops_state))
                     } else {
@@ -487,7 +470,7 @@ log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell
             }
         } else {
             Ok(None)
-        }
+}
     }
 
     /// On road, toggle-able thing that will pop off the block if active. if we do that, returns that state

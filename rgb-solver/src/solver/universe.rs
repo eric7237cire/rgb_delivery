@@ -339,7 +339,7 @@ impl Universe {
             };
 
             //check if we can drop a block off
-            match cur_state.handle_warehouse_drop_off() {
+            match cur_state.handle_warehouse_drop_off(&self.gc_static_info) {
                 Ok(Some(next_state)) => {
                     self.queue.push_front(next_state);
                 }
