@@ -18,9 +18,7 @@ pub struct GridConnectionsStaticInfo {
 #[derive(Debug,Clone)]
 pub struct AdjSquareInfo {
     pub direction: Direction,
-    pub cell_index: CellIndex,
-
-    pub direction_index: usize
+    pub cell_index: CellIndex
 }
 
 
@@ -31,8 +29,7 @@ impl GridConnections {
                 let mut v = ALL_DIRECTIONS.iter().map(|d|
 
                     if let Some(adj_idx) = get_adjacent_index(CellIndex(idx), self.num_rows, self.num_cols, *d) {
-                        //todo
-                        Some(AdjSquareInfo { cell_index: adj_idx, direction: *d, direction_index:0 })
+                        Some(AdjSquareInfo { cell_index: adj_idx, direction: *d })
                     } else { None }
                 );
                 let array: [Option<AdjSquareInfo>; 4] = [v.next().unwrap(),v.next().unwrap(),v.next().unwrap(),v.next().unwrap()];

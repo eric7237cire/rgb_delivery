@@ -35,7 +35,7 @@ impl Universe {
     fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
                                    is_connected_mask: u8) -> Vec<AdjSquareInfo>
     {
-        ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index, dir)| {
+        ALL_DIRECTIONS.iter().filter_map(|dir| {
 
             //first check the mask
             if is_connected_mask & (1 << *dir as u8) == 0 {
@@ -45,7 +45,7 @@ impl Universe {
             let adj_index = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
 
             if let Some(adj_index) = adj_index {
-                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index, direction_index: dir_index })
+                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index })
             } else {
                 None
             }

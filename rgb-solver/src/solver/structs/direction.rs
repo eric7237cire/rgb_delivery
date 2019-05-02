@@ -19,19 +19,8 @@ impl Direction {
             WEST => EAST
         }
     }
-
-
 }
 
-pub fn opposite_dir_index(dir_index: usize) -> usize {
-        match dir_index {
-            0 => 2,
-            1 => 3,
-            2 => 0,
-            3 => 1,
-            _ => panic!("Not a valid dir index")
-        }
-    }
 
 pub fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_width: usize, dir: Direction) -> Option<CellIndex> {
 

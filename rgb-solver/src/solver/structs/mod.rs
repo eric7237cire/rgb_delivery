@@ -20,7 +20,7 @@ pub use self::road::Road;
 pub use self::bridge::Bridge;
 pub use self::grid_connections::{GridConnections,GridConnectionsStaticInfo,AdjSquareInfo};
 
-pub use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index, opposite_dir_index};
+pub use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index};
 
 pub use self::road::{NavigableTileStatic, NavigableTileDynamic};
 
