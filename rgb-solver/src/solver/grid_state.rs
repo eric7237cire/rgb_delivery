@@ -7,7 +7,7 @@ use super::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
-use crate::solver::structs::{Van, GridConnections, get_adjacent_index, GridConnectionsStaticInfo};
+use crate::solver::structs::{Van, GridConnections, GridConnectionsStaticInfo};
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -393,16 +393,19 @@ impl GridState {
         let moving_to_cell_index =adj_info.cell_index;
 
         //must have a connection in the direction we are moving
-        assert!(self.graph.is_connected( van_cell_index, adj_info.direction));
-        assert!(self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
+
+        //assert!(self.graph.is_connected( van_cell_index, adj_info.direction));
+        //assert!(self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
 
         //Now we remove the edge
-        self.graph.set_is_connected( van_cell_index, adj_info.direction, false);
-        self.graph.set_is_connected( moving_to_cell_index, adj_info.direction.opposite(), false);
+        //self.graph.set_is_connected( van_cell_index, adj_info.direction, false);
+        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction as u8);
+        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << adj_info.direction.opposite() as u8);
+        //self.graph.set_is_connected( moving_to_cell_index, adj_info.direction.opposite(), false);
 
-        assert!(!self.graph.is_connected( van_cell_index, adj_info.direction));
+        //assert!(!self.graph.is_connected( van_cell_index, adj_info.direction));
         //Edge is already removed because DRY; we cant do a U turn
-        assert!(!self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
+        //assert!(!self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
 
         //remove van & set used mask
         self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction as usize);

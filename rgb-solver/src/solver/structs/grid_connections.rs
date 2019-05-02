@@ -4,7 +4,7 @@ use crate::solver::structs::direction::get_adjacent_index;
 
 #[derive(Clone, Default)]
 pub struct GridConnections {
-    is_connected: Vec<u8>,
+    pub is_connected: Vec<u8>,
     num_rows: usize,
     num_cols: usize,
 }
