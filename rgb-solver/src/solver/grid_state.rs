@@ -525,7 +525,8 @@ impl GridState {
         let mut ds = DisjointSet::new(self.tiles.len());
 
         for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
-            for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate() {
+
+            for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate().take(2) {
                 if is_connected_mask & (1 << dir_idx) > 0 {
                     let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
 

@@ -13,7 +13,7 @@ export type WASM_TYPE = typeof import ('rgb-solver');
 
 
 //how often we update UI
-const ITER_CHUNK = 50000;
+const ITER_CHUNK = 10000;
 
 let g_worker: RgbWasmWorker;
 const ctx: Worker = self as any;
@@ -60,6 +60,7 @@ ctx.addEventListener("message", ev => {
         case RequestTypes.RUN_CALCULATE_STEPS: {
 
             let startedMs = performance.now();
+            let lastUpdate = startedMs;
 
             if (requestMessage.numSteps < ITER_CHUNK) {
                 const calcResponse: CalculationResponse = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
@@ -72,11 +73,16 @@ ctx.addEventListener("message", ev => {
                 for (let i = 0; i < requestMessage.numSteps; i += ITER_CHUNK) {
 
                     const calcResponse: CalculationResponse = g_worker.universe.next_batch_calculate(ITER_CHUNK);
-                    handleWasmCalcResponse(startedMs, calcResponse);
+
+                    if (performance.now() - lastUpdate > 2000) {
+                        handleWasmCalcResponse(startedMs, calcResponse);
+                        lastUpdate = performance.now();
+                    }
 
                     //should stop
                     if (calcResponse.success) {
                         console.log("Success!");
+                        handleWasmCalcResponse(startedMs, calcResponse);
                         break;
                     }
                     if (!_.isNil(calcResponse.error_message)) {
