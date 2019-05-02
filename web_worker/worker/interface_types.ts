@@ -26,7 +26,6 @@ export interface ResponseProgressMessage {
 
 export type WasmWebWorkerResponse = ResponseWasmLoaded | ResponseDataLoaded | ResponseProgressMessage;
 
-
 export const enum RequestTypes {
     LOAD_GRID_STATE,
     LOAD_WASM,
@@ -52,6 +51,7 @@ export interface  RequestSetGridSquare  {
 
 export interface RequestInitCalculations  {
     tag: RequestTypes.INIT_CALCULATIONS;
+    maxSteps: number;
 }
 
 export interface RequestRunCalculateSteps  {

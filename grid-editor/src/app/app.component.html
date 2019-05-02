@@ -97,6 +97,12 @@
                    [(ngModel)]="numCalcSteps"
                    (ngModelChange)="handleNumCalcStepsChange($event)">
 
+            <label class="item" for="maxSteps">Max Steps:</label>
+            <input id="maxSteps"
+                   class="item"
+                   type="text"
+                   [ngModel]="maxSteps"
+                   (ngModelChange)="handleMaxStepsChange($event)">
 
           </div>
 

@@ -30,6 +30,8 @@ pub struct Universe {
     pub(crate) analysis: GridAnalysis,
 
     pub(crate) gc_static_info: GridConnectionsStaticInfo,
+
+    pub(crate) max_ticks: usize
 }
 
 //private
@@ -272,6 +274,10 @@ impl Universe {
                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
 
+            if self.max_ticks > 0 && cur_state.tick-1 > self.max_ticks {
+                continue;
+            }
+
             // Also test if starting vans don't move
             if cur_state.tick == 1 {
                 log_trace!("Adding state where van does not move for van index: {}", cur_state.current_van_index.0);
@@ -506,6 +512,10 @@ impl Universe {
         self.choice_override_list = lo.clone();
 
         //log!("Set override list {:?}", lo);
+    }
+
+    pub fn set_max_ticks(&mut self, max_ticks: &JsValue) {
+        self.max_ticks = max_ticks.into_serde().unwrap();
     }
 
     pub fn init_calculate(&mut self) {

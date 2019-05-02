@@ -50,6 +50,7 @@ enum DIRECTION_INDEX {
 }
 
 const LOCAL_STORAGE_KEY_NUM_STEPS = "numSteps";
+const LOCAL_STORAGE_KEY_MAX_STEPS = "maxSteps";
 
 const DEFAULT_DM_COLOR = "rgb(200, 200, 200)";
 
@@ -146,6 +147,7 @@ export class AppComponent implements OnInit {
   cells: Array<CellData> = [];
 
   numCalcSteps = 100000;
+  maxSteps = 100;
 
   mouseMoveRow = "00";
   mouseMoveCol = "00";
@@ -469,6 +471,12 @@ export class AppComponent implements OnInit {
 
     if (!_.isNil(numSteps)) {
       this.numCalcSteps = _.toNumber(numSteps);
+    }
+
+    const maxSteps = localStorage.getItem(LOCAL_STORAGE_KEY_MAX_STEPS);
+
+    if (!_.isNil(maxSteps)) {
+      this.maxSteps = _.toNumber(maxSteps);
     }
 
     //RustRGBProject/pkg works but not in PyCharm
@@ -812,12 +820,12 @@ export class AppComponent implements OnInit {
     }
 
     return `${road.used_tick[dm.dir_index]}`;
-    //return `${van_index}: ${road.used_tick[dm.dir_index]}`;
   }
 
   initCalculations() {
     const request: RequestInitCalculations = {
-      tag: RequestTypes.INIT_CALCULATIONS
+      tag: RequestTypes.INIT_CALCULATIONS,
+      maxSteps: this.maxSteps
     };
 
     this.worker.postMessage(request);
@@ -859,6 +867,12 @@ export class AppComponent implements OnInit {
 
   handleNumCalcStepsChange(steps) {
     localStorage.setItem(LOCAL_STORAGE_KEY_NUM_STEPS, steps);
+  }
+
+  handleMaxStepsChange(steps) {
+    localStorage.setItem(LOCAL_STORAGE_KEY_MAX_STEPS, steps);
+
+    this.maxSteps = _.toNumber(steps);
   }
 
   resetGrid() {

@@ -35,8 +35,8 @@ IF /I "%CALL_NPM_LINK%" == "YES" CALL npm link rgb-solver
 CALL npm run build
 if %errorlevel% neq 0 exit /b %errorlevel%
 
-rem IF /I "%CALL_NPM_LINK%" == "YES" CALL npm run build-lib
-rem if %errorlevel% neq 0 exit /b %errorlevel%
+CALL npm run build-lib
+if %errorlevel% neq 0 exit /b %errorlevel%
 
 
 CD "%GRID_EDITOR_BUILD_DIR%"
