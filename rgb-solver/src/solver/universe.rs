@@ -1,15 +1,14 @@
-use crate::solver::grid_state::{GridState, GridAnalysis};
-use super::structs::{ChoiceOverride, CellIndex, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse,ALL_DIRECTIONS,get_adjacent_index};
+use crate::solver::grid_state::{GridState, GridAnalysis, GridGraph};
+use crate::solver::structs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse, ALL_DIRECTIONS, get_adjacent_index, Van};
 use std::collections::vec_deque::VecDeque;
 
-use super::structs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
-use super::structs::Van;
+use crate::solver::structs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
+
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
-use super::structs::Direction::NORTH;
-use crate::solver::structs::{GridConnections, GridConnectionsStaticInfo};
+use crate::solver::structs::Direction::NORTH;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -26,14 +25,30 @@ pub struct Universe {
     pub(crate) iter_count: usize,
 
     pub(crate) analysis: GridAnalysis,
-
-    pub(crate) gc_static_info: GridConnectionsStaticInfo,
-
-
 }
 
 //private
 impl Universe {
+    /// Gets adj indexes, checking grid limits
+    fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
+                                   is_connected_mask: u8) -> Vec<AdjSquareInfo>
+    {
+        ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_index, dir)| {
+
+            //first check the mask
+            if is_connected_mask & *dir as u8 == 0 {
+                return None;
+            }
+
+            let adj_index = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
+
+            if let Some(adj_index) = adj_index {
+                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index, direction_index: dir_index })
+            } else {
+                None
+            }
+        }).collect()
+    }
 
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
@@ -56,7 +71,7 @@ impl Universe {
                 }
             }
 
-            
+
             cur_row_index == co.row_index
                 && cur_col_index == co.col_index
         }
@@ -83,49 +98,47 @@ impl Universe {
             } else {
                 None
             }
-        
+
         }).collect()
     }
 
 
-    pub(crate) fn initial_graph(&self) -> (GridConnections,GridConnectionsStaticInfo) {
+    pub(crate) fn initial_graph(&self) -> GridGraph {
+        let is_connected_list = self.data.tiles.iter().enumerate().map(|(cur_square_index, tile)| {
 
-        let mut gc = GridConnections::new( self.data.height, self.data.width );
-
-        let so = gc.build_static_info();
-
-        for (cur_square_index, tile) in self.data.tiles.iter().enumerate() {
 
             if let Some(connection_mask) = tile.get_connection_mask() {
 
-                let cell_index = CellIndex(cur_square_index);
+                let mut is_connected: u8 = 0;
 
-
-                for adj_dir in ALL_DIRECTIONS.iter() {
+                for (dir_idx, adj_dir) in ALL_DIRECTIONS.iter().enumerate() {
                     let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
 
                     if let Some(adj_square_index) = adj_square_index {
                         if let Some(adj_connection_mask) = self.data.tiles[adj_square_index.0].get_connection_mask()
                         {
-                            if (connection_mask & (1 << *adj_dir as u8)) > 0 && (adj_connection_mask & (1 << adj_dir.opposite() as u8) > 0) {
-                                gc.set_is_connected( cell_index, *adj_dir, true);
-
+                            if (connection_mask & (*adj_dir as u8)) > 0 && (adj_connection_mask & (adj_dir.opposite() as u8) > 0) {
+                                assert_eq!(*adj_dir as u8, 1 << dir_idx);
+                                is_connected |= 1 << dir_idx;
                             }
                         } else if adj_dir == &NORTH {
                             if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
-                                gc.set_is_connected( cell_index, *adj_dir, true);
+                                assert_eq!(*adj_dir as u8, 1 << dir_idx);
+                                is_connected |= 1 << dir_idx;
                             }
                         }
                     }
                 }
+
+                is_connected
             } else {
-                continue;
+                0
             }
 
-        }
+        }).collect();
 
-        (gc,so)
+        GridGraph { is_connected: is_connected_list }
     }
 
     pub(crate) fn initial_graph_analysis(&self) -> GridAnalysis {
@@ -133,10 +146,10 @@ impl Universe {
         //for the moment, not useful since this basically finds warehouses and dead ends
         //later might be interesting to use to make sure if a van & warehouse are on one side of a bridge
         //and the block on another, we can eliminate a gridstate candidate
-        //let mut b: GraphBridge = Default::default();
-        //log_trace!("Finding bridges");
-        //b.do_it(&self.data.graph, self.data.height, self.data.width);
-
+        /*let mut b: GraphBridge = Default::default();
+        log_trace!("Finding bridges");
+        b.do_it(&self.data.graph, self.data.height, self.data.width);
+*/
 
         let mut ga = GridAnalysis {
             has_poppers: self.data.tiles.iter().any(|t| if let TileRoad(r) = t {
@@ -151,12 +164,11 @@ impl Universe {
 
             let van_index = VanIndex(van_index);
 
-            let van_adj_cells:Vec<_> = self.data.graph.get_adjacent_square_indexes(&self.gc_static_info,
-                van.cell_index).collect();
-
-            if van_adj_cells.len() != 2 {
+            if  self.data.graph.is_connected[van.cell_index.0].count_ones() != 2 {
                 continue;
             }
+
+            let van_adj_cells = self.get_adjacent_square_indexes(van.cell_index, self.data.graph.is_connected[van.cell_index.0]);
 
             assert_eq!(2, van_adj_cells.len());
 
@@ -164,9 +176,8 @@ impl Universe {
                 let mut last_cell_index:CellIndex = van.cell_index;
                 let mut cur_cell_index:CellIndex = potential_force_cell.cell_index;
                 loop {
-                    let next_cell_index = self.data.graph.get_adjacent_square_indexes(
-                        &self.gc_static_info,
-                 cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<_>>();
+                    let next_cell_index = self.get_adjacent_square_indexes(cur_cell_index, self.data.graph.is_connected[cur_cell_index.0])
+                       .into_iter().filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<AdjSquareInfo>>();
 
                     if next_cell_index.len() != 1  {
                         break;
@@ -183,19 +194,19 @@ impl Universe {
                     }
                 }
 
-                false 
+                false
 
             });
 
             if let Some( forced_adj_cell ) = forced_adj_cell {
                 //found a force choice
                 let rc = van.cell_index.to_row_col(self.data.width);
-                
+
                 ga.forced_choices.push(ChoiceOverride {
                     row_index: rc.0,
                     col_index: rc.1,
                     van_index: Some(van_index),
-                    direction_index: forced_adj_cell.direction as usize,
+                    direction_index: forced_adj_cell.direction_index,
                     ..Default::default()
                 });
 
@@ -301,13 +312,13 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
-            /*if self.iter_count % 50000 == 0 {
+            if self.iter_count % 10000 == 0 {
                 log!("\n\nLoop count: {} \
                  Queue Length: {} Current Tick: {} ",
                      self.iter_count, self.queue.len(), cur_state.tick);
-            }*/
+            }
 
-            if !cur_state.check_graph_validity(&self.gc_static_info) {
+            if !cur_state.check_graph_validity() {
                 log_trace!("Rejecting state");
                 continue;
             }
@@ -323,7 +334,7 @@ impl Universe {
             };
 
             //check if we can drop a block off
-            match cur_state.handle_warehouse_drop_off(&self.gc_static_info) {
+            match cur_state.handle_warehouse_drop_off() {
                 Ok(Some(next_state)) => {
                     self.queue.push_front(next_state);
                 }
@@ -343,21 +354,27 @@ impl Universe {
             };
 
 
+            let cur_is_connected_mask = cur_state.get_cur_is_connected_mask();
+
+            log_trace!("Current used mask: {:#07b}", cur_is_connected_mask);
 
             //now attempt to move
+
+            //Where could we move?  (looks at mask & grid)
+            let adj_square_indexes = self.get_adjacent_square_indexes(
+                van_cell_index, cur_is_connected_mask);
 
             log_trace!("Adj squares: {:?}", adj_square_indexes);
             let mut any_moved = false;
 
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
-            //Where could we move?  (looks at mask & grid)
-            let adj_info_filtered_list =  cur_state.graph.get_adjacent_square_indexes(&self.gc_static_info, van_cell_index).filter_map(
-                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt,a_info));
+            let adj_info_filtered_list: Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
+                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt, a_info)).collect();
 
-            //log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
+            log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
 
-            for adj_info in adj_info_filtered_list {
+            for adj_info in adj_info_filtered_list.into_iter() {
 
                 //now we have checked it is a road without a van in it, the mask is ok, etc.
 
@@ -430,13 +447,13 @@ impl Universe {
                  q_len, cur_state.current_van_index,
                  cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
-            CalculationResponse{               
+            CalculationResponse{
                 grid_state: Some(cur_state.clone()),
                 iteration_count: self.iter_count,
                 success,
                 ..Default::default()
             }
-        } else {            
+        } else {
             CalculationResponse{
                 error_message: Some( "No grid state".to_string() ),
                 iteration_count: self.iter_count,
@@ -458,10 +475,9 @@ impl Universe {
 
     pub fn new(h: usize, w: usize) -> Universe {
         log!(
-            "Building a new Grid.  [{}, {}] Build #: {:?}",
+            "Building a new Grid.  [{}, {}] ",
             w,
-            h,
-            option_env!("TRAVIS_BUILD_NUMBER")
+            h
         );
 
         utils::set_panic_hook();
@@ -513,7 +529,7 @@ impl Universe {
         set_panic_hook();
 
         log!("Init calculate");
-        
+
         self.queue = VecDeque::new();
 
         self.iter_count = 0;
@@ -527,10 +543,7 @@ impl Universe {
 
         log!("Init graph");
 
-        let ab = self.initial_graph();
-        self.data.graph = ab.0;
-        self.gc_static_info =ab.1;
-
+        self.data.graph = self.initial_graph();
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
             if let TileWarehouse(_) = t {

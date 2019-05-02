@@ -1,13 +1,12 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use super::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex,ALL_DIRECTIONS};
+use crate::solver::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride, AdjSquareInfo, CellIndex, Van, ALL_DIRECTIONS, opposite_dir_index, get_adjacent_index};
+use crate::solver::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 
-use super::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
-
+use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
-use crate::solver::structs::{Van, GridConnections, GridConnectionsStaticInfo, get_adjacent_index};
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -18,6 +17,14 @@ pub struct GridAnalysis {
     pub forced_choices: Vec<ChoiceOverride>
 }
 
+#[derive(Default,Clone)]
+pub struct GridGraph {
+
+    //contains adj node, indexs are ALL_DIRECTIONS.  Stores index to adj square
+
+    //index is tile index; 4 bits are used to determine if connected
+    pub is_connected: Vec<u8>
+}
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct GridState {
@@ -27,7 +34,7 @@ pub struct GridState {
     pub tiles: Vec<TileEnum>,
 
     #[serde(skip)]
-    pub graph: GridConnections,
+    pub graph: GridGraph,
 
     //Js=>Rust will ignore this
     #[serde(skip_deserializing)]
@@ -234,7 +241,7 @@ impl GridState {
 
                 log_trace!("Van picked up a block of color {:?}", block_color);
                 self.vans[self.current_van_index.0].boxes[i] = Some(block_color);
-                
+
                 if let TileRoad( road ) = self.current_cell_mut() {
                     road.block = None;
                 }
@@ -334,14 +341,18 @@ impl GridState {
         }
     }
 
+    pub (crate) fn get_cur_is_connected_mask(&self) -> u8 {
+        self.graph.is_connected[ self.current_cell_index().0 ]
+    }
+
     pub (crate) fn filter_map_by_can_have_van<'a>(
         &self,
         fixed_choice_opt: &Option<ChoiceOverride>,
         adj_square_info: &'a AdjSquareInfo) -> Option<&'a AdjSquareInfo>
-        
+
     {
 
-        let direction_index = adj_square_info.direction as usize;
+        let direction_index = adj_square_info.direction_index;
         let adj_cell_index = adj_square_info.cell_index;
 
         if let Some( ChoiceOverride{ direction_index:forced_dir_index, ..}) = fixed_choice_opt {
@@ -390,42 +401,47 @@ impl GridState {
 
         log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
 
-        let moving_to_cell_index =adj_info.cell_index;
 
         //must have a connection in the direction we are moving
+        assert_eq!(1 << adj_info.direction_index, adj_info.direction as u8);
 
-        //assert!(self.graph.is_connected( van_cell_index, adj_info.direction));
-        //assert!(self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
+        assert!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 > 0);
 
         //Now we remove the edge
-        //self.graph.set_is_connected( van_cell_index, adj_info.direction, false);
-        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction as u8);
-        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << adj_info.direction.opposite() as u8);
-        //self.graph.set_is_connected( moving_to_cell_index, adj_info.direction.opposite(), false);
+        self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction_index);
 
-        //assert!(!self.graph.is_connected( van_cell_index, adj_info.direction));
-        //Edge is already removed because DRY; we cant do a U turn
-        //assert!(!self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
+        assert_eq!(self.graph.is_connected[van_cell_index.0] & adj_info.direction as u8 , 0);
 
         //remove van & set used mask
-        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction as usize);
+        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction_index);
 
         //add van to next square
+
+        let moving_to_cell_index =adj_info.cell_index;
+
         {
             let van = self.current_van_mut();
             van.cell_index = moving_to_cell_index;
             van.tick += 1;
         }
 
+        assert_eq!(1 << opposite_dir_index( adj_info.direction_index ), adj_info.direction.opposite() as u8);
+
+        assert!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8 > 0);
+        //Now we remove the edge; we cant do a U turn
+        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << opposite_dir_index(adj_info.direction_index));
+
+        assert_eq!(self.graph.is_connected[moving_to_cell_index.0] & adj_info.direction.opposite() as u8, 0);
+
         self.tiles[moving_to_cell_index.0].set_arriving_van(self.current_van_index, &self.vans[self.current_van_index.0], self.tick,
             //opposite direction index
             ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap());
-           
+
     }
 
 
     //if did a drop off, returns a grid state to enqueue
-    pub fn handle_warehouse_drop_off(&mut self, gc_static_info: &GridConnectionsStaticInfo) -> Result<Option<Self>, ()> {
+    pub fn handle_warehouse_drop_off(&mut self) -> Result<Option<Self>, ()> {
         //check if we can drop a block off
         if self.empty_warehouse_color().is_some() {
             match self.can_drop_off_block() {
@@ -443,21 +459,39 @@ impl GridState {
                         if_van_stops_state.current_van_mut().is_done = true;
 
                         let stopped_cell_index = if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
-
-                        assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
-
-                        //disconnect this square and everything adjacent to it
-                        if_van_stops_state.graph.is_connected[ stopped_cell_index.0] = 0;
-
-                        for adj in gc_static_info.adj_info[stopped_cell_index.0].iter().filter_map( |a| a.as_ref()) {
-                            if_van_stops_state.graph.is_connected[ adj.cell_index.0] &= !(1 << adj.direction.opposite() as u8);
+                        {
+                            let tile = &if_van_stops_state.tiles[stopped_cell_index.0];
+                            if let TileRoad(_) = tile {
+                                assert!(tile.get_van().is_some());
+                            }
                         }
+
+                        //disconnect this square
+                        if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
+
+                        //and everything adjacent to it
+                        for (adj_idx, opp_dir_idx) in ALL_DIRECTIONS.iter().enumerate().filter_map(|(dir_idx, dir)| {
+
+                            if let Some(adj_idx) = get_adjacent_index(stopped_cell_index,
+                                                             self.height,
+                                                             self.width,
+                                                             *dir) {
+
+                                    Some( (adj_idx, opposite_dir_index(dir_idx)) )
+                            } else {
+                                None
+                            }
+                            }) {
+
+                                if_van_stops_state.graph.is_connected[adj_idx.0] &= !(1 << opp_dir_idx);
+                            }
+
 
                         Ok(Some(if_van_stops_state))
                     } else {
                         Ok(None)
                     }
-                    
+
                 },
                 _ => Ok(None)
             }
@@ -546,66 +580,45 @@ impl GridState {
         other_van
     }
 
-    ///basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color    
+    ///basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
     //warning on component_number
     #[allow(unused_variables)]
-    pub(crate) fn check_graph_validity(&self, gs_static_info: &GridConnectionsStaticInfo) -> bool {
+    pub(crate) fn check_graph_validity(&self) -> bool {
 
         let mut ds = DisjointSet::new(self.tiles.len());
 
         for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
+
             for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate() {
-                //log_trace!("Merging cells {} and {}", idx, adj_idx);
                 if is_connected_mask & (1 << dir_idx) > 0 {
                     let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
+
                     //log_trace!("Merging cells {} and {}", idx, adj_idx);
                     ds.merge_sets(idx, adj_idx.0);
                 }
             }
+
         }
 
         //for each color, get unfilled warehouse count & block count
 
-        let mut component_to_counts: Vec< [ [usize;3]; NUM_COLORS ]> = Vec::new();
-        let mut comp_to_idx = vec![self.tiles.len(); self.tiles.len()];
-
-        //let index_to_comp_num
-        //let mut component_to_has_popper: HashMap<usize, bool> = HashMap::new();
+        let mut component_to_counts: HashMap<usize, [ [usize;3]; NUM_COLORS ]> = HashMap::new();
 
         for (idx, tile) in self.tiles.iter().enumerate() {
 
             let component_number = ds.get_repr(idx);
 
-            let component_index = {
-                if comp_to_idx[component_number] == self.tiles.len() {
-                    comp_to_idx[component_number] = component_to_counts.len();
-                    component_to_counts.push(Default::default());
-                }
-                comp_to_idx[component_number]
-            };
-
             match tile {
                 TileRoad(Road { block: Some(block), .. }) => {
                     log_trace!("Block in cell {}, component {}, color {}", idx, component_number, block.0);
-                    component_to_counts[component_index][block.0][BLOCK as usize] += 1;
-
+                    add_component_to_map(&mut component_to_counts, component_number, *block, BLOCK);
                 },
                 TileWarehouse( Warehouse{is_filled: false, color}) => {
                     log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
-                    component_to_counts[component_index][color.0][WAREHOUSE as usize] += 1;
+                    add_component_to_map(&mut component_to_counts, component_number, *color, WAREHOUSE);
                 }
                 _ => {}
             }
-
-            /*
-            match tile {
-                TileRoad(Road { has_popper:true, .. }) => {
-                    log_trace!("in cell {}, component {}, has popper {}", idx, component_number, true);
-
-                    *component_to_has_popper.entry(component_number).or_insert(false) = true;
-                },
-                _ => {}
-            }*/
         }
 
         for van in self.vans.iter() {
@@ -616,31 +629,26 @@ impl GridState {
                 continue;
             }
 
-            let component_index = comp_to_idx[component_number];
-
-            assert!(component_index < self.tiles.len());
-
-            component_to_counts[component_index][van.color.0][VAN as usize] += 1;
+            add_component_to_map(&mut component_to_counts, component_number, van.color, VAN);
 
             for opt_box in van.boxes.iter() {
                 if let Some(color) = opt_box {
-                    //add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
-                    component_to_counts[component_index][color.0][BLOCK as usize] += 1;
+                    add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
                 }
             }
         }
 
         //now we can check for consistency
-        for (component_index, color_count) in component_to_counts.iter().enumerate() {
+        for (component_number, color_count) in component_to_counts.iter() {
 
             for color_index in 0..NUM_COLORS {
                 if color_count[color_index][BLOCK as usize] != color_count[color_index][WAREHOUSE as usize] {
-                    //log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
 
                 if color_count[color_index][BLOCK as usize] > 0 && (color_count[WHITE_COLOR_INDEX][VAN as usize] + color_count[color_index][VAN as usize] == 0) {
-                    //log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
 
@@ -649,34 +657,11 @@ impl GridState {
                     color_index != WHITE_COLOR_INDEX &&
                     color_count[color_index][BLOCK as usize] == 0 &&
                     color_count[color_index][VAN as usize] > 0 {
-                    //log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                    log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
             }
-
-
         }
-
-        //do we have a van that has a box of a different color
-        /*
-        for van in self.vans.iter().filter(|v| !v.color.is_white()) {
-            let component_number = ds.get_repr(van.cell_index.0);
-
-            let has_box_other_color = van.boxes.iter().any(|c| {
-                if let Some(color) = c {
-                    if *color != van.color {
-                        return true;
-                    }
-                }
-                return false;
-            });
-
-            if has_box_other_color && *component_to_has_popper.entry(component_number).or_insert(false) == false {
-                log_trace!("No popper available!");
-                return false;
-            }
-
-        }*/
 
 
         return true;
@@ -686,9 +671,17 @@ impl GridState {
 
 }
 
-#[repr(u8)]
 enum ComponentMapIdx {
     BLOCK = 0,
     WAREHOUSE = 1,
     VAN = 2
+}
+
+//indexs block 0, warehouse 1, van 2
+fn add_component_to_map(component_to_counts: &mut HashMap<usize, [ [usize;3]; NUM_COLORS ]>, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
+
+    let counts = component_to_counts.entry(component_number).or_insert(Default::default());
+
+    counts[color.0][thing_idx as usize] += 1
+
 }
