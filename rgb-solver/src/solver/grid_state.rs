@@ -317,10 +317,6 @@ impl GridState {
         }
     }
 
-    pub(crate) fn get_cur_is_connected_mask(&self) -> u8 {
-        self.graph.is_connected[self.current_cell_index().0]
-    }
-
     pub(crate) fn filter_map_by_can_have_van<'a>(
         &self,
         fixed_choice_opt: &Option<ChoiceOverride>,
@@ -372,9 +368,6 @@ impl GridState {
         adj_info: &AdjSquareInfo) {
         //now we have checked it is a road without a van in it, the mask is ok, etc.
 
-
-
-        log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
         log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
 
         let moving_to_cell_index = adj_info.cell_index;
@@ -608,6 +601,7 @@ impl GridState {
     }
 }
 
+#[repr(u8)]
 enum ComponentMapIdx {
     BLOCK = 0,
     WAREHOUSE = 1,

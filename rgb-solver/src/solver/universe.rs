@@ -31,26 +31,6 @@ pub struct Universe {
 
 //private
 impl Universe {
-    /// Gets adj indexes, checking grid limits
-    fn get_adjacent_square_indexes(&self, cell_index: CellIndex,
-                                   is_connected_mask: u8) -> Vec<AdjSquareInfo>
-    {
-        ALL_DIRECTIONS.iter().filter_map(|dir| {
-
-            //first check the mask
-            if is_connected_mask & (1 << *dir as u8) == 0 {
-                return None;
-            }
-
-            let adj_index = get_adjacent_index(cell_index, self.data.height, self.data.width, *dir);
-
-            if let Some(adj_index) = adj_index {
-                Some(AdjSquareInfo { direction: *dir, cell_index: adj_index })
-            } else {
-                None
-            }
-        }).collect()
-    }
 
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
@@ -359,27 +339,21 @@ impl Universe {
             };
 
 
-            let cur_is_connected_mask = cur_state.get_cur_is_connected_mask();
-
-            log_trace!("Current used mask: {:#07b}", cur_is_connected_mask);
 
             //now attempt to move
-
-            //Where could we move?  (looks at mask & grid)
-            let adj_square_indexes = self.get_adjacent_square_indexes(
-                van_cell_index, cur_is_connected_mask);
 
             log_trace!("Adj squares: {:?}", adj_square_indexes);
             let mut any_moved = false;
 
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
-            let adj_info_filtered_list: Vec<&AdjSquareInfo> = adj_square_indexes.iter().filter_map(
-                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt, a_info)).collect();
+            //Where could we move?  (looks at mask & grid)
+            let adj_info_filtered_list =  cur_state.graph.get_adjacent_square_indexes(&self.gc_static_info, van_cell_index).filter_map(
+                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt,a_info));
 
-            log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
+            //log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
 
-            for adj_info in adj_info_filtered_list.into_iter() {
+            for adj_info in adj_info_filtered_list {
 
                 //now we have checked it is a road without a van in it, the mask is ok, etc.
 
