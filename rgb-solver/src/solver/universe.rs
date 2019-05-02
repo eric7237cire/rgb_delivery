@@ -1,14 +1,17 @@
-use crate::solver::grid_state::{GridState, GridAnalysis};
-use crate::solver::structs::{ChoiceOverride, CellIndex, AdjSquareInfo, Bridge, Button, CellData, VanIndex, TileEnum, Road, CalculationResponse, ALL_DIRECTIONS, get_adjacent_index, Van, GridConnections, GridConnectionsStaticInfo};
 use std::collections::vec_deque::VecDeque;
-
-use crate::solver::structs::TileEnum::{TileRoad, TileBridge, TileWarehouse};
 
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
+
+use crate::solver::grid_state::{GridAnalysis, GridState};
+use crate::solver::structs::{
+    ALL_DIRECTIONS, Bridge, Button, CalculationResponse,
+    CellData, CellIndex, ChoiceOverride, get_adjacent_index,
+    GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex};
+use crate::solver::structs::Direction::NORTH;
+use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
-use crate::solver::structs::Direction::NORTH;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -454,9 +457,10 @@ impl Universe {
 
     pub fn new(h: usize, w: usize) -> Universe {
         log!(
-            "Building a new Grid.  [{}, {}] ",
+            "Building a new Grid.  [{}, {}] Build #: {:?}",
             w,
-            h
+            h,
+            option_env!("TRAVIS_BUILD_NUMBER")
         );
 
         utils::set_panic_hook();
