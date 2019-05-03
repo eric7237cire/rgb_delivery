@@ -8,6 +8,7 @@ pub struct StackNode
 {
     //0 to 3 direction, 4 for stopped
     current_van_direction: Direction,
+    used_popper: bool,
     current_state: GridState,
 }
 
