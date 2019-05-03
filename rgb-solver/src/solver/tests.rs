@@ -9408,7 +9408,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 
         let mut universe = Universe::new(universe_data.width, universe_data.height);
 
-        universe.data = universe_data;
+        universe.initial_data = universe_data;
 
         universe.init_calculate();
 

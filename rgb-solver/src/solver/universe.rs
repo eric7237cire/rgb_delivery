@@ -12,18 +12,21 @@ use crate::solver::structs::Direction::NORTH;
 use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
+use crate::solver::backtracking_stack::StackNode;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
 pub struct Universe {
-    pub(crate) data: GridState,
+    pub(crate) initial_data: GridState,
 
     pub(crate) choice_override_list: Vec<ChoiceOverride>,
 
     //below are used for calculating
-    pub(crate) queue: VecDeque<GridState>,
+
+    pub(crate) stack: Vec<StackNode>,
 
     pub(crate) success_state: Option<GridState>,
+    pub(crate) is_failure: bool,
 
     pub(crate) iter_count: usize,
 
@@ -31,7 +34,11 @@ pub struct Universe {
 
     pub(crate) gc_static_info: GridConnectionsStaticInfo,
 
-    pub(crate) max_ticks: usize
+    pub(crate) max_ticks: usize,
+
+    pub(crate) cur_stack_data: GridState,
+
+    pub(crate) last_node: Option<StackNode>
 }
 
 //private
@@ -39,7 +46,7 @@ impl Universe {
 
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
-    fn get_fixed_choice(&self, cur_state: &GridState) -> Option<ChoiceOverride> {
+    pub(crate) fn get_fixed_choice(&self, cur_state: &GridState) -> Option<ChoiceOverride> {
         let (cur_row_index, cur_col_index) = cur_state.current_cell_index().to_row_col(cur_state.width);
 
         let o = self.choice_override_list.iter()
@@ -73,7 +80,7 @@ impl Universe {
 
 
     pub(crate) fn initial_van_list(&self) -> Vec<Van> {
-        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
+        self.initial_data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
             if let Some(van) = tile.get_van() {
 
                 //found a van
@@ -91,11 +98,11 @@ impl Universe {
 
 
     pub(crate) fn initial_graph(&self) -> (GridConnections, GridConnectionsStaticInfo) {
-        let mut gc = GridConnections::new( self.data.height, self.data.width );
+        let mut gc = GridConnections::new(self.initial_data.height, self.initial_data.width );
 
         let so = gc.build_static_info();
 
-        for (cur_square_index, tile) in self.data.tiles.iter().enumerate() {
+        for (cur_square_index, tile) in self.initial_data.tiles.iter().enumerate() {
 
             if let Some(connection_mask) = tile.get_connection_mask() {
 
@@ -103,17 +110,17 @@ impl Universe {
 
 
                 for adj_dir in ALL_DIRECTIONS.iter() {
-                    let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
+                    let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.initial_data.height, self.initial_data.width, *adj_dir);
 
                     if let Some(adj_square_index) = adj_square_index {
-                        if let Some(adj_connection_mask) = self.data.tiles[adj_square_index.0].get_connection_mask()
+                        if let Some(adj_connection_mask) = self.initial_data.tiles[adj_square_index.0].get_connection_mask()
                         {
                             if (connection_mask & (1 << *adj_dir as u8)) > 0 && (adj_connection_mask & (1 << adj_dir.opposite() as u8) > 0) {
                                 gc.set_is_connected( cell_index, *adj_dir, true);
 
                             }
                         } else if adj_dir == &NORTH {
-                            if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
+                            if let TileWarehouse(_) = &self.initial_data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
                                 gc.set_is_connected( cell_index, *adj_dir, true);
                             }
@@ -140,7 +147,7 @@ impl Universe {
 
 
         let mut ga = GridAnalysis {
-            has_poppers: self.data.tiles.iter().any(|t| if let TileRoad(r) = t {
+            has_poppers: self.initial_data.tiles.iter().any(|t| if let TileRoad(r) = t {
                 return r.has_popper;
             } else { false }),
             ..Default::default()
@@ -148,12 +155,12 @@ impl Universe {
 
         //if a van starts on a square that has 2 options, see if there is a block on that path (no warehouse), if so, we must go towards the block
 
-        for (van_index,van) in self.data.vans.iter().enumerate() {
+        for (van_index,van) in self.initial_data.vans.iter().enumerate() {
 
             let van_index = VanIndex(van_index);
 
-            let van_adj_cells:Vec<_> = self.data.graph.get_adjacent_square_indexes(&self.gc_static_info,
-                van.cell_index).collect();
+            let van_adj_cells:Vec<_> = self.initial_data.graph.get_adjacent_square_indexes(&self.gc_static_info,
+                                                                                           van.cell_index).collect();
 
             if van_adj_cells.len() != 2 {
                 continue;
@@ -165,7 +172,7 @@ impl Universe {
                 let mut last_cell_index:CellIndex = van.cell_index;
                 let mut cur_cell_index:CellIndex = potential_force_cell.cell_index;
                 loop {
-                    let next_cell_index = self.data.graph.get_adjacent_square_indexes(
+                    let next_cell_index = self.initial_data.graph.get_adjacent_square_indexes(
                         &self.gc_static_info,
                  cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<_>>();
 
@@ -178,7 +185,7 @@ impl Universe {
 
                     //don't neet to check if warehouse to north because there would be a connection
 
-                    if let TileRoad( Road{ block: Some(_block),..}) = &self.data.tiles[cur_cell_index.0] {
+                    if let TileRoad( Road{ block: Some(_block),..}) = &self.initial_data.tiles[cur_cell_index.0] {
 
                         return true;
                     }
@@ -190,7 +197,7 @@ impl Universe {
 
             if let Some( forced_adj_cell ) = forced_adj_cell {
                 //found a force choice
-                let rc = van.cell_index.to_row_col(self.data.width);
+                let rc = van.cell_index.to_row_col(self.initial_data.width);
 
                 ga.forced_choices.push(ChoiceOverride {
                     row_index: rc.0,
@@ -209,7 +216,7 @@ impl Universe {
     }
 
     pub(crate) fn initial_bridge_list(&self) -> Vec<Bridge> {
-        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
+        self.initial_data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
             if let TileBridge(bridge) = &tile {
                 let mut m_bridge = bridge.clone();
                 m_bridge.cell_index = cell_index.into();
@@ -221,7 +228,7 @@ impl Universe {
     }
 
     pub(crate) fn initial_button_list(&self) -> Vec<Button> {
-        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
+        self.initial_data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
             if let TileRoad(road) = &tile {
                 if let Some(button) = &road.button_snapshot {
 
@@ -490,7 +497,7 @@ impl Universe {
             van: Some( Van{ boxes: [None, Some(cl[0].clone()), Some(cl[3].clone())] } ) } );*/
 
         Universe {
-            data: GridState {
+            initial_data: GridState {
                 width,
                 height,
                 tiles,
@@ -502,7 +509,7 @@ impl Universe {
 
 
     pub fn get_data(&self) -> JsValue {
-        JsValue::from_serde(&self.data).unwrap()
+        JsValue::from_serde(&self.initial_data).unwrap()
     }
 
 
@@ -526,21 +533,21 @@ impl Universe {
         self.queue = VecDeque::new();
 
         self.iter_count = 0;
-        self.data.tick = 0;
+        self.initial_data.tick = 0;
 
         self.success_state = None;
 
-        self.data.vans = self.initial_van_list();
-        self.data.buttons = self.initial_button_list();
-        self.data.bridges = self.initial_bridge_list();
+        self.initial_data.vans = self.initial_van_list();
+        self.initial_data.buttons = self.initial_button_list();
+        self.initial_data.bridges = self.initial_bridge_list();
 
         log!("Init graph");
 
         let ab = self.initial_graph();
-        self.data.graph = ab.0;
+        self.initial_data.graph = ab.0;
         self.gc_static_info =ab.1;
 
-        self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
+        self.initial_data.warehouses_remaining = self.initial_data.tiles.iter().filter(|t| {
             if let TileWarehouse(_) = t {
                 true
             } else {
@@ -549,20 +556,20 @@ impl Universe {
         }).count();
 
         //we increment on pop, so...
-        self.data.current_van_index = VanIndex(self.initial_van_list().len() - 1);
+        self.initial_data.current_van_index = VanIndex(self.initial_van_list().len() - 1);
 
 
         //reset road history
-        for tile in self.data.tiles.iter_mut() {
+        for tile in self.initial_data.tiles.iter_mut() {
             tile.reset();
         }
 
         //vans should start on roads
-        let van_cells: Vec<CellIndex> = self.data.vans.iter().map(|v| v.cell_index).collect();
+        let van_cells: Vec<CellIndex> = self.initial_data.vans.iter().map(|v| v.cell_index).collect();
 
         for (van_idx, v_cell_index) in van_cells.iter().enumerate() {
 
-            self.data.tiles[v_cell_index.0].set_van(&self.data.vans[van_idx]);
+            self.initial_data.tiles[v_cell_index.0].set_van(&self.initial_data.vans[van_idx]);
             
         }
 
@@ -570,7 +577,7 @@ impl Universe {
 
         self.analysis = self.initial_graph_analysis();
 
-        self.queue.push_back(self.data.clone());
+        self.queue.push_back(self.initial_data.clone());
     }
 
 
@@ -613,7 +620,7 @@ impl Universe {
     pub fn set_square(&mut self, tile_val: &JsValue) {
         let cell: CellData = tile_val.into_serde().unwrap();
 
-        let idx: usize = cell.row_index * self.data.width + cell.col_index;
+        let idx: usize = cell.row_index * self.initial_data.width + cell.col_index;
 
         /*log!(
             "Received Row/Col [{}, {}] = idx [{}].  Tile {:?}",
@@ -623,8 +630,8 @@ impl Universe {
             tile
         );*/
 
-        if idx < self.data.tiles.len() {
-            self.data.tiles[idx] = cell.tile;
+        if idx < self.initial_data.tiles.len() {
+            self.initial_data.tiles[idx] = cell.tile;
         } else {
             log!(
                 "Out of bounds, ignoring"

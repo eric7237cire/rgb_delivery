@@ -28,9 +28,6 @@ pub struct GridState {
     #[serde(skip)]
     pub graph: GridConnections,
 
-    //Js=>Rust will ignore this
-    #[serde(skip_deserializing)]
-    pub(crate) tick: usize,
 
     #[serde(skip_deserializing)]
     pub(crate) vans: Vec<Van>,
@@ -43,8 +40,6 @@ pub struct GridState {
     #[serde(skip_deserializing)]
     pub(crate) warehouses_remaining: usize,
 
-    #[serde(skip)]
-    pub(crate) current_van_index: VanIndex,
 
 }
 
@@ -487,6 +482,9 @@ impl GridState {
 
 
     pub fn can_current_van_stop(&self) -> bool {
+
+        //TODO check if tick is 0
+
         let any_non_stopped_white_vans = self.vans.iter().any(|v| v.color.is_white() && !v.is_done);
 
         if any_non_stopped_white_vans {

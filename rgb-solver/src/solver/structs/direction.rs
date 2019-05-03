@@ -5,6 +5,7 @@ pub enum Direction {
     EAST = 1,
     SOUTH = 2,
     WEST = 3,
+    STOP = 4
 }
 
 use self::Direction::*;
@@ -16,7 +17,8 @@ impl Direction {
             NORTH => SOUTH,
             EAST => WEST,
             SOUTH => NORTH,
-            WEST => EAST
+            WEST => EAST,
+            STOP => STOP
         }
     }
 }
@@ -54,7 +56,8 @@ pub fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_widt
             } else {
                 Some(CellIndex(square_index.0 - 1))
             }
-        }
+        },
+        STOP => panic!()
     }
 }
 
