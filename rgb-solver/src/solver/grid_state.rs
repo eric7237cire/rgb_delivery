@@ -1,6 +1,6 @@
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride,
+use crate::solver::structs::{Warehouse, ColorIndex, TileEnum, Bridge, Road, Button, ChoiceOverride,
                              AdjSquareInfo, CellIndex, Van, ALL_DIRECTIONS, get_adjacent_index, GridConnections, GridConnectionsStaticInfo};
 use crate::solver::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 
@@ -53,31 +53,6 @@ pub enum CanDropOff {
 }
 
 impl GridState {
-    pub(crate) fn increment_current_van_index(&mut self) -> Result<bool, ()> {
-        let mut incremented_tick = false;
-
-        for _ in 0..self.vans.len() {
-            //increment
-            if self.current_van_index.0 == self.vans.len() - 1 {
-                log_trace!("Advancing a tick {} => {}", self.tick, self.tick + 1);
-
-                self.tick += 1;
-                self.current_van_index = 0usize.into();
-                incremented_tick = true;
-            } else {
-                self.current_van_index.0 += 1;
-            }
-
-            if !self.current_van().is_done {
-                return Ok(incremented_tick);
-            } else {
-                log_trace!("Van #{:?}: {:?} is done, skipping", self.current_van_index, self.vans[self.current_van_index.0]);
-            }
-        }
-
-        Err(())
-    }
-
 
     pub(crate) fn check_bridges_and_buttons(&self) {
         for b in self.bridges.iter() {
@@ -168,29 +143,17 @@ impl GridState {
         })*/
     }
 
-    pub(crate) fn current_cell_index(&self) -> CellIndex {
-        self.vans[self.current_van_index.0].cell_index
-    }
-    pub(crate) fn current_cell_mut(&mut self) -> &mut TileEnum {
-        &mut self.tiles[self.vans[self.current_van_index.0].cell_index.0]
-    }
-    pub(crate) fn current_cell(&self) -> &TileEnum {
-        &self.tiles[self.vans[self.current_van_index.0].cell_index.0]
-    }
 
-    pub(crate) fn current_van(&self) -> &Van {
-        let i: usize = self.current_van_index.into();
-        &self.vans[i]
-    }
-    pub(crate) fn current_van_mut(&mut self) -> &mut Van {
-        let i: usize = self.current_van_index.into();
-        &mut self.vans[i]
-    }
 
-    pub(crate) fn pick_up_block_if_exists(&mut self, analysis: &GridAnalysis) -> Result<(), ()> {
+
+    pub(crate) fn pick_up_block_if_exists(&mut self,
+                                          current_van_index: usize,
+                                          analysis: &GridAnalysis) -> Result<(), ()> {
         log_trace!("pick_up_block_if_exists");
 
-        let opt = match self.current_cell() {
+        let current_cell_index = self.vans[current_van_index].cell_index;
+
+        let opt = match &self.tiles[current_cell_index.0] {
             TileRoad(road) => {
                 if Some(self.tick) == road.used_popper_tick {
                     //don't pick up the block we just set down
@@ -206,10 +169,10 @@ impl GridState {
         if let Some(block_color) = opt {
             log_trace!("Rolled on a block of color {:?}", block_color);
 
-            if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
+            if let Some(i) = self.vans[self.current_van_index].get_empty_slot() {
                 if !analysis.has_poppers
-                    && !self.vans[self.current_van_index.0].color.is_white()
-                    && self.vans[self.current_van_index.0].color != block_color {
+                    && !self.vans[self.current_van_index].color.is_white()
+                    && self.vans[self.current_van_index].color != block_color {
                     log_trace!("No way of dropping block off");
                     return Err(());
                 }
@@ -439,7 +402,7 @@ impl GridState {
     }
 
     /// On road, toggle-able thing that will pop off the block if active. if we do that, returns that state
-    pub fn handle_block_popper(&mut self) -> Result<Option<Self>, ()> {
+    pub fn handle_block_popper(&mut self) -> Option<Self> {
         let cell_index = self.current_cell_index().0;
         let on_usable_popper = match &mut self.tiles[cell_index] {
             TileRoad(Road { used_popper_tick, has_popper, .. }) => {
@@ -455,7 +418,7 @@ impl GridState {
         };
 
         if !on_usable_popper {
-            return Ok(None);
+            return None;
         }
 
         //do we have a box to pop?
@@ -470,14 +433,13 @@ impl GridState {
                 road.block = Some(top_box_color);
                 road.used_popper_tick = Some(self.tick);
 
-                Ok(Some(if_popper_active))
+                Some(if_popper_active)
             } else {
                 panic!("Should be a road");
             }
         } else {
-            Ok(None)
+            None
         }
-        //create the state
     }
 
 

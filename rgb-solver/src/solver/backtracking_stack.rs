@@ -1,4 +1,4 @@
-use bitvec::BitVec;
+
 use crate::solver::grid_state::GridState;
 use crate::solver::universe::Universe;
 use crate::solver::structs::{Direction, ALL_DIRECTIONS};
@@ -16,8 +16,12 @@ impl Universe {
     fn handle_current_state_invalid(&mut self) {
         self.last_node = self.stack.pop();
         self.is_failure = self.last_node.is_none();
+
+        if self.last_node.is_some() {
+            self.cur_stack_data = self.last_node.unwrap().current_state;
+        }
     }
-    fn do_backtracking(&mut self)
+    pub fn do_backtracking(&mut self)
     {
         if self.is_failure {
             return;
@@ -76,9 +80,11 @@ impl Universe {
                 StackNode {
                     current_van_direction: STOP,
                     current_state: cur_state.clone(),
+                    used_popper: false
+
                 }
             );
-            continue;
+            return;
         }
 
         if self.iter_count % 10000 == 0 {
@@ -118,16 +124,7 @@ impl Universe {
             _ => ()
         };
 
-        match cur_state.handle_block_popper() {
-            Ok(Some(mut next_state)) => {
-                //reset to values as when it was just popped
-                next_state.tick = save_for_toggle.0;
-                next_state.current_van_index = save_for_toggle.1;
-                self.queue.push_front(next_state);
-            }
-            Err(_) => continue,
-            _ => ()
-        };
+
 
 
         //now attempt to move
@@ -141,17 +138,23 @@ impl Universe {
         //Where could we move?  (looks at mask & grid)
 
         let mut skip_count = 0;
+        let used_popper ;
 
-        if let Some(StackNode { current_van_direction, .. }) = &self.last_node {
+        if let Some(StackNode { current_van_direction, used_popper: up,.. }) = &self.last_node {
             skip_count = *current_van_direction as usize + 1;
+            used_popper = *up;
+        } else {
+            used_popper = false;
         }
+
+        let cell_index = cur_state.vans[current_van_index].cell_index;
 
         let next_dir = ALL_DIRECTIONS.iter().skip(skip_count).
             filter_map(|&dir| {
                 if !cur_state.graph.is_connected(cell_index, *dir) {
                     return None;
                 }
-                let adj_info = static_info.adj_info[cell_index.0][*dir as usize].as_ref();
+                let adj_info = self.static_info.adj_info[cell_index.0][*dir as usize].as_ref();
                 cur_state.filter_map_by_can_have_van(&fixed_choice_opt, adj_info)
             }).next();
 
@@ -163,9 +166,34 @@ impl Universe {
                     StackNode {
                         current_van_direction: STOP,
                         current_state: cur_state.clone(),
+                        used_popper
                     }
                 );
                 return;
+            }
+
+            log_trace!("see if we can pop");
+            if !used_popper {
+                if let Some(mut next_state) = cur_state.handle_block_popper() {
+                    let next_dir = ALL_DIRECTIONS.iter().
+                        filter_map(|&dir| {
+                            if !cur_state.graph.is_connected(cell_index, *dir) {
+                                return None;
+                            }
+                            let adj_info = self.static_info.adj_info[cell_index.0][*dir as usize].as_ref();
+                            cur_state.filter_map_by_can_have_van(&fixed_choice_opt, adj_info)
+                        }).next();
+
+                    if let Some(adj_info) = next_dir {
+
+                        //reset to values as when it was just popped
+                        self.stack.push(StackNode {
+                            current_van_direction: adj_info.direction,
+                            used_popper: true,
+                            current_state: next_state
+                        });
+                    }
+                }
             }
 
             self.handle_current_state_invalid();
@@ -184,6 +212,7 @@ impl Universe {
             StackNode {
                 current_van_direction: adj_info.direction,
                 current_state: next_state,
+                used_popper
             }
         );
         return;

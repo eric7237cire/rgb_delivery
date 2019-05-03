@@ -1,5 +1,3 @@
-use std::collections::vec_deque::VecDeque;
-
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 
@@ -46,21 +44,23 @@ impl Universe {
 
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
-    pub(crate) fn get_fixed_choice(&self, cur_state: &GridState) -> Option<ChoiceOverride> {
-        let (cur_row_index, cur_col_index) = cur_state.current_cell_index().to_row_col(cur_state.width);
+    pub(crate) fn get_fixed_choice(&self, cur_state: &GridState, current_tick: usize, current_van_index: usize) -> Option<ChoiceOverride> {
+
+        let current_cell_index = cur_state.vans[current_van_index].cell_index;
+        let (cur_row_index, cur_col_index) = current_cell_index.to_row_col(cur_state.width);
 
         let o = self.choice_override_list.iter()
             //also any system generated forced choices
             .chain( self.analysis.forced_choices.iter())
             .find(|co| {
             if let Some(forced_tick) = co.tick {
-                if forced_tick != cur_state.tick {
+                if forced_tick != current_tick {
                     return false;
                 }
             }
 
             if let Some(van_index) = co.van_index {
-                if van_index != cur_state.current_van_index {
+                if van_index.0 != current_van_index {
                     return false;
                 }
             }
@@ -247,214 +247,27 @@ impl Universe {
     }
 
 
-    pub(crate) fn process_queue_item(&mut self) -> Option<&GridState> {
-        if self.success_state.is_some() {
-            return self.success_state.as_ref();
-        }
-        while let Some(mut cur_state) = self.queue.pop_front() {
-            self.iter_count += 1;
 
-
-            //self.current_calc_state = Some(cur_state.clone());
-
-            //check success, where all warehouses are filled
-            if cur_state.check_success() {
-                log!("Success!");
-                self.success_state = Some(cur_state);
-                return self.success_state.as_ref();
-            }
-
-            let save_for_toggle = (cur_state.tick, cur_state.current_van_index);
-
-            //change current_van_index in one place
-            let did_tick_advance = match cur_state.increment_current_van_index() {
-                Err(_) => continue,
-                Ok(b) => b
-            };
-
-
-            log_trace!("\n\nLoop count: {} Tick: {} \
-            Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
-                self.iter_count,
-                cur_state.tick,
-                self.queue.len(), cur_state.current_van_index,
-                cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
-            );
-
-            if self.max_ticks > 0 && cur_state.tick-1 > self.max_ticks {
-                continue;
-            }
-
-            // Also test if starting vans don't move
-            if cur_state.tick == 1 {
-                log_trace!("Adding state where van does not move for van index: {}", cur_state.current_van_index.0);
-                assert!(!cur_state.vans[cur_state.current_van_index.0].is_done);
-
-                if cur_state.can_current_van_stop() {
-                    let mut if_van_stops_state = cur_state.clone();
-                    if_van_stops_state.current_van_mut().is_done = true;
-                    //push back to calculate last
-                    self.queue.push_back(if_van_stops_state);
-                }
-            }
-
-            cur_state.check_bridges_and_buttons();
-
-            if did_tick_advance {
-                match cur_state.toggle_bridges_and_buttons() {
-                    Err(_) => {
-                        log_trace!("Van caught on open bridge");
-                        continue;
-                    }
-                    Ok(_) => {}
-                };
-                cur_state.check_bridges_and_buttons();
-            } else {
-                log_trace!("Tick did not advance");
-            }
-
-            if self.iter_count % 10000 == 0 {
-                log!("\n\nLoop count: {} \
-                 Queue Length: {} Current Tick: {} ",
-                     self.iter_count, self.queue.len(), cur_state.tick);
-            }
-
-            if !cur_state.check_graph_validity() {
-                log_trace!("Rejecting state");
-                continue;
-            }
-
-
-            let van_cell_index = cur_state.vans[cur_state.current_van_index.0].cell_index;
-
-            //let (cur_row_index, cur_col_index) = van_cell_index.to_row_col(self.data.width);
-
-            match cur_state.pick_up_block_if_exists(&self.analysis) {
-                Err(_) => continue,
-                _ => ()
-            };
-
-            //check if we can drop a block off
-            match cur_state.handle_warehouse_drop_off(&self.gc_static_info) {
-                Ok(Some(next_state)) => {
-                    self.queue.push_front(next_state);
-                }
-                Err(_) => continue,
-                _ => ()
-            };
-
-            match cur_state.handle_block_popper() {
-                Ok(Some(mut next_state)) => {
-                    //reset to values as when it was just popped
-                    next_state.tick = save_for_toggle.0;
-                    next_state.current_van_index = save_for_toggle.1;
-                    self.queue.push_front(next_state);
-                }
-                Err(_) => continue,
-                _ => ()
-            };
-
-
-
-            //now attempt to move
-
-            log_trace!("Adj squares: {:?}", adj_square_indexes);
-            let mut any_moved = false;
-
-            let fixed_choice_opt = self.get_fixed_choice(&cur_state);
-
-            //Where could we move?  (looks at mask & grid)
-            let adj_info_filtered_list =  cur_state.graph.get_adjacent_square_indexes(&self.gc_static_info, van_cell_index).filter_map(
-                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt,a_info));
-
-            //log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
-
-            for adj_info in adj_info_filtered_list {
-
-                //now we have checked it is a road without a van in it, the mask is ok, etc.
-
-                //make the move
-                let mut next_state = cur_state.clone();
-
-                next_state.handle_move(van_cell_index, adj_info);
-
-                //checking tile consistency
-                {
-                    /*
-                    Example: tick 123:
-                        Van[0] moves A=>B
-                        van 2 moves B=>C
-
-                        tick 124
-                        van 0 won't have a tile set in B
-
-
-                    van_snapshot is just used for visualization so its ok
-                    */
-
-                    /*for vi in 0..next_state.vans.len() {
-                        if let TileRoad(road) = &next_state.tiles[next_state.vans[vi].cell_index.0] {
-                            assert!(road.van_snapshot.is_some(), "van index {} row/col: {:?} does not have a van set in its tile", vi,
-                                    next_state.vans[vi].cell_index.to_row_col(next_state.width));
-                        }
-                    }*/
-                }
-
-                next_state.press_button_if_exists();
-
-                self.queue.push_front(next_state);
-                any_moved = true;
-            }
-
-            //we are stuck, nothing else will be queued at this point
-            if !any_moved {
-                log_trace!("NO MOVES  Van: {:?}",
-                     cur_state.current_van_index);
-                continue;
-            }
-
-
-            if let Some(f) = self.queue.front() {
-                return Some(f);
-            } else {
-                return None;
-            }
-        }
-
-        log!("Queue is empty");
-        return None;
-    }
 
     //return CalculationResponse
     pub(crate) fn next_calculate(&mut self) -> JsValue {
         let iter_count = self.iter_count;
-        let q_len = self.queue.len();
+        let q_len = self.stack.len();
         let success = self.success_state.is_some();
 
-        let v = self.process_queue_item();
+        self.do_backtracking();
 
-        let r = if let Some(cur_state) = v {
-            log!("next_calculate: Is success?: {} Iter Count: {} Tick: {} \
-            Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
-                 success,
-                 iter_count,
-                 cur_state.tick,
-                 q_len, cur_state.current_van_index,
-                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
-            );
-            CalculationResponse{
-                grid_state: Some(cur_state.clone()),
-                iteration_count: self.iter_count,
-                success,
-                ..Default::default()
-            }
-        } else {
-            CalculationResponse{
-                error_message: Some( "No grid state".to_string() ),
-                iteration_count: self.iter_count,
-                success,
-                ..Default::default()
-            }
+        log!("next_calculate: Is success?: {} Iter Count: {}  \
+        Queue Length: {} ",
+             success,
+             iter_count,
+             q_len
+        );
+        let r = CalculationResponse{
+            grid_state: Some(self.cur_stack_data.clone()),
+            iteration_count: self.iter_count,
+            success,
+            ..Default::default()
         };
 
         //false for should not stop
@@ -530,10 +343,10 @@ impl Universe {
 
         log!("Init calculate");
 
-        self.queue = VecDeque::new();
+        self.stack = Vec::new();
 
         self.iter_count = 0;
-        self.initial_data.tick = 0;
+        self.cur_stack_data = self.initial_data.clone();
 
         self.success_state = None;
 
@@ -555,10 +368,6 @@ impl Universe {
             }
         }).count();
 
-        //we increment on pop, so...
-        self.initial_data.current_van_index = VanIndex(self.initial_van_list().len() - 1);
-
-
         //reset road history
         for tile in self.initial_data.tiles.iter_mut() {
             tile.reset();
@@ -577,7 +386,6 @@ impl Universe {
 
         self.analysis = self.initial_graph_analysis();
 
-        self.queue.push_back(self.initial_data.clone());
     }
 
 
@@ -596,7 +404,7 @@ impl Universe {
         let target_iter_count = self.iter_count + repeat_count - 1;
 
         while self.iter_count < target_iter_count {
-            self.process_queue_item();
+            self.do_backtracking();
             if let Some(success_state) = &self.success_state {
                 return JsValue::from_serde(&CalculationResponse {
                     grid_state: Some(success_state.clone()),
@@ -605,9 +413,9 @@ impl Universe {
                     ..Default::default()
                 }).unwrap();
             }
-            if self.queue.is_empty() {
+            if self.stack.is_empty() {
                 return JsValue::from_serde(&CalculationResponse {
-                    error_message: Some(format!("Queue is empty")),
+                    error_message: Some(format!("Stack is empty")),
                     ..Default::default()
                 }).unwrap();
             }
