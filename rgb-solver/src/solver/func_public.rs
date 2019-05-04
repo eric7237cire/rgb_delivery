@@ -14,6 +14,7 @@ use crate::solver::structs::color::ColorIndex;
 pub(crate) const NUM_COLORS:usize = 9;
 pub(crate) const WHITE_COLOR_INDEX:usize = 0;
 
+
 pub(crate) fn build_color_list() -> Vec<Color> {
     let mut color_list = vec![
         Color{ label: "White".to_string(), red: 230, green: 230, blue: 230, ..Default::default()},

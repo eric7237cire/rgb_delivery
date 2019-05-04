@@ -4,14 +4,13 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 
 use crate::solver::grid_state::{GridAnalysis, GridState};
-use crate::solver::structs::{
-    ALL_DIRECTIONS, Bridge, Button, CalculationResponse,
-    CellData, CellIndex, ChoiceOverride, get_adjacent_index,
-    GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex};
+use crate::solver::structs::{ALL_DIRECTIONS, Bridge, Button, CalculationResponse, CellData, CellIndex, ChoiceOverride, get_adjacent_index, GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex, Warehouse};
 use crate::solver::structs::Direction::NORTH;
 use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
+use std::cmp::min;
+use std::usize;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -27,16 +26,17 @@ pub struct Universe {
 
     pub(crate) iter_count: usize,
 
+    pub(crate) removed_from_size: usize,
+
     pub(crate) analysis: GridAnalysis,
 
     pub(crate) gc_static_info: GridConnectionsStaticInfo,
 
-    pub(crate) max_ticks: usize
+    pub(crate) max_ticks: usize,
 }
 
 //private
 impl Universe {
-
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
     fn get_fixed_choice(&self, cur_state: &GridState) -> Option<ChoiceOverride> {
@@ -44,25 +44,25 @@ impl Universe {
 
         let o = self.choice_override_list.iter()
             //also any system generated forced choices
-            .chain( self.analysis.forced_choices.iter())
+            .chain(self.analysis.forced_choices.iter())
             .find(|co| {
-            if let Some(forced_tick) = co.tick {
-                if forced_tick != cur_state.tick {
-                    return false;
+                if let Some(forced_tick) = co.tick {
+                    if forced_tick != cur_state.tick {
+                        return false;
+                    }
                 }
-            }
 
-            if let Some(van_index) = co.van_index {
-                if van_index != cur_state.current_van_index {
-                    return false;
+                if let Some(van_index) = co.van_index {
+                    if van_index != cur_state.current_van_index {
+                        return false;
+                    }
                 }
+
+
+                cur_row_index == co.row_index
+                    && cur_col_index == co.col_index
             }
-
-
-            cur_row_index == co.row_index
-                && cur_col_index == co.col_index
-        }
-        );
+            );
 
         if let Some(o) = o {
             Some(o.clone())
@@ -85,20 +85,17 @@ impl Universe {
             } else {
                 None
             }
-
         }).collect()
     }
 
 
     pub(crate) fn initial_graph(&self) -> (GridConnections, GridConnectionsStaticInfo) {
-        let mut gc = GridConnections::new( self.data.height, self.data.width );
+        let mut gc = GridConnections::new(self.data.height, self.data.width);
 
         let so = gc.build_static_info();
 
         for (cur_square_index, tile) in self.data.tiles.iter().enumerate() {
-
             if let Some(connection_mask) = tile.get_connection_mask() {
-
                 let cell_index = CellIndex(cur_square_index);
 
 
@@ -109,13 +106,12 @@ impl Universe {
                         if let Some(adj_connection_mask) = self.data.tiles[adj_square_index.0].get_connection_mask()
                         {
                             if (connection_mask & (1 << *adj_dir as u8)) > 0 && (adj_connection_mask & (1 << adj_dir.opposite() as u8) > 0) {
-                                gc.set_is_connected( cell_index, *adj_dir, true);
-
+                                gc.set_is_connected(cell_index, *adj_dir, true);
                             }
                         } else if adj_dir == &NORTH {
                             if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
-                                gc.set_is_connected( cell_index, *adj_dir, true);
+                                gc.set_is_connected(cell_index, *adj_dir, true);
                             }
                         }
                     }
@@ -123,7 +119,6 @@ impl Universe {
             } else {
                 continue;
             }
-
         }
 
         (gc, so)
@@ -138,6 +133,9 @@ impl Universe {
         //log_trace!("Finding bridges");
         //b.do_it(&self.data.graph, self.data.height, self.data.width);
 
+        let warehouses: Vec<_> = self.data.tiles.iter().filter_map(|t| if let TileWarehouse(..) = t { Some(t) } else { None }).collect();
+
+        let num_warehouses = warehouses.len();
 
         let mut ga = GridAnalysis {
             has_poppers: self.data.tiles.iter().any(|t| if let TileRoad(r) = t {
@@ -146,14 +144,98 @@ impl Universe {
             ..Default::default()
         };
 
+        for i in 0..5 {
+            ga.distance_to_warehouses[i] = vec![usize::MAX; self.data.tiles.len()];
+        }
+
+        ga.warehouse_loc = self.data.tiles.iter().enumerate().filter_map(|(idx,t)| if let TileWarehouse(..) = t { Some(idx) } else { None }).collect();
+        ga.distance_to_warehouses_all = vec![ vec![usize::MAX; self.data.tiles.len()]; num_warehouses];
+
+        for (idx,w_loc) in ga.warehouse_loc.iter().enumerate() {
+            ga.distance_to_warehouses_all[idx][*w_loc+self.data.width] = 0;
+        }
+
+        for color in 0..5
+        {
+            for r in 0..self.data.height
+            {
+                for c in 0..self.data.width {
+                    let cell_index = CellIndex(r * self.data.width + c);
+                    if let Some(wc) = self.data.empty_warehouse_color_for_cell_index(cell_index) {
+                        if wc.0 == color {
+                            ga.distance_to_warehouses[color][cell_index.0] = 0;
+                            continue;
+                        }
+                    }
+
+                    if c > 0 {
+                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 - 1], ga.distance_to_warehouses[color][cell_index.0])
+                    }
+                    if r > 0 {
+                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 - self.data.width], ga.distance_to_warehouses[color][cell_index.0])
+                    }
+                }
+            }
+        }
+
+        for w_idx in 0..num_warehouses
+        {
+            for r in 0..self.data.height
+            {
+                for c in 0..self.data.width {
+                    let cell_index = CellIndex(r * self.data.width + c);
+
+                    if c > 0 {
+                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 - 1], ga.distance_to_warehouses_all[w_idx][cell_index.0])
+                    }
+                    if r > 0 {
+                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 - self.data.width], ga.distance_to_warehouses_all[w_idx][cell_index.0])
+                    }
+                }
+            }
+        }
+
+        for color in 0..5
+        {
+            for r in (0..self.data.height).rev()
+            {
+                for c in (0..self.data.width).rev() {
+                    let cell_index = CellIndex(r * self.data.width + c);
+
+                    if c < self.data.width - 1 {
+                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 + 1], ga.distance_to_warehouses[color][cell_index.0])
+                    }
+                    if r < self.data.height - 1 {
+                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 + self.data.width], ga.distance_to_warehouses[color][cell_index.0])
+                    }
+                }
+            }
+        }
+
+        for w_idx in 0..num_warehouses
+        {
+            for r in (0..self.data.height).rev()
+            {
+                for c in (0..self.data.width).rev() {
+                    let cell_index = CellIndex(r * self.data.width + c);
+
+                     if c < self.data.width - 1 {
+                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 + 1], ga.distance_to_warehouses_all[w_idx][cell_index.0])
+                    }
+                    if r < self.data.height - 1 {
+                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 + self.data.width], ga.distance_to_warehouses_all[w_idx][cell_index.0])
+                    }
+                }
+            }
+        }
+
         //if a van starts on a square that has 2 options, see if there is a block on that path (no warehouse), if so, we must go towards the block
 
-        for (van_index,van) in self.data.vans.iter().enumerate() {
-
+        for (van_index, van) in self.data.vans.iter().enumerate() {
             let van_index = VanIndex(van_index);
 
-            let van_adj_cells:Vec<_> = self.data.graph.get_adjacent_square_indexes(&self.gc_static_info,
-                van.cell_index).collect();
+            let van_adj_cells: Vec<_> = self.data.graph.get_adjacent_square_indexes(&self.gc_static_info,
+                                                                                    van.cell_index).collect();
 
             if van_adj_cells.len() != 2 {
                 continue;
@@ -161,15 +243,15 @@ impl Universe {
 
             assert_eq!(2, van_adj_cells.len());
 
-            let forced_adj_cell = van_adj_cells.iter().find( | potential_force_cell | {
-                let mut last_cell_index:CellIndex = van.cell_index;
-                let mut cur_cell_index:CellIndex = potential_force_cell.cell_index;
+            let forced_adj_cell = van_adj_cells.iter().find(|potential_force_cell| {
+                let mut last_cell_index: CellIndex = van.cell_index;
+                let mut cur_cell_index: CellIndex = potential_force_cell.cell_index;
                 loop {
                     let next_cell_index = self.data.graph.get_adjacent_square_indexes(
                         &self.gc_static_info,
-                 cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<_>>();
+                        cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<_>>();
 
-                    if next_cell_index.len() != 1  {
+                    if next_cell_index.len() != 1 {
                         break;
                     }
 
@@ -178,8 +260,7 @@ impl Universe {
 
                     //don't neet to check if warehouse to north because there would be a connection
 
-                    if let TileRoad( Road{ block: Some(_block),..}) = &self.data.tiles[cur_cell_index.0] {
-
+                    if let TileRoad(Road { block: Some(_block), .. }) = &self.data.tiles[cur_cell_index.0] {
                         if self.data.graph.is_connected[cur_cell_index.0].count_ones() <= 2 {
                             return true;
                         }
@@ -187,10 +268,9 @@ impl Universe {
                 }
 
                 false
-
             });
 
-            if let Some( forced_adj_cell ) = forced_adj_cell {
+            if let Some(forced_adj_cell) = forced_adj_cell {
                 //found a force choice
                 let rc = van.cell_index.to_row_col(self.data.width);
 
@@ -252,15 +332,30 @@ impl Universe {
 
             //self.current_calc_state = Some(cur_state.clone());
 
-            let ticks_used:usize = cur_state.vans.iter().map(|v| v.tick).sum();
+            let ticks_used: usize = cur_state.vans.iter().map(|v| {
+
+                if v.is_done {
+                    v.tick
+                } else {
+                    v.tick +
+                        self.analysis.warehouse_loc.iter().enumerate().filter_map( |(w_idx, w_loc)| {
+                            if let TileWarehouse(Warehouse{is_filled: false, color: warehouse_color,..}) = cur_state.tiles[*w_loc] {
+                                if v.color.is_white() || v.color == warehouse_color {
+                                    return Some(w_idx);
+                                }
+                            }
+                            None
+                        }).map(|w_idx| self.analysis.distance_to_warehouses_all[w_idx][v.cell_index.0]).min().unwrap_or(10000)
+
+                }
+            }).sum();
             if self.max_ticks > 0 && ticks_used > self.max_ticks {
+                self.removed_from_size+=1;
                 continue;
             }
 
             //check success, where all warehouses are filled
             if cur_state.check_success() {
-
-
                 log!("Success!  Ticks used: {}", ticks_used);
                 self.success_state = Some(cur_state);
                 return self.success_state.as_ref();
@@ -284,7 +379,6 @@ impl Universe {
             );
 
 
-
             // Also test if starting vans don't move
             if cur_state.tick == 1 {
                 log_trace!("Adding state where van does not move for van index: {}", cur_state.current_van_index.0);
@@ -295,7 +389,6 @@ impl Universe {
                 if_van_stops_state.current_van_mut().is_done = true;
                 //push back to calculate last
                 self.queue.push_back(if_van_stops_state);
-
             }
 
             cur_state.check_bridges_and_buttons();
@@ -356,7 +449,6 @@ impl Universe {
             };
 
 
-
             //now attempt to move
 
             let mut any_moved = false;
@@ -364,8 +456,8 @@ impl Universe {
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
 
             //Where could we move?  (looks at mask & grid)
-            let adj_info_filtered_list =  cur_state.graph.get_adjacent_square_indexes(&self.gc_static_info, van_cell_index).filter_map(
-                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt,a_info));
+            let adj_info_filtered_list = cur_state.graph.get_adjacent_square_indexes(&self.gc_static_info, van_cell_index).filter_map(
+                |a_info| cur_state.filter_map_by_can_have_van(&fixed_choice_opt, a_info));
 
             //log_trace!("Adj squares info list: {:?}", adj_info_filtered_list);
 
@@ -430,27 +522,30 @@ impl Universe {
         let iter_count = self.iter_count;
         let q_len = self.queue.len();
         let success = self.success_state.is_some();
+        let rfs = self.removed_from_size;
 
         let v = self.process_queue_item();
 
         let r = if let Some(cur_state) = v {
             log!("next_calculate: Is success?: {} Iter Count: {} Tick: {} \
+            removed_from_size: {}
             Queue Length: {} Cur van index: {:?}  Row/Col: {:?}",
                  success,
                  iter_count,
                  cur_state.tick,
+                 rfs,
                  q_len, cur_state.current_van_index,
                  cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
-            CalculationResponse{
+            CalculationResponse {
                 grid_state: Some(cur_state.clone()),
                 iteration_count: self.iter_count,
                 success,
                 ..Default::default()
             }
         } else {
-            CalculationResponse{
-                error_message: Some( "No grid state".to_string() ),
+            CalculationResponse {
+                error_message: Some("No grid state".to_string()),
                 iteration_count: self.iter_count,
                 success,
                 ..Default::default()
@@ -545,7 +640,7 @@ impl Universe {
 
         let ab = self.initial_graph();
         self.data.graph = ab.0;
-        self.gc_static_info =ab.1;
+        self.gc_static_info = ab.1;
 
         self.data.warehouses_remaining = self.data.tiles.iter().filter(|t| {
             if let TileWarehouse(_) = t {
@@ -568,9 +663,7 @@ impl Universe {
         let van_cells: Vec<CellIndex> = self.data.vans.iter().map(|v| v.cell_index).collect();
 
         for (van_idx, v_cell_index) in van_cells.iter().enumerate() {
-
             self.data.tiles[v_cell_index.0].set_van(&self.data.vans[van_idx]);
-            
         }
 
         log!("Initial graph analysis");
@@ -579,7 +672,6 @@ impl Universe {
 
         self.queue.push_back(self.data.clone());
     }
-
 
 
     //returns CalculationResponse
