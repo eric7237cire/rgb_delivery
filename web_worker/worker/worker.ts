@@ -12,7 +12,6 @@ import {
 export type WASM_TYPE = typeof import ('rgb-solver');
 
 
-//how often we update UI
 const ITER_CHUNK = 50000;
 
 let g_worker: RgbWasmWorker;
@@ -54,12 +53,15 @@ ctx.addEventListener("message", ev => {
         }
         case RequestTypes.INIT_CALCULATIONS: {
             g_worker.universe.init_calculate();
+            console.log("Init calculations, max ticks: ", requestMessage.maxSteps);
+            g_worker.universe.set_max_ticks(requestMessage.maxSteps);
             g_worker.reloadGridData();
             break;
         }
         case RequestTypes.RUN_CALCULATE_STEPS: {
 
             let startedMs = performance.now();
+            let lastUpdate = startedMs;
 
             if (requestMessage.numSteps < ITER_CHUNK) {
                 const calcResponse: CalculationResponse = g_worker.universe.next_batch_calculate(requestMessage.numSteps);
@@ -72,15 +74,21 @@ ctx.addEventListener("message", ev => {
                 for (let i = 0; i < requestMessage.numSteps; i += ITER_CHUNK) {
 
                     const calcResponse: CalculationResponse = g_worker.universe.next_batch_calculate(ITER_CHUNK);
-                    handleWasmCalcResponse(startedMs, calcResponse);
+
+                    if (performance.now() - lastUpdate > 2000 || i + ITER_CHUNK >= requestMessage.numSteps) {
+                        handleWasmCalcResponse(startedMs, calcResponse);
+                        lastUpdate = performance.now();
+                    }
 
                     //should stop
                     if (calcResponse.success) {
                         console.log("Success!");
+                        handleWasmCalcResponse(startedMs, calcResponse);
                         break;
                     }
                     if (!_.isNil(calcResponse.error_message)) {
                         console.error("Received error: ", calcResponse.error_message);
+                        handleWasmCalcResponse(startedMs, calcResponse);
                         break;
                     }
                 }

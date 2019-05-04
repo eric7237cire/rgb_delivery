@@ -3,17 +3,27 @@ services:
 
 before_install:
   - docker pull eric7237cire/rgb
-  - docker run -it -d --name build -v $TRAVIS_BUILD_DIR:/gitroot --env GH_TOKEN=$GITHUB_TOKEN eric7237cire/rgb /bin/bash
+  - docker run -it -d --name build -v $TRAVIS_BUILD_DIR:/gitroot --env GH_TOKEN=$GITHUB_TOKEN --env TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER eric7237cire/rgb /bin/bash
 
 script:
+  # fail fast
+  - set -e
+  # Use the 'warmed up' build from rgb-solver that is already in the docker container
   - docker exec -ti build bash -c "mv /initial_build/rgb-solver/target /gitroot/rgb-solver/target &&  du --max-depth=1 -h /gitroot/rgb-solver/target"
-  - docker exec -ti build bash -c "mv -v /initial_build/rgb-solver/Cargo.* /gitroot/rgb-solver"
+  - docker exec -ti build bash -c "mv -v /initial_build/rgb-solver/Cargo.lock /gitroot/rgb-solver"
+  # Run the unit tests (non wasm)
   - docker exec -ti build bash -c "cd /gitroot/rgb-solver && cargo test --target x86_64-unknown-linux-gnu --lib --verbose"
+  # Build & link the WASM module
   - docker exec -ti build bash -c "cd /gitroot/rgb-solver && wasm-pack build --release && cd pkg && npm link"
+
+  # Optimize
+  - docker exec -ti build bash -c "cd /gitroot/rgb-solver/pkg && mv -v rgb_solver_bg.wasm rgb_solver_bg_non_opt.wasm && wasm-opt -O4 rgb_solver_bg_non_opt.wasm -o rgb_solver_bg.wasm"
+
+  # Build the worker script and the npm module (for import by grid-editor)
   - docker exec -ti build bash -c "cd /gitroot/web_worker && npm link && npm link rgb-solver && npm run build && npm run build-lib"
-  - docker exec -ti build bash -c "cd /gitroot/grid-editor && npm ci"
-  - docker exec -ti build bash -c "cd /gitroot/grid-editor && npm link web_worker && ls -al node_modules/web_worker"
-  - docker exec -ti build bash -c "cd /gitroot/grid-editor && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/"
+  # Build angular app
+  - docker exec -ti build bash -c "cd /gitroot/grid-editor && npm ci && npm link web_worker && ng build --prod --base-href https://eric7237cire.github.io/rgb_delivery/"
+  # Deploy to github pages
   - docker exec -ti build bash -c 'cd /gitroot/grid-editor && ngh --no-silent --dir dist/grid-editor --repo="https://GH_TOKEN@github.com/eric7237cire/rgb_delivery.git" --name="Travis CI" --email="314512+eric7237cire@users.noreply.github.com"'
 
 

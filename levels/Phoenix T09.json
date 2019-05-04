@@ -3,6 +3,403 @@
   "height": 11,
   "tiles": [
     {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "button": {
+        "is_pressed": true,
+        "color": 8
+      },
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "block": 2,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileWarehouse",
+      "color": 4,
+      "is_filled": false
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "button": {
+        "is_pressed": false,
+        "color": 8
+      },
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
       "type": "Empty"
     },
     {
@@ -96,82 +493,67 @@
       "connection_mask": 15
     },
     {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
       "connection_mask": 15
     },
     {
       "type": "Empty"
     },
     {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
       "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -192,7 +574,26 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "button": {
+        "is_pressed": false,
+        "color": 8
+      },
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -213,9 +614,6 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
-    },
-    {
       "type": "TileRoad",
       "has_popper": false,
       "used_van_index": [
@@ -231,55 +629,11 @@
         null
       ],
       "used_popper_tick": null,
+      "button": {
+        "is_pressed": false,
+        "color": 8
+      },
       "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "Empty"
     },
     {
       "type": "TileRoad",
@@ -342,7 +696,26 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "button": {
+        "is_pressed": true,
+        "color": 5
+      },
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -361,54 +734,6 @@
       ],
       "used_popper_tick": null,
       "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "Empty"
     },
     {
       "type": "TileRoad",
@@ -430,30 +755,7 @@
     },
     {
       "type": "TileWarehouse",
-      "color": 4,
-      "is_filled": false
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileWarehouse",
-      "color": 4,
+      "color": 2,
       "is_filled": false
     },
     {
@@ -496,6 +798,173 @@
       "connection_mask": 15
     },
     {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "button": {
+        "is_pressed": false,
+        "color": 8
+      },
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "block": 4,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "button": {
+        "is_pressed": false,
+        "color": 8
+      },
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
       "type": "Empty"
     },
     {
@@ -518,205 +987,7 @@
     },
     {
       "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
       "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 10
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 11
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 11
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 10
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
       "used_van_index": [
         null,
         null,
@@ -749,11 +1020,11 @@
       ],
       "used_popper_tick": null,
       "block": 1,
-      "connection_mask": 10
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
-      "has_popper": true,
+      "has_popper": false,
       "used_van_index": [
         null,
         null,
@@ -785,116 +1056,62 @@
         null
       ],
       "used_popper_tick": null,
-      "connection_mask": 10
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
       "connection_mask": 15
     },
     {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 10
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 5,
       "connection_mask": 15
     },
     {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 10
+      "type": "Empty"
     },
     {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
       "connection_mask": 15
     },
     {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "block": 4,
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
       "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
+    },
+    {
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "type": "Empty"
     },
     {
       "type": "Empty"
@@ -918,7 +1135,26 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "button": {
+        "is_pressed": false,
+        "color": 5
+      },
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -939,9 +1175,6 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
-    },
-    {
       "type": "TileRoad",
       "has_popper": false,
       "used_van_index": [
@@ -957,11 +1190,7 @@
         null
       ],
       "used_popper_tick": null,
-      "block": 4,
       "connection_mask": 15
-    },
-    {
-      "type": "Empty"
     },
     {
       "type": "TileRoad",
@@ -1003,10 +1232,76 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
     },
     {
-      "type": "Empty"
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
+    },
+    {
+      "type": "TileRoad",
+      "has_popper": false,
+      "used_van_index": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_tick": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "used_popper_tick": null,
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1045,7 +1340,17 @@
         null
       ],
       "used_popper_tick": null,
-      "connection_mask": 15
+      "connection_mask": 15,
+      "van": {
+        "boxes": [
+          null,
+          null,
+          null
+        ],
+        "color": 0,
+        "is_done": false,
+        "cell_index": 101
+      }
     },
     {
       "type": "Empty"
@@ -1069,7 +1374,12 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
+      "type": "TileBridge",
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1088,6 +1398,9 @@
       ],
       "used_popper_tick": null,
       "connection_mask": 15
+    },
+    {
+      "type": "Empty"
     },
     {
       "type": "TileWarehouse",
@@ -1095,27 +1408,6 @@
       "is_filled": false
     },
     {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
       "type": "Empty"
     },
     {
@@ -1156,79 +1448,7 @@
     },
     {
       "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
       "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": true,
       "used_van_index": [
         null,
         null,
@@ -1278,13 +1498,11 @@
         null
       ],
       "used_popper_tick": null,
+      "button": {
+        "is_pressed": true,
+        "color": 5
+      },
       "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "Empty"
     },
     {
       "type": "TileRoad",
@@ -1326,121 +1544,6 @@
       "connection_mask": 15
     },
     {
-      "type": "Empty"
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileWarehouse",
-      "color": 4,
-      "is_filled": false
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "Empty"
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15,
-      "van": {
-        "boxes": [
-          null,
-          null,
-          null
-        ],
-        "color": 1,
-        "is_done": false,
-        "cell_index": 110
-      }
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "block": 4,
-      "connection_mask": 15
-    },
-    {
       "type": "TileRoad",
       "has_popper": false,
       "used_van_index": [
@@ -1511,106 +1614,6 @@
       ],
       "used_popper_tick": null,
       "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15
-    },
-    {
-      "type": "TileRoad",
-      "has_popper": false,
-      "used_van_index": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_tick": [
-        null,
-        null,
-        null,
-        null
-      ],
-      "used_popper_tick": null,
-      "connection_mask": 15,
-      "van": {
-        "boxes": [
-          null,
-          null,
-          null
-        ],
-        "color": 4,
-        "is_done": false,
-        "cell_index": 120
-      }
     }
   ],
   "tick": 0,
@@ -1621,22 +1624,148 @@
         null,
         null
       ],
-      "color": 1,
+      "color": 0,
       "is_done": false,
-      "cell_index": 110
-    },
-    {
-      "boxes": [
-        null,
-        null,
-        null
-      ],
-      "color": 4,
-      "is_done": false,
-      "cell_index": 120
+      "cell_index": 101
     }
   ],
-  "bridges": [],
-  "buttons": [],
-  "warehouses_remaining": 4
+  "bridges": [
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 5,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 5,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": false,
+      "color": 8,
+      "connection_mask": 15
+    },
+    {
+      "used_van_index": null,
+      "used_tick": null,
+      "is_up": true,
+      "color": 8,
+      "connection_mask": 15
+    }
+  ],
+  "buttons": [
+    {
+      "is_pressed": true,
+      "color": 8
+    },
+    {
+      "is_pressed": false,
+      "color": 8
+    },
+    {
+      "is_pressed": false,
+      "color": 8
+    },
+    {
+      "is_pressed": false,
+      "color": 8
+    },
+    {
+      "is_pressed": true,
+      "color": 5
+    },
+    {
+      "is_pressed": false,
+      "color": 8
+    },
+    {
+      "is_pressed": false,
+      "color": 8
+    },
+    {
+      "is_pressed": false,
+      "color": 5
+    },
+    {
+      "is_pressed": true,
+      "color": 5
+    }
+  ],
+  "warehouses_remaining": 3
 }

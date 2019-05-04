@@ -50,6 +50,7 @@ enum DIRECTION_INDEX {
 }
 
 const LOCAL_STORAGE_KEY_NUM_STEPS = "numSteps";
+const LOCAL_STORAGE_KEY_MAX_STEPS = "maxSteps";
 
 const DEFAULT_DM_COLOR = "rgb(200, 200, 200)";
 
@@ -146,6 +147,7 @@ export class AppComponent implements OnInit {
   cells: Array<CellData> = [];
 
   numCalcSteps = 100000;
+  maxSteps = 100;
 
   mouseMoveRow = "00";
   mouseMoveCol = "00";
@@ -191,12 +193,11 @@ export class AppComponent implements OnInit {
   sendOverrideList() {
     const overRideList: Array<ChoiceOverride> = [
 
-
 /*
       {
-         row_index: 0,
-         col_index: 6,
-         //van_index: 1,
+         row_index: 2,
+         col_index: 0,
+         van_index: 0,
          direction_index: DIRECTION_INDEX.EAST
        },*/
 
@@ -317,6 +318,12 @@ export class AppComponent implements OnInit {
       this.numCalcSteps = _.toNumber(numSteps);
     }
 
+    const maxSteps = localStorage.getItem(LOCAL_STORAGE_KEY_MAX_STEPS);
+
+    if (!_.isNil(maxSteps)) {
+      this.maxSteps = _.toNumber(maxSteps);
+    }
+
     //RustRGBProject/pkg works but not in PyCharm
 
     this.worker = new Worker('assets/worker.js');
@@ -347,15 +354,18 @@ export class AppComponent implements OnInit {
 
         case ResponseTypes.BATCH_PROGRESS_MESSAGE:
 
-          let secElapsed = (message.currentMs - message.startedMs) / 1000;
-          const minutesElapsed = _.floor( secElapsed / 60);
-          secElapsed -= minutesElapsed * 60;
+          const totalSecElapsed = (message.currentMs - message.startedMs) / 1000;
+          const minutesElapsed = _.floor( totalSecElapsed / 60);
+          const secElapsed =  totalSecElapsed - minutesElapsed * 60;
 
           const failure = !_.isNil(message.success) && !message.success;
 
+          const microSecsPerIteration = (totalSecElapsed * 1000 * 1000) /  message.stepsCompleted;
+
           this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ' : ''}` +
             `Iteration Count: [${message.stepsCompleted.toLocaleString()}].  ` +
-            `min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)}`;
+            `min: ${minutesElapsed} secs: ${secElapsed.toFixed(2)} ` +
+            ` per iteration: ${microSecsPerIteration.toFixed(2)} μs`;
 
           break;
       }
@@ -515,7 +525,7 @@ export class AppComponent implements OnInit {
 
       switch (this.selectedThing) {
         case "Van":
-          tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false};
+          tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false, cell_index: cellIndex};
           break;
         case "Block":
           tile.block = this.selectedColor.color_index;
@@ -655,12 +665,12 @@ export class AppComponent implements OnInit {
     }
 
     return `${road.used_tick[dm.dir_index]}`;
-    //return `${van_index}: ${road.used_tick[dm.dir_index]}`;
   }
 
   initCalculations() {
     const request: RequestInitCalculations = {
-      tag: RequestTypes.INIT_CALCULATIONS
+      tag: RequestTypes.INIT_CALCULATIONS,
+      maxSteps: this.maxSteps
     };
 
     this.worker.postMessage(request);
@@ -702,6 +712,12 @@ export class AppComponent implements OnInit {
 
   handleNumCalcStepsChange(steps) {
     localStorage.setItem(LOCAL_STORAGE_KEY_NUM_STEPS, steps);
+  }
+
+  handleMaxStepsChange(steps) {
+    localStorage.setItem(LOCAL_STORAGE_KEY_MAX_STEPS, steps);
+
+    this.maxSteps = _.toNumber(steps);
   }
 
   resetGrid() {
