@@ -252,12 +252,15 @@ impl Universe {
 
             //self.current_calc_state = Some(cur_state.clone());
 
+            let ticks_used:usize = cur_state.vans.iter().map(|v| v.tick).sum();
+            if self.max_ticks > 0 && ticks_used > self.max_ticks {
+                continue;
+            }
+
             //check success, where all warehouses are filled
             if cur_state.check_success() {
-                let ticks_used:usize = cur_state.vans.iter().map(|v| v.tick).sum();
-                if self.max_ticks > 0 && ticks_used > self.max_ticks {
-                    continue;
-                }
+
+
                 log!("Success!  Ticks used: {}", ticks_used);
                 self.success_state = Some(cur_state);
                 return self.success_state.as_ref();
