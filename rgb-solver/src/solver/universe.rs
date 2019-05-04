@@ -254,7 +254,11 @@ impl Universe {
 
             //check success, where all warehouses are filled
             if cur_state.check_success() {
-                log!("Success!");
+                let ticks_used:usize = cur_state.vans.iter().map(|v| v.tick).sum();
+                if self.max_ticks > 0 && ticks_used > self.max_ticks {
+                    continue;
+                }
+                log!("Success!  Ticks used: {}", ticks_used);
                 self.success_state = Some(cur_state);
                 return self.success_state.as_ref();
             }
@@ -276,9 +280,7 @@ impl Universe {
                 cur_state.vans[cur_state.current_van_index.0].cell_index.to_row_col(cur_state.width)
             );
 
-            if self.max_ticks > 0 && cur_state.tick-1 > self.max_ticks {
-                continue;
-            }
+
 
             // Also test if starting vans don't move
             if cur_state.tick == 1 {
