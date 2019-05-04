@@ -54,6 +54,7 @@ ctx.addEventListener("message", ev => {
         }
         case RequestTypes.INIT_CALCULATIONS: {
             g_worker.universe.init_calculate();
+            console.log("Init calculations, max ticks: ", requestMessage.maxSteps);
             g_worker.universe.set_max_ticks(requestMessage.maxSteps);
             g_worker.reloadGridData();
             break;
