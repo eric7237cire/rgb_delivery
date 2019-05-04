@@ -313,11 +313,12 @@ impl Universe {
                 log_trace!("Tick did not advance");
             }
 
+            /*
             if self.iter_count % 10000 == 0 {
                 log!("\n\nLoop count: {} \
                  Queue Length: {} Current Tick: {} ",
                      self.iter_count, self.queue.len(), cur_state.tick);
-            }
+            }*/
 
             if !cur_state.check_graph_validity() {
                 log_trace!("Rejecting state");
@@ -358,7 +359,6 @@ impl Universe {
 
             //now attempt to move
 
-            log_trace!("Adj squares: {:?}", adj_square_indexes);
             let mut any_moved = false;
 
             let fixed_choice_opt = self.get_fixed_choice(&cur_state);
