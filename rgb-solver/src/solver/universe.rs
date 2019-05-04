@@ -180,7 +180,9 @@ impl Universe {
 
                     if let TileRoad( Road{ block: Some(_block),..}) = &self.data.tiles[cur_cell_index.0] {
 
-                        return true;
+                        if self.data.graph.is_connected[cur_cell_index.0].count_ones() <= 2 {
+                            return true;
+                        }
                     }
                 }
 

@@ -88,6 +88,7 @@ ctx.addEventListener("message", ev => {
                     }
                     if (!_.isNil(calcResponse.error_message)) {
                         console.error("Received error: ", calcResponse.error_message);
+                        handleWasmCalcResponse(startedMs, calcResponse);
                         break;
                     }
                 }
