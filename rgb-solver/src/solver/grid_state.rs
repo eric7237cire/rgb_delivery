@@ -497,7 +497,7 @@ impl GridState {
         let empty_wh_count = self.tiles.iter().filter(|tile| {
             match tile {
                 TileWarehouse(Warehouse { is_filled, color, .. }) => {
-                    !is_filled && color == &self.vans[self.current_van_index.0].color
+                    !*is_filled && color == &self.vans[self.current_van_index.0].color
                 }
                 _ => false
             }
@@ -538,7 +538,7 @@ impl GridState {
 
         //for each color, get unfilled warehouse count & block count
 
-        let mut component_to_counts: HashMap<usize, [[usize; 3]; NUM_COLORS]> = HashMap::new();
+        let mut component_to_counts: ComponentMap = HashMap::new();
 
         for (idx, tile) in self.tiles.iter().enumerate() {
             let component_number = ds.get_repr(idx);
@@ -552,6 +552,13 @@ impl GridState {
                     log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
                     add_component_to_map(&mut component_to_counts, component_number, *color, WAREHOUSE);
                 }
+                _ => {}
+            }
+
+            match tile {
+                TileRoad(Road { has_popper: true, .. }) => {
+                    add_component_to_map(&mut component_to_counts, component_number, ColorIndex(WHITE_COLOR_INDEX), POPPER);
+                },
                 _ => {}
             }
         }
@@ -569,7 +576,14 @@ impl GridState {
             for opt_box in van.boxes.iter() {
                 if let Some(color) = opt_box {
                     add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
+
+                    if *color != van.color && van.color.0 != WHITE_COLOR_INDEX && component_to_counts[&component_number][WHITE_COLOR_INDEX][POPPER as usize] == 0 {
+                        log_trace!("No popper available");
+                        return false;
+                    }
                 }
+
+
             }
         }
 
@@ -610,10 +624,15 @@ enum ComponentMapIdx {
     BLOCK = 0,
     WAREHOUSE = 1,
     VAN = 2,
+    POPPER = 3
 }
 
+const NUM_THINGS: usize = 4;
+
+type ComponentMap = HashMap<usize, [[u8; NUM_THINGS]; NUM_COLORS]>;
+
 //indexs block 0, warehouse 1, van 2
-fn add_component_to_map(component_to_counts: &mut HashMap<usize, [[usize; 3]; NUM_COLORS]>, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
+fn add_component_to_map(component_to_counts: &mut ComponentMap, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
     let counts = component_to_counts.entry(component_number).or_insert(Default::default());
 
     counts[color.0][thing_idx as usize] += 1
