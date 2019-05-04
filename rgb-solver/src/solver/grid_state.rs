@@ -416,25 +416,23 @@ impl GridState {
                     self.warehouses_remaining -= 1;
 
                     //test what happens if we stop
-                    if self.can_current_van_stop() {
-                        let mut if_van_stops_state = self.clone();
-                        if_van_stops_state.current_van_mut().is_done = true;
 
-                        let stopped_cell_index = if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
+                    let mut if_van_stops_state = self.clone();
+                    if_van_stops_state.current_van_mut().is_done = true;
 
-                        assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
+                    let stopped_cell_index = if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
 
-                        //disconnect this square and everything adjacent to it
-                        if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
+                    assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
 
-                        for adj in gc_static_info.adj_info[stopped_cell_index.0].iter().filter_map(|a| a.as_ref()) {
-                            if_van_stops_state.graph.is_connected[adj.cell_index.0] &= !(1 << adj.direction.opposite() as u8);
-                        }
+                    //disconnect this square and everything adjacent to it
+                    if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
 
-                        Ok(Some(if_van_stops_state))
-                    } else {
-                        Ok(None)
+                    for adj in gc_static_info.adj_info[stopped_cell_index.0].iter().filter_map(|a| a.as_ref()) {
+                        if_van_stops_state.graph.is_connected[adj.cell_index.0] &= !(1 << adj.direction.opposite() as u8);
                     }
+
+                    Ok(Some(if_van_stops_state))
+
                 }
                 _ => Ok(None)
             }
@@ -486,37 +484,6 @@ impl GridState {
     }
 
 
-    pub fn can_current_van_stop(&self) -> bool {
-        let any_non_stopped_white_vans = self.vans.iter().any(|v| v.color.is_white() && !v.is_done);
-
-        if any_non_stopped_white_vans {
-            return true;
-        }
-
-        //Is there an empty warehouse of this vans color?
-        let empty_wh_count = self.tiles.iter().filter(|tile| {
-            match tile {
-                TileWarehouse(Warehouse { is_filled, color, .. }) => {
-                    !*is_filled && color == &self.vans[self.current_van_index.0].color
-                }
-                _ => false
-            }
-        }).count();
-
-        if empty_wh_count == 0 {
-            return true;
-        }
-
-        //can another van handle it?
-        let other_van = self.vans.iter().enumerate().any(|(v_idx, v)|
-            //not current van
-            v_idx != self.current_van_index.0 &&
-                //not wrong color
-                !v.is_done && v.color == self.vans[self.current_van_index.0].color);
-
-        //another van could in theory handle it
-        other_van
-    }
 
     ///basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
     //warning on component_number
