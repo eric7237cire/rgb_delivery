@@ -21,9 +21,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -42,9 +40,7 @@
       ],
       "used_popper_tick": null,
       "block": 1,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -65,9 +61,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -85,9 +79,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -108,9 +100,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -128,9 +118,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -148,9 +136,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -174,9 +160,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -194,9 +178,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -217,9 +199,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -237,9 +217,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -260,9 +238,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileWarehouse",
@@ -285,9 +261,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -308,6 +282,7 @@
         null
       ],
       "used_popper_tick": null,
+      "connection_mask": 15,
       "van": {
         "boxes": [
           null,
@@ -315,10 +290,8 @@
           null
         ],
         "color": 1,
-        "is_done": false
-      },
-      "connections": {
-        "type": "AllDirections"
+        "is_done": false,
+        "cell_index": 22
       }
     },
     {
@@ -337,9 +310,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -357,9 +328,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -377,9 +346,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -397,9 +364,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -417,9 +382,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -437,9 +400,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -457,9 +418,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -477,9 +436,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -497,9 +454,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -523,9 +478,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -543,9 +496,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -567,9 +518,7 @@
       ],
       "used_popper_tick": null,
       "block": 2,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -588,9 +537,7 @@
       ],
       "used_popper_tick": null,
       "block": 1,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -611,9 +558,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -634,9 +579,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -660,9 +603,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -680,9 +621,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -703,9 +642,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -723,9 +660,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -746,9 +681,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -769,9 +702,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -795,9 +726,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -815,9 +744,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -838,9 +765,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -858,9 +783,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -881,9 +804,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -904,9 +825,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -930,9 +849,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -950,9 +867,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -973,9 +888,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -993,9 +906,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1016,9 +927,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1039,9 +948,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1065,9 +972,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -1085,9 +990,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileWarehouse",
@@ -1110,9 +1013,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -1130,9 +1031,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -1153,9 +1052,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1176,9 +1073,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1199,6 +1094,7 @@
         null
       ],
       "used_popper_tick": null,
+      "connection_mask": 15,
       "van": {
         "boxes": [
           null,
@@ -1206,10 +1102,8 @@
           null
         ],
         "color": 2,
-        "is_done": false
-      },
-      "connections": {
-        "type": "AllDirections"
+        "is_done": false,
+        "cell_index": 88
       }
     },
     {
@@ -1228,9 +1122,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1248,9 +1140,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1268,9 +1158,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1288,9 +1176,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1308,9 +1194,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1328,9 +1212,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1348,9 +1230,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1368,9 +1248,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1388,9 +1266,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1414,9 +1290,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -1434,9 +1308,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -1457,9 +1329,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "TileRoad",
@@ -1477,9 +1347,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "NorthSouth"
-      }
+      "connection_mask": 5
     },
     {
       "type": "Empty"
@@ -1500,9 +1368,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileWarehouse",
@@ -1525,9 +1391,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1551,9 +1415,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1571,9 +1433,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1594,9 +1454,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1614,9 +1472,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1637,9 +1493,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1657,9 +1511,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "TileRoad",
@@ -1677,9 +1529,7 @@
         null
       ],
       "used_popper_tick": null,
-      "connections": {
-        "type": "AllDirections"
-      }
+      "connection_mask": 15
     },
     {
       "type": "Empty"
@@ -1694,7 +1544,8 @@
         null
       ],
       "color": 1,
-      "is_done": false
+      "is_done": false,
+      "cell_index": 22
     },
     {
       "boxes": [
@@ -1703,7 +1554,8 @@
         null
       ],
       "color": 2,
-      "is_done": false
+      "is_done": false,
+      "cell_index": 88
     }
   ],
   "bridges": [],
