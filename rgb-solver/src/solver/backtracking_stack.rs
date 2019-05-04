@@ -1,7 +1,7 @@
 
 use crate::solver::grid_state::GridState;
 use crate::solver::universe::Universe;
-use crate::solver::structs::{Direction, ALL_DIRECTIONS};
+use crate::solver::structs::{Direction, ALL_DIRECTIONS, VanIndex};
 use crate::solver::structs::Direction::*;
 
 pub struct StackNode
@@ -104,25 +104,9 @@ impl Universe {
 
         //let (cur_row_index, cur_col_index) = van_cell_index.to_row_col(self.data.width);
 
-        match cur_state.pick_up_block_if_exists(&self.analysis) {
-            Err(_) => {
-                self.handle_current_state_invalid();
-                return;
-            }
-            _ => ()
-        };
 
-        //check if we can drop a block off
-        match cur_state.handle_warehouse_drop_off(&self.gc_static_info) {
-            Ok(Some(next_state)) => {
-                self.queue.push_front(next_state);
-            }
-            Err(_) => {
-                self.handle_current_state_invalid();
-                return;
-            }
-            _ => ()
-        };
+
+
 
 
 
@@ -132,7 +116,7 @@ impl Universe {
         log_trace!("Adj squares: {:?}", adj_square_indexes);
         let mut any_moved = false;
 
-        let fixed_choice_opt = self.get_fixed_choice(&cur_state);
+        let fixed_choice_opt = self.get_fixed_choice(&cur_state, current_tick,current_van_index);
 
 
         //Where could we move?  (looks at mask & grid)
@@ -149,72 +133,73 @@ impl Universe {
 
         let cell_index = cur_state.vans[current_van_index].cell_index;
 
-        let next_dir = ALL_DIRECTIONS.iter().skip(skip_count).
+        let mut next_dir = ALL_DIRECTIONS.iter().skip(skip_count).
             filter_map(|&dir| {
                 if !cur_state.graph.is_connected(cell_index, *dir) {
                     return None;
                 }
                 let adj_info = self.static_info.adj_info[cell_index.0][*dir as usize].as_ref();
-                cur_state.filter_map_by_can_have_van(&fixed_choice_opt, adj_info)
+                cur_state.filter_map_by_can_have_van(current_van_index,&fixed_choice_opt, adj_info)
             }).next();
 
         if next_dir.is_none() {
 
             //see if van can stop
-            if current_tick == 0 {
-                self.stack.push(
-                    StackNode {
+            if current_tick == 0 || cur_state.is_below_warehouse(current_van_index) {
+
+                let mut node = StackNode {
                         current_van_direction: STOP,
                         current_state: cur_state.clone(),
                         used_popper
-                    }
-                );
-                return;
+                    };
+                if node.current_state.handle_post_move_actions(&self.analysis, &self.gc_static_info,
+                current_van_index) {
+                    self.stack.push(node);
+                    return;
+                }
+
+                //continue down
             }
 
             log_trace!("see if we can pop");
             if !used_popper {
                 if let Some(mut next_state) = cur_state.handle_block_popper() {
-                    let next_dir = ALL_DIRECTIONS.iter().
+                    next_dir = ALL_DIRECTIONS.iter().
                         filter_map(|&dir| {
                             if !cur_state.graph.is_connected(cell_index, *dir) {
                                 return None;
                             }
                             let adj_info = self.static_info.adj_info[cell_index.0][*dir as usize].as_ref();
-                            cur_state.filter_map_by_can_have_van(&fixed_choice_opt, adj_info)
+                            cur_state.filter_map_by_can_have_van(current_van_index, &fixed_choice_opt, adj_info)
                         }).next();
 
-                    if let Some(adj_info) = next_dir {
 
-                        //reset to values as when it was just popped
-                        self.stack.push(StackNode {
-                            current_van_direction: adj_info.direction,
-                            used_popper: true,
-                            current_state: next_state
-                        });
-                    }
                 }
             }
 
-            self.handle_current_state_invalid();
-            return;
+            if next_dir.is_none() {
+                //couldn't use popper above
+                self.handle_current_state_invalid();
+                return;
+            }
         }
 
         let adj_info = next_dir.unwrap();
 
         let mut next_state = cur_state.clone();
-        next_state.handle_move(van_cell_index, adj_info);
+        next_state.handle_move(VanIndex(current_van_index),current_tick,van_cell_index, adj_info);
 
-
-        next_state.press_button_if_exists();
-
-        self.stack.push(
-            StackNode {
-                current_van_direction: adj_info.direction,
-                current_state: next_state,
-                used_popper
-            }
-        );
+        let node = StackNode {
+                    current_van_direction: adj_info.direction,
+                    current_state: next_state,
+                    used_popper
+                };
+        if next_state.handle_post_move_actions(&self.analysis, current_van_index) {
+            self.stack.push(node);
+        } else {
+            //failed state
+            self.last_node = Some(node);
+        }
         return;
     }
 }
