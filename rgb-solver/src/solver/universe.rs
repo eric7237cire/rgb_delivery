@@ -243,7 +243,6 @@ impl Universe {
             }
         }
 
-        log!("w4");
         ga
     }
 
