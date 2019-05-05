@@ -41,3 +41,7 @@ docker login --username=eric7237cire
 docker push eric7237cire/rgb
 
 docker run --rm  -it eric7237cire/rgb bash
+
+#San Diego R4
+#46,922,652 iterations
+#9 secs: 43.90
