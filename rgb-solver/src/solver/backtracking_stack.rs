@@ -9,7 +9,7 @@ pub struct StackNode
     //0 to 3 direction, 4 for stopped
     current_van_direction: Direction,
     used_popper: bool,
-    current_state: GridState,
+    pub current_state: GridState,
 }
 
 impl Universe {
@@ -17,9 +17,7 @@ impl Universe {
         self.last_node = self.stack.pop();
         self.is_failure = self.last_node.is_none();
 
-        if self.last_node.is_some() {
-            self.cur_stack_data = self.last_node.unwrap().current_state;
-        }
+
     }
     pub fn do_backtracking(&mut self)
     {
@@ -27,7 +25,11 @@ impl Universe {
             return;
         }
 
-        let mut cur_state = &self.cur_stack_data;
+        let cur_state = if let Some(node) = &self.last_node {
+            &node.current_state
+        } else {
+            &self.initial_data
+        };
 
         //invariant, anything on the stack actually happened
         if self.success_state.is_some() {
@@ -60,22 +62,10 @@ impl Universe {
 
         cur_state.check_bridges_and_buttons();
 
-        if current_van_index == 0 {
-            match cur_state.toggle_bridges_and_buttons() {
-                Err(_) => {
-                    log_trace!("Van caught on open bridge");
-                    self.handle_current_state_invalid();
-                    return;
-                }
-                Ok(_) => {}
-            };
-            cur_state.check_bridges_and_buttons();
-        } else {
-            log_trace!("Tick did not advance");
-        }
+
 
         //If we are stopped, we stay stopped
-        if self.stack.len() > cur_state.vans.len() && self.stack[self.stack.len() - 1 - cur_state.vans.len()] == STOP {
+        if self.stack.len() > cur_state.vans.len() && self.stack[self.stack.len() - 1 - cur_state.vans.len()].current_van_direction == STOP {
             self.stack.push(
                 StackNode {
                     current_van_direction: STOP,
@@ -93,7 +83,7 @@ impl Universe {
                  self.iter_count, self.stack.len(), current_tick);
         }
 
-        if !cur_state.check_graph_validity() {
+        if !cur_state.check_graph_validity(current_tick) {
             log_trace!("Rejecting state");
             self.handle_current_state_invalid();
             return;
@@ -131,15 +121,17 @@ impl Universe {
             used_popper = false;
         }
 
+        let mut next_used_popper = used_popper;
+
         let cell_index = cur_state.vans[current_van_index].cell_index;
 
         let mut next_dir = ALL_DIRECTIONS.iter().skip(skip_count).
             filter_map(|&dir| {
-                if !cur_state.graph.is_connected(cell_index, *dir) {
+                if !cur_state.graph.is_connected(cell_index, dir) {
                     return None;
                 }
-                let adj_info = self.static_info.adj_info[cell_index.0][*dir as usize].as_ref();
-                cur_state.filter_map_by_can_have_van(current_van_index,&fixed_choice_opt, adj_info)
+                let adj_info = self.gc_static_info.adj_info[cell_index.0][dir as usize].as_ref();
+                cur_state.filter_map_by_can_have_van(current_van_index,&fixed_choice_opt, adj_info.unwrap())
             }).next();
 
         if next_dir.is_none() {
@@ -163,18 +155,8 @@ impl Universe {
 
             log_trace!("see if we can pop");
             if !used_popper {
-                if let Some(mut next_state) = cur_state.handle_block_popper() {
-                    next_dir = ALL_DIRECTIONS.iter().
-                        filter_map(|&dir| {
-                            if !cur_state.graph.is_connected(cell_index, *dir) {
-                                return None;
-                            }
-                            let adj_info = self.static_info.adj_info[cell_index.0][*dir as usize].as_ref();
-                            cur_state.filter_map_by_can_have_van(current_van_index, &fixed_choice_opt, adj_info)
-                        }).next();
+                next_used_popper=true;
 
-
-                }
             }
 
             if next_dir.is_none() {
@@ -187,6 +169,23 @@ impl Universe {
         let adj_info = next_dir.unwrap();
 
         let mut next_state = cur_state.clone();
+
+        //popper then move
+        if !used_popper && next_used_popper {
+        if let Some(mut next_state) = cur_state.handle_block_popper(VanIndex(current_van_index), current_tick) {
+                    next_dir = ALL_DIRECTIONS.iter().
+                        filter_map(|&dir| {
+                            if !cur_state.graph.is_connected(cell_index, dir) {
+                                return None;
+                            }
+                            let adj_info = self.gc_static_info.adj_info[cell_index.0][dir as usize].as_ref();
+                            cur_state.filter_map_by_can_have_van(current_van_index, &fixed_choice_opt, adj_info.unwrap())
+                        }).next();
+
+
+                }
+
+
         next_state.handle_move(VanIndex(current_van_index),current_tick,van_cell_index, adj_info);
 
         let node = StackNode {
@@ -194,7 +193,7 @@ impl Universe {
                     current_state: next_state,
                     used_popper
                 };
-        if next_state.handle_post_move_actions(&self.analysis, current_van_index) {
+        if next_state.handle_post_move_actions(&self.analysis, &self.gc_static_info, current_van_index) {
             self.stack.push(node);
         } else {
             //failed state

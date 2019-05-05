@@ -389,7 +389,7 @@ impl GridState {
     pub fn handle_post_move_actions(&mut self, analysis: &GridAnalysis,
                                     gc_static_info: &GridConnectionsStaticInfo,
                                     current_van_index: usize) -> bool {
-        if current_van_index == self.vans.len() {
+        if current_van_index == self.vans.len() - 1 {
             if !self.toggle_bridges_and_buttons() {
                 return false;
             }
@@ -453,12 +453,51 @@ impl GridState {
     }
 
 
+    pub fn can_use_block_popper(&self, current_van_index: VanIndex, current_tick: usize) -> bool {
+
+        let cell_index = self.vans[current_van_index.0].cell_index.0;
+        let on_usable_popper = match &self.tiles[cell_index] {
+            TileRoad(Road { used_popper_tick, has_popper, .. }) => {
+                //need to check it hasn't already been toggled
+                let r = *has_popper && used_popper_tick.is_none();
+
+
+                r
+            }
+            _ => false
+        };
+
+        if !on_usable_popper {
+            return None;
+        }
+
+        //do we have a box to pop?
+        if let Some(top_box_color) = self.vans[current_van_index.0].get_top_box() {
+            let mut if_popper_active = self.clone();
+            if_popper_active.vans[current_van_index.0].clear_top_box();
+
+
+            if let TileRoad(road) = &mut if_popper_active.tiles[cell_index] {
+                assert!(road.block.is_none());
+
+                road.block = Some(top_box_color);
+                road.used_popper_tick = Some(current_tick);
+
+                Some(if_popper_active)
+            } else {
+                panic!("Should be a road");
+            }
+        } else {
+            None
+        }
+    }
+
 
 
     ///basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
     //warning on component_number
     #[allow(unused_variables)]
-    pub(crate) fn check_graph_validity(&self) -> bool {
+    pub(crate) fn check_graph_validity(&self, current_tick: usize) -> bool {
         let mut ds = DisjointSet::new(self.tiles.len());
 
         for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
@@ -515,7 +554,7 @@ impl GridState {
                 if let Some(color) = opt_box {
                     add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
 
-                    if !van.color.is_white() && color != van.color && component_to_counts[WHITE_COLOR_INDEX][POPPER] == 0 {
+                    if !van.color.is_white() && *color != van.color && component_to_counts[&component_number][WHITE_COLOR_INDEX][POPPER as usize] == 0 {
                         log_trace!("No poppers to get rid of block for van {:?}", van);
                         return false;
                     }
@@ -540,7 +579,7 @@ impl GridState {
                 //and each block has a van that can handle it
 
                 //a van shouldn't be without blocks, should have set is_done.  Need to skip the first tick though since we haven't yet set that
-                if self.tick > 1 &&
+                if current_tick > 1 &&
                     color_index != WHITE_COLOR_INDEX &&
                     color_count[color_index][BLOCK as usize] == 0 &&
                     color_count[color_index][VAN as usize] > 0 {

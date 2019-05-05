@@ -34,42 +34,38 @@ pub struct Universe {
 
     pub(crate) max_ticks: usize,
 
-    pub(crate) cur_stack_data: GridState,
-
-    pub(crate) last_node: Option<StackNode>
+    pub(crate) last_node: Option<StackNode>,
 }
 
 //private
 impl Universe {
-
     /// If we provided a choice for the row/col and perhaps tick (as a van can go through the
     /// same cell 2x
     pub(crate) fn get_fixed_choice(&self, cur_state: &GridState, current_tick: usize, current_van_index: usize) -> Option<ChoiceOverride> {
-
         let current_cell_index = cur_state.vans[current_van_index].cell_index;
         let (cur_row_index, cur_col_index) = current_cell_index.to_row_col(cur_state.width);
 
         let o = self.choice_override_list.iter()
             //also any system generated forced choices
-            .chain( self.analysis.forced_choices.iter())
+            .chain(self.analysis.forced_choices.iter())
             .find(|co| {
-            if let Some(forced_tick) = co.tick {
-                if forced_tick != current_tick {
-                    return false;
+                if let Some(forced_tick) = co.tick {
+                    if forced_tick != current_tick {
+                        return false;
+                    }
                 }
-            }
 
-            if let Some(van_index) = co.van_index {
-                if van_index.0 != current_van_index {
-                    return false;
+                if let Some(van_index) = co.van_index {
+                    if van_index.0 != current_van_index {
+                        return false;
+                    }
                 }
+
+
+                cur_row_index == co.row_index
+                    && cur_col_index == co.col_index
             }
-
-
-            cur_row_index == co.row_index
-                && cur_col_index == co.col_index
-        }
-        );
+            );
 
         if let Some(o) = o {
             Some(o.clone())
@@ -92,20 +88,17 @@ impl Universe {
             } else {
                 None
             }
-
         }).collect()
     }
 
 
     pub(crate) fn initial_graph(&self) -> (GridConnections, GridConnectionsStaticInfo) {
-        let mut gc = GridConnections::new(self.initial_data.height, self.initial_data.width );
+        let mut gc = GridConnections::new(self.initial_data.height, self.initial_data.width);
 
         let so = gc.build_static_info();
 
         for (cur_square_index, tile) in self.initial_data.tiles.iter().enumerate() {
-
             if let Some(connection_mask) = tile.get_connection_mask() {
-
                 let cell_index = CellIndex(cur_square_index);
 
 
@@ -116,13 +109,12 @@ impl Universe {
                         if let Some(adj_connection_mask) = self.initial_data.tiles[adj_square_index.0].get_connection_mask()
                         {
                             if (connection_mask & (1 << *adj_dir as u8)) > 0 && (adj_connection_mask & (1 << adj_dir.opposite() as u8) > 0) {
-                                gc.set_is_connected( cell_index, *adj_dir, true);
-
+                                gc.set_is_connected(cell_index, *adj_dir, true);
                             }
                         } else if adj_dir == &NORTH {
                             if let TileWarehouse(_) = &self.initial_data.tiles[adj_square_index.0] {
                                 //special case that we want warehouses to be connected to the cell to their south
-                                gc.set_is_connected( cell_index, *adj_dir, true);
+                                gc.set_is_connected(cell_index, *adj_dir, true);
                             }
                         }
                     }
@@ -130,7 +122,6 @@ impl Universe {
             } else {
                 continue;
             }
-
         }
 
         (gc, so)
@@ -155,12 +146,11 @@ impl Universe {
 
         //if a van starts on a square that has 2 options, see if there is a block on that path (no warehouse), if so, we must go towards the block
 
-        for (van_index,van) in self.initial_data.vans.iter().enumerate() {
-
+        for (van_index, van) in self.initial_data.vans.iter().enumerate() {
             let van_index = VanIndex(van_index);
 
-            let van_adj_cells:Vec<_> = self.initial_data.graph.get_adjacent_square_indexes(&self.gc_static_info,
-                                                                                           van.cell_index).collect();
+            let van_adj_cells: Vec<_> = self.initial_data.graph.get_adjacent_square_indexes(&self.gc_static_info,
+                                                                                            van.cell_index).collect();
 
             if van_adj_cells.len() != 2 {
                 continue;
@@ -168,15 +158,15 @@ impl Universe {
 
             assert_eq!(2, van_adj_cells.len());
 
-            let forced_adj_cell = van_adj_cells.iter().find( | potential_force_cell | {
-                let mut last_cell_index:CellIndex = van.cell_index;
-                let mut cur_cell_index:CellIndex = potential_force_cell.cell_index;
+            let forced_adj_cell = van_adj_cells.iter().find(|potential_force_cell| {
+                let mut last_cell_index: CellIndex = van.cell_index;
+                let mut cur_cell_index: CellIndex = potential_force_cell.cell_index;
                 loop {
                     let next_cell_index = self.initial_data.graph.get_adjacent_square_indexes(
                         &self.gc_static_info,
-                 cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<_>>();
+                        cur_cell_index).filter(|ai| ai.cell_index != last_cell_index).collect::<Vec<_>>();
 
-                    if next_cell_index.len() != 1  {
+                    if next_cell_index.len() != 1 {
                         break;
                     }
 
@@ -185,17 +175,15 @@ impl Universe {
 
                     //don't neet to check if warehouse to north because there would be a connection
 
-                    if let TileRoad( Road{ block: Some(_block),..}) = &self.initial_data.tiles[cur_cell_index.0] {
-
+                    if let TileRoad(Road { block: Some(_block), .. }) = &self.initial_data.tiles[cur_cell_index.0] {
                         return true;
                     }
                 }
 
                 false
-
             });
 
-            if let Some( forced_adj_cell ) = forced_adj_cell {
+            if let Some(forced_adj_cell) = forced_adj_cell {
                 //found a force choice
                 let rc = van.cell_index.to_row_col(self.initial_data.width);
 
@@ -247,8 +235,6 @@ impl Universe {
     }
 
 
-
-
     //return CalculationResponse
     pub(crate) fn next_calculate(&mut self) -> JsValue {
         let iter_count = self.iter_count;
@@ -263,8 +249,12 @@ impl Universe {
              iter_count,
              q_len
         );
-        let r = CalculationResponse{
-            grid_state: Some(self.cur_stack_data.clone()),
+        let r = CalculationResponse {
+            grid_state: Some(if let Some(node) = &self.last_node {
+                node.current_state.clone()
+            } else {
+                self.initial_data.clone()
+            }),
             iteration_count: self.iter_count,
             success,
             ..Default::default()
@@ -346,7 +336,6 @@ impl Universe {
         self.stack = Vec::new();
 
         self.iter_count = 0;
-        self.cur_stack_data = self.initial_data.clone();
 
         self.success_state = None;
 
@@ -358,7 +347,7 @@ impl Universe {
 
         let ab = self.initial_graph();
         self.initial_data.graph = ab.0;
-        self.gc_static_info =ab.1;
+        self.gc_static_info = ab.1;
 
         self.initial_data.warehouses_remaining = self.initial_data.tiles.iter().filter(|t| {
             if let TileWarehouse(_) = t {
@@ -377,17 +366,13 @@ impl Universe {
         let van_cells: Vec<CellIndex> = self.initial_data.vans.iter().map(|v| v.cell_index).collect();
 
         for (van_idx, v_cell_index) in van_cells.iter().enumerate() {
-
             self.initial_data.tiles[v_cell_index.0].set_van(&self.initial_data.vans[van_idx]);
-            
         }
 
         log!("Initial graph analysis");
 
         self.analysis = self.initial_graph_analysis();
-
     }
-
 
 
     //returns CalculationResponse
