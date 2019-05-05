@@ -2,7 +2,7 @@ use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
 use super::{ColorIndex, CellIndex};
 
-#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
+#[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Van {
     pub boxes: [Option<ColorIndex>; 3],
     pub color: ColorIndex,

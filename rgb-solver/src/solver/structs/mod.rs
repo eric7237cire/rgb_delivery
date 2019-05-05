@@ -24,7 +24,7 @@ pub use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index};
 
 pub use self::road::{NavigableTileStatic, NavigableTileDynamic};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Ord, PartialOrd)]
 pub struct CellIndex(pub usize);
 
 impl From<usize> for CellIndex {
@@ -41,7 +41,7 @@ impl CellIndex {
 }
 
 //If 3 vats, indexes will be 0,1,2
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Ord, PartialOrd)]
 pub struct VanIndex(pub usize);
 
 impl From<usize> for VanIndex {

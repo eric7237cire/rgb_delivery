@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::ComponentMapIdx::*;
+use std::cmp::Ordering;
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -16,12 +17,13 @@ pub struct GridAnalysis {
 
     pub forced_choices: Vec<ChoiceOverride>,
 
-    pub warehouse_loc: Vec<usize>,
-    pub distance_to_warehouses: Vec<Vec<usize>>
+    pub warehouse_loc: Vec<CellIndex>,
+
+    pub distance: Vec<Vec<usize>>
 }
 
 
-#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
+#[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default, Eq)]
 pub struct GridState {
     pub width: usize,
     pub height: usize,
@@ -49,10 +51,46 @@ pub struct GridState {
     #[serde(skip)]
     pub(crate) current_van_index: VanIndex,
 
+    #[serde(skip)]
+    pub cost: usize
+
 }
 
-#[derive(Hash, PartialEq, Eq)]
-pub(crate) struct GridStateKey(Vec<u8>, Vec<(CellIndex, bool, [Option<ColorIndex>; 3])>);
+
+// The priority queue depends on `Ord`.
+// Explicitly implement the trait so the queue becomes a min-heap
+// instead of a max-heap.
+impl Ord for GridState {
+    fn cmp(&self, other: &GridState) -> Ordering {
+        // Notice that the we flip the ordering on costs.
+        // In case of a tie we compare positions - this step is necessary
+        // to make implementations of `PartialEq` and `Ord` consistent.
+        other.cost.cmp(&self.cost)
+            .then_with( || other.tick.cmp(&self.tick))
+            .then_with( || other.current_van_index.0.cmp(&self.current_van_index.0))
+            .then_with(|| other.warehouses_remaining.cmp(&other.warehouses_remaining))
+            .then_with( || other.vans.cmp(&self.vans))
+            .then_with( || other.graph.cmp(&self.graph))
+    }
+}
+
+impl PartialEq for GridState {
+    fn eq(&self, other: &GridState) -> bool {
+        self.cost == other.cost &&
+            self.tick == other.tick &&
+            self.current_van_index.0 == other.current_van_index.0 &&
+            self.warehouses_remaining == other.warehouses_remaining &&
+            self.vans == other.vans  &&
+            self.graph == other.graph
+    }
+}
+
+// `PartialOrd` needs to be implemented as well.
+impl PartialOrd for GridState {
+    fn partial_cmp(&self, other: &GridState) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
 
 pub enum CanDropOff {
     NoFail,

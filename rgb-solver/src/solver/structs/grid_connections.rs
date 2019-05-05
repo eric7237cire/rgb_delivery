@@ -2,7 +2,7 @@ use crate::solver::structs::{Direction, CellIndex, ALL_DIRECTIONS};
 //use crate::solver::structs::Direction::*;
 use crate::solver::structs::direction::get_adjacent_index;
 
-#[derive(Clone, Default)]
+#[derive(Clone, Default, Eq, PartialEq, Ord, PartialOrd)]
 pub struct GridConnections {
     pub is_connected: Vec<u8>,
     num_rows: usize,

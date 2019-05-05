@@ -12,7 +12,7 @@ pub struct Color {
     pub color_index: ColorIndex,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash, Ord, PartialOrd)]
 pub struct ColorIndex(pub usize);
 
 impl ColorIndex {

@@ -1,5 +1,3 @@
-use std::collections::vec_deque::VecDeque;
-
 use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 
@@ -11,6 +9,7 @@ use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
 use std::cmp::min;
 use std::usize;
+use std::collections::binary_heap::BinaryHeap;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -20,7 +19,7 @@ pub struct Universe {
     pub(crate) choice_override_list: Vec<ChoiceOverride>,
 
     //below are used for calculating
-    pub(crate) queue: VecDeque<GridState>,
+    pub(crate) heap: BinaryHeap<GridState>,
 
     pub(crate) success_state: Option<GridState>,
 
@@ -133,10 +132,6 @@ impl Universe {
         //log_trace!("Finding bridges");
         //b.do_it(&self.data.graph, self.data.height, self.data.width);
 
-        let warehouses: Vec<_> = self.data.tiles.iter().filter_map(|t| if let TileWarehouse(..) = t { Some(t) } else { None }).collect();
-
-        let num_warehouses = warehouses.len();
-
         let mut ga = GridAnalysis {
             has_poppers: self.data.tiles.iter().any(|t| if let TileRoad(r) = t {
                 return r.has_popper;
@@ -144,32 +139,32 @@ impl Universe {
             ..Default::default()
         };
 
-        ga.warehouse_loc = self.data.tiles.iter().enumerate().filter_map(|(idx,t)| if let TileWarehouse(..) = t { Some(idx) } else { None }).collect();
-        ga.distance_to_warehouses = vec![ vec![usize::MAX/2; self.data.tiles.len()]; num_warehouses];
+        ga.warehouse_loc = self.data.tiles.iter().enumerate().filter_map(|(idx,t)| if let TileWarehouse(..) = t { Some(CellIndex(idx)) } else { None }).collect();
+        ga.distance = vec![ vec![usize::MAX/2; self.data.tiles.len()]; self.data.tiles.len()];
 
-        for (idx,w_loc) in ga.warehouse_loc.iter().enumerate() {
-            ga.distance_to_warehouses[idx][*w_loc+self.data.width] = 0;
+        for idx in 0..self.data.tiles.len() {
+            ga.distance[idx][idx] = 0;
         }
 
-        for w_idx in 0..num_warehouses
+        for from_idx in 0..self.data.tiles.len()
         {
             for r in (0..self.data.height).chain((0..self.data.height).rev())
             {
                 for c in (0..self.data.width).chain((0..self.data.width).rev()) {
-                    let cell_index = CellIndex(r * self.data.width + c);
+                    let to_cell_index = CellIndex(r * self.data.width + c);
 
-                    if c > 0 && (graph.is_connected[cell_index.0] & (1 << WEST as u8) > 0) {
-                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 - 1], ga.distance_to_warehouses[w_idx][cell_index.0])
+                    if c > 0 && (graph.is_connected[to_cell_index.0] & (1 << WEST as u8) > 0) {
+                        ga.distance[from_idx][to_cell_index.0] = min(1+ga.distance[from_idx][to_cell_index.0 - 1], ga.distance[from_idx][to_cell_index.0])
                     }
-                    if r > 0 && (graph.is_connected[cell_index.0] & (1 << NORTH as u8) > 0) {
-                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 - self.data.width], ga.distance_to_warehouses[w_idx][cell_index.0])
+                    if r > 0 && (graph.is_connected[to_cell_index.0] & (1 << NORTH as u8) > 0) {
+                        ga.distance[from_idx][to_cell_index.0] = min(1+ga.distance[from_idx][to_cell_index.0 - self.data.width], ga.distance[from_idx][to_cell_index.0])
                     }
 
-                    if c < self.data.width - 1 && (graph.is_connected[cell_index.0] & (1 << EAST as u8) > 0) {
-                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 + 1], ga.distance_to_warehouses[w_idx][cell_index.0])
+                    if c < self.data.width - 1 && (graph.is_connected[to_cell_index.0] & (1 << EAST as u8) > 0) {
+                        ga.distance[from_idx][to_cell_index.0] = min(1+ga.distance[from_idx][to_cell_index.0 + 1], ga.distance[from_idx][to_cell_index.0])
                     }
-                    if r < self.data.height - 1 && (graph.is_connected[cell_index.0] & (1 << SOUTH as u8) > 0) {
-                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 + self.data.width], ga.distance_to_warehouses[w_idx][cell_index.0])
+                    if r < self.data.height - 1 && (graph.is_connected[to_cell_index.0] & (1 << SOUTH as u8) > 0) {
+                        ga.distance[from_idx][to_cell_index.0] = min(1+ga.distance[from_idx][to_cell_index.0 + self.data.width], ga.distance[from_idx][to_cell_index.0])
                     }
                 }
             }
@@ -282,7 +277,7 @@ impl Universe {
         if self.success_state.is_some() {
             return self.success_state.as_ref();
         }
-        while let Some(mut cur_state) = self.queue.pop_front() {
+        while let Some(mut cur_state) = self.heap.pop() {
             self.iter_count += 1;
 
 
@@ -295,14 +290,14 @@ impl Universe {
                 } else {
 
                         let m =
-                        self.analysis.warehouse_loc.iter().enumerate().filter_map( |(w_idx, w_loc)| {
-                            if let TileWarehouse(Warehouse{is_filled: false, color: warehouse_color,..}) = cur_state.tiles[*w_loc] {
+                        self.analysis.warehouse_loc.iter().filter_map( | w_loc| {
+                            if let TileWarehouse(Warehouse{is_filled: false, color: warehouse_color,..}) = cur_state.tiles[w_loc.0] {
                                 if v.color.is_white() || v.color == warehouse_color {
-                                    return Some(w_idx);
+                                    return Some(w_loc);
                                 }
                             }
                             None
-                        }).map(|w_idx| self.analysis.distance_to_warehouses[w_idx][v.cell_index.0]).min().unwrap_or(10000);
+                        }).map(|w_loc| self.analysis.distance[w_loc.0][v.cell_index.0]).min().unwrap_or(10000);
 
                     assert!(m < usize::MAX, "Van loc: {}", v.cell_index.0);
 
@@ -347,8 +342,9 @@ impl Universe {
 
                 let mut if_van_stops_state = cur_state.clone();
                 if_van_stops_state.current_van_mut().is_done = true;
+                if_van_stops_state.cost = self.calculate_cost(&if_van_stops_state);
                 //push back to calculate last
-                self.queue.push_back(if_van_stops_state);
+                self.heap.push(if_van_stops_state);
             }
 
             cur_state.check_bridges_and_buttons();
@@ -390,8 +386,9 @@ impl Universe {
 
             //check if we can drop a block off
             match cur_state.handle_warehouse_drop_off(&self.gc_static_info) {
-                Ok(Some(next_state)) => {
-                    self.queue.push_front(next_state);
+                Ok(Some(mut next_state)) => {
+                    next_state.cost = self.calculate_cost(&next_state);
+                    self.heap.push(next_state);
                 }
                 Err(_) => continue,
                 _ => ()
@@ -402,7 +399,8 @@ impl Universe {
                     //reset to values as when it was just popped
                     next_state.tick = save_for_toggle.0;
                     next_state.current_van_index = save_for_toggle.1;
-                    self.queue.push_front(next_state);
+                    next_state.cost = self.calculate_cost(&next_state);
+                    self.heap.push(next_state);
                 }
                 Err(_) => continue,
                 _ => ()
@@ -453,8 +451,8 @@ impl Universe {
                 }
 
                 next_state.press_button_if_exists();
-
-                self.queue.push_front(next_state);
+                next_state.cost = self.calculate_cost(&next_state);
+                self.heap.push(next_state);
                 any_moved = true;
             }
 
@@ -466,7 +464,7 @@ impl Universe {
             }
 
 
-            if let Some(f) = self.queue.front() {
+            if let Some(f) = self.heap.peek() {
                 return Some(f);
             } else {
                 return None;
@@ -480,7 +478,7 @@ impl Universe {
     //return CalculationResponse
     pub(crate) fn next_calculate(&mut self) -> JsValue {
         let iter_count = self.iter_count;
-        let q_len = self.queue.len();
+        let q_len = self.heap.len();
         let success = self.success_state.is_some();
         let rfs = self.removed_from_size;
 
@@ -514,6 +512,31 @@ impl Universe {
 
         //false for should not stop
         JsValue::from_serde(&r).unwrap()
+    }
+
+     pub fn calculate_cost(&self, grid_state: &GridState) -> usize {
+        let mut cost = 0;
+
+        //add each vans tick
+        cost += grid_state.vans.iter().map(|v| v.tick).sum::<usize>();
+
+        //distance each van to warehouse of its color
+        for v in grid_state.vans.iter() {
+            let to_add = self.analysis.warehouse_loc.iter().filter_map(|w_loc| {
+                if let TileWarehouse(Warehouse { is_filled: false, color: warehouse_color, .. }) = grid_state.tiles[w_loc.0] {
+                    if v.color.is_white() || v.color == warehouse_color {
+                        return Some(w_loc);
+                    }
+                }
+                None
+            }).map(|w_loc| self.analysis.distance[w_loc.0][v.cell_index.0]).min().unwrap_or(10000);
+
+            cost+=to_add;
+        }
+        //distance each block to closest warehouse of its color
+
+
+        cost
     }
 }
 
@@ -585,7 +608,7 @@ impl Universe {
 
         log!("Init calculate");
 
-        self.queue = VecDeque::new();
+        self.heap = BinaryHeap::new();
 
         self.iter_count = 0;
         self.data.tick = 0;
@@ -630,7 +653,7 @@ impl Universe {
 
         self.analysis = self.initial_graph_analysis(&self.data.graph);
 
-        self.queue.push_back(self.data.clone());
+        self.heap.push(self.data.clone());
     }
 
 
@@ -657,7 +680,7 @@ impl Universe {
                     ..Default::default()
                 }).unwrap();
             }
-            if self.queue.is_empty() {
+            if self.heap.is_empty() {
                 return JsValue::from_serde(&CalculationResponse {
                     error_message: Some(format!("Queue is empty")),
                     ..Default::default()
@@ -690,4 +713,6 @@ impl Universe {
             );
         }
     }
+
+
 }
