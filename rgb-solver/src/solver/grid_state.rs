@@ -16,11 +16,8 @@ pub struct GridAnalysis {
 
     pub forced_choices: Vec<ChoiceOverride>,
 
-    //index by color
-    pub distance_to_warehouses: [Vec<usize>; 5],
-
     pub warehouse_loc: Vec<usize>,
-    pub distance_to_warehouses_all: Vec<Vec<usize>>
+    pub distance_to_warehouses: Vec<Vec<usize>>
 }
 
 
@@ -267,25 +264,6 @@ impl GridState {
         }
 
         let north_tile = &self.tiles[current_cell_index.0 - self.width];
-        if let TileWarehouse(Warehouse { color: warehouse_color, is_filled }) = north_tile {
-            if *is_filled {
-                return None;
-            } else {
-                return Some(*warehouse_color);
-            }
-        }
-
-        None
-    }
-
-    pub(crate) fn empty_warehouse_color_for_cell_index(&self, cell_index: CellIndex) -> Option<ColorIndex> {
-
-        //on first row
-        if cell_index.0 < self.width {
-            return None;
-        }
-
-        let north_tile = &self.tiles[cell_index.0 - self.width];
         if let TileWarehouse(Warehouse { color: warehouse_color, is_filled }) = north_tile {
             if *is_filled {
                 return None;

@@ -5,7 +5,7 @@ use wasm_bindgen::prelude::*;
 
 use crate::solver::grid_state::{GridAnalysis, GridState};
 use crate::solver::structs::{ALL_DIRECTIONS, Bridge, Button, CalculationResponse, CellData, CellIndex, ChoiceOverride, get_adjacent_index, GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex, Warehouse};
-use crate::solver::structs::Direction::NORTH;
+use crate::solver::structs::Direction::*;
 use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
@@ -124,7 +124,7 @@ impl Universe {
         (gc, so)
     }
 
-    pub(crate) fn initial_graph_analysis(&self) -> GridAnalysis {
+    pub(crate) fn initial_graph_analysis(&self, graph: &GridConnections) -> GridAnalysis {
 
         //for the moment, not useful since this basically finds warehouses and dead ends
         //later might be interesting to use to make sure if a van & warehouse are on one side of a bridge
@@ -144,91 +144,47 @@ impl Universe {
             ..Default::default()
         };
 
-        for i in 0..5 {
-            ga.distance_to_warehouses[i] = vec![usize::MAX; self.data.tiles.len()];
-        }
-
         ga.warehouse_loc = self.data.tiles.iter().enumerate().filter_map(|(idx,t)| if let TileWarehouse(..) = t { Some(idx) } else { None }).collect();
-        ga.distance_to_warehouses_all = vec![ vec![usize::MAX; self.data.tiles.len()]; num_warehouses];
+        ga.distance_to_warehouses = vec![ vec![usize::MAX/2; self.data.tiles.len()]; num_warehouses];
 
         for (idx,w_loc) in ga.warehouse_loc.iter().enumerate() {
-            ga.distance_to_warehouses_all[idx][*w_loc+self.data.width] = 0;
-        }
-
-        for color in 0..5
-        {
-            for r in 0..self.data.height
-            {
-                for c in 0..self.data.width {
-                    let cell_index = CellIndex(r * self.data.width + c);
-                    if let Some(wc) = self.data.empty_warehouse_color_for_cell_index(cell_index) {
-                        if wc.0 == color {
-                            ga.distance_to_warehouses[color][cell_index.0] = 0;
-                            continue;
-                        }
-                    }
-
-                    if c > 0 {
-                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 - 1], ga.distance_to_warehouses[color][cell_index.0])
-                    }
-                    if r > 0 {
-                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 - self.data.width], ga.distance_to_warehouses[color][cell_index.0])
-                    }
-                }
-            }
+            ga.distance_to_warehouses[idx][*w_loc+self.data.width] = 0;
         }
 
         for w_idx in 0..num_warehouses
         {
-            for r in 0..self.data.height
+            for r in (0..self.data.height).chain((0..self.data.height).rev())
             {
-                for c in 0..self.data.width {
+                for c in (0..self.data.width).chain((0..self.data.width).rev()) {
                     let cell_index = CellIndex(r * self.data.width + c);
 
-                    if c > 0 {
-                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 - 1], ga.distance_to_warehouses_all[w_idx][cell_index.0])
+                    if c > 0 && (graph.is_connected[cell_index.0] & (1 << WEST as u8) > 0) {
+                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 - 1], ga.distance_to_warehouses[w_idx][cell_index.0])
                     }
-                    if r > 0 {
-                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 - self.data.width], ga.distance_to_warehouses_all[w_idx][cell_index.0])
+                    if r > 0 && (graph.is_connected[cell_index.0] & (1 << NORTH as u8) > 0) {
+                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 - self.data.width], ga.distance_to_warehouses[w_idx][cell_index.0])
+                    }
+
+                    if c < self.data.width - 1 && (graph.is_connected[cell_index.0] & (1 << EAST as u8) > 0) {
+                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 + 1], ga.distance_to_warehouses[w_idx][cell_index.0])
+                    }
+                    if r < self.data.height - 1 && (graph.is_connected[cell_index.0] & (1 << SOUTH as u8) > 0) {
+                        ga.distance_to_warehouses[w_idx][cell_index.0] = min(1+ga.distance_to_warehouses[w_idx][cell_index.0 + self.data.width], ga.distance_to_warehouses[w_idx][cell_index.0])
                     }
                 }
             }
         }
 
-        for color in 0..5
-        {
-            for r in (0..self.data.height).rev()
-            {
-                for c in (0..self.data.width).rev() {
-                    let cell_index = CellIndex(r * self.data.width + c);
-
-                    if c < self.data.width - 1 {
-                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 + 1], ga.distance_to_warehouses[color][cell_index.0])
-                    }
-                    if r < self.data.height - 1 {
-                        ga.distance_to_warehouses[color][cell_index.0] = min(ga.distance_to_warehouses[color][cell_index.0 + self.data.width], ga.distance_to_warehouses[color][cell_index.0])
-                    }
-                }
-            }
-        }
-
+/*
         for w_idx in 0..num_warehouses
-        {
-            for r in (0..self.data.height).rev()
             {
-                for c in (0..self.data.width).rev() {
-                    let cell_index = CellIndex(r * self.data.width + c);
-
-                     if c < self.data.width - 1 {
-                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 + 1], ga.distance_to_warehouses_all[w_idx][cell_index.0])
-                    }
-                    if r < self.data.height - 1 {
-                        ga.distance_to_warehouses_all[w_idx][cell_index.0] = min(ga.distance_to_warehouses_all[w_idx][cell_index.0 + self.data.width], ga.distance_to_warehouses_all[w_idx][cell_index.0])
+                for r in 0..self.data.height {
+                    if r == 3 {
+                        log!("Warehouse {} Dist row {} w1 {:?}", w_idx, r, &ga.distance_to_warehouses[w_idx][r * self.data.width..(r + 1) * self.data.width]);
                     }
                 }
             }
-        }
-
+*/
         //if a van starts on a square that has 2 options, see if there is a block on that path (no warehouse), if so, we must go towards the block
 
         for (van_index, van) in self.data.vans.iter().enumerate() {
@@ -287,6 +243,7 @@ impl Universe {
             }
         }
 
+        log!("w4");
         ga
     }
 
@@ -337,7 +294,8 @@ impl Universe {
                 if v.is_done {
                     v.tick
                 } else {
-                    v.tick +
+
+                        let m =
                         self.analysis.warehouse_loc.iter().enumerate().filter_map( |(w_idx, w_loc)| {
                             if let TileWarehouse(Warehouse{is_filled: false, color: warehouse_color,..}) = cur_state.tiles[*w_loc] {
                                 if v.color.is_white() || v.color == warehouse_color {
@@ -345,8 +303,11 @@ impl Universe {
                                 }
                             }
                             None
-                        }).map(|w_idx| self.analysis.distance_to_warehouses_all[w_idx][v.cell_index.0]).min().unwrap_or(10000)
+                        }).map(|w_idx| self.analysis.distance_to_warehouses[w_idx][v.cell_index.0]).min().unwrap_or(10000);
 
+                    assert!(m < usize::MAX, "Van loc: {}", v.cell_index.0);
+
+                    v.tick + m
                 }
             }).sum();
             if self.max_ticks > 0 && ticks_used > self.max_ticks {
@@ -668,7 +629,7 @@ impl Universe {
 
         log!("Initial graph analysis");
 
-        self.analysis = self.initial_graph_analysis();
+        self.analysis = self.initial_graph_analysis(&self.data.graph);
 
         self.queue.push_back(self.data.clone());
     }
