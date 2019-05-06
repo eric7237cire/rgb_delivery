@@ -56,7 +56,7 @@ export class LogEntry {
 export class LogService {
 
 
-  readonly level: LogLevel = LogLevel.Warn;
+  readonly level: LogLevel = LogLevel.All;
 
   debug(msg: string, ...optionalParams: any[]) {
     this.writeToLog(msg, LogLevel.Debug,

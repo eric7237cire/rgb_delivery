@@ -54,6 +54,7 @@
     "no-string-literal": false,
     "no-trailing-whitespace": false,
     "typedef-whitespace": false,
+    "whitespace": false,
     "no-use-before-declare": true,
     "no-var-requires": false,
     "object-literal-key-quotes": [
