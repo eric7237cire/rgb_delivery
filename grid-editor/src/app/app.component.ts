@@ -612,6 +612,8 @@ export class AppComponent implements OnInit {
             direction = DIRECTION_INDEX.SOUTH;
           } else if (lastCellIndex - this.numCols === cellIndex) {
             direction = DIRECTION_INDEX.NORTH;
+          } else {
+            return false;
           }
           this.currentSlidingVanCellIndexes.push(cellIndex);
 
@@ -673,6 +675,8 @@ export class AppComponent implements OnInit {
           delete tile.van;
           tile.has_popper = false;
           delete tile.button;
+          tile.used_van_index = [null,null,null,null];
+          tile.used_tick = [null,null,null,null];
           break;
       }
 
