@@ -533,7 +533,28 @@ impl Universe {
 
             cost+=to_add;
         }
+
         //distance each block to closest warehouse of its color
+        for (block_loc, block_color) in grid_state.tiles.iter().enumerate().filter_map
+        ( |(idx,t)|
+              if let TileRoad(Road{block:Some(block),..}) = t {
+                  Some( (idx, block) )
+              } else {
+                  None
+              }
+        ) {
+            let to_add = self.analysis.warehouse_loc.iter().filter_map(|w_loc| {
+                if let TileWarehouse(Warehouse { is_filled: false, color: warehouse_color, .. }) = grid_state.tiles[w_loc.0] {
+                    if *block_color == warehouse_color {
+                        return Some(w_loc);
+                    }
+                }
+                None
+            }).map(|w_loc| self.analysis.distance[w_loc.0][block_loc]).min().unwrap_or(10000);
+
+            cost+=to_add;
+
+        }
 
 
         cost
