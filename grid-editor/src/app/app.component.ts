@@ -147,7 +147,6 @@ export class AppComponent implements OnInit {
 
   cells: Array<CellData> = [];
 
-  currentSlidingVanCellIndexes: Array<number> = [];
   currentVanIndex: number = -1;
 
   numCalcSteps = 100000;
@@ -570,38 +569,66 @@ export class AppComponent implements OnInit {
       switch (this.selectedThing) {
         case "ForcedMove":
 
+          let lastCellIndex:number|null = null;
+          let lastTick : number = 0;
+
           //first check if an adjacent index is a van
           for (const offset of [1,-1, this.numCols,-this.numCols]) {
-            const adjIndex = cellIndex+offset;
+            const adjIndex = cellIndex + offset;
             if (adjIndex < 0 || adjIndex >= this.gridState.tiles.length) {
               continue;
             }
-            if (offset*offset === 1 && cellIndex % this.numCols !== adjIndex % this.numCols) {
+            if (offset * offset === 1 && cellIndex % this.numCols !== adjIndex % this.numCols) {
               //enforce same row
               continue;
             }
 
             const adjTile = this.gridState.tiles[adjIndex];
-            if (adjTile.type !== "TileRoad") {
-              continue;
+
+            //if van of correct coller
+            if (adjTile.type === "TileRoad" && !_.isNil(adjTile.van) && adjTile.van.color === this.selectedColor.color_index) {
+
+
+              lastCellIndex = adjIndex;
+              /*this.currentVanIndex = this.gridState.tiles.reduce((vanCount, testTile, testIndex) =>
+              testTile.type === "TileRoad" && !(_.isNil(testTile.van)) && testIndex <= adjIndex ? vanCount + 1 : vanCount, 0);*/
+              this.currentVanIndex = this.gridState.vans.findIndex(van => van.cell_index === adjIndex);
+              lastTick = 0;
+
+              //this.gridState.vans[this.currentVanIndex] = adjTile.van;
+
+              break;
             }
 
-            if (_.isNil(adjTile.van)) {
-              continue;
+            //Used index
+            if (adjTile.type === "TileRoad"
+              && !_.isNil(adjTile.used_van_index)
+              && adjTile.used_van_index.some(vi => vi === this.currentVanIndex)
+            ) {
+              lastCellIndex = adjIndex;
+              lastTick = 0;
+              for (let i = 0; i < 4; ++i) {
+                if (adjTile.used_van_index[i] === this.currentVanIndex) {
+                  lastTick = Math.max(lastTick, (!_.isNil(adjTile.used_tick[i]) && _.isFinite(adjTile.used_tick[i])) ? adjTile.used_tick[i] : 0);
+                }
+              }
             }
 
-            this.currentSlidingVanCellIndexes = [adjIndex];
-            /*this.currentVanIndex = this.gridState.tiles.reduce((vanCount, testTile, testIndex) =>
-            testTile.type === "TileRoad" && !(_.isNil(testTile.van)) && testIndex <= adjIndex ? vanCount + 1 : vanCount, 0);*/
-            this.currentVanIndex = this.gridState.vans.findIndex( van => van.cell_index === adjIndex);
+            if (adjTile.type === "TileBridge"
+              && !_.isNil(adjTile.used_van_index)
+              && adjTile.used_van_index === this.currentVanIndex) {
 
-            //this.gridState.vans[this.currentVanIndex] = adjTile.van;
+              lastCellIndex = adjIndex;
+              lastTick = adjTile.used_tick
 
-            break;
+            }
+          }
+
+          if (_.isNil(lastCellIndex)) {
+            return false;
           }
 
 
-          const lastCellIndex = this.currentSlidingVanCellIndexes[this.currentSlidingVanCellIndexes.length - 1];
           //determine direction
           let direction: DIRECTION_INDEX | null = null;
           if (lastCellIndex + 1 === cellIndex) {
@@ -615,7 +642,6 @@ export class AppComponent implements OnInit {
           } else {
             return false;
           }
-          this.currentSlidingVanCellIndexes.push(cellIndex);
 
           const toCell = tile;
           if (!_.isNil(toCell) && toCell.type === "TileRoad" && !_.isNil(direction)) {
@@ -625,7 +651,7 @@ export class AppComponent implements OnInit {
             if (!_.isArray(toCell.used_van_index)) {
               toCell.used_van_index = [null, null, null, null];
             }
-            toCell.used_tick[(direction + 2) % 4] = this.currentSlidingVanCellIndexes.length;
+            toCell.used_tick[(direction + 2) % 4] = lastTick + 1;
             toCell.used_van_index[(direction + 2) % 4] = this.currentVanIndex;
             delete toCell.van;
           }
@@ -638,7 +664,7 @@ export class AppComponent implements OnInit {
             if (!_.isArray(fromCell.used_van_index)) {
               fromCell.used_van_index = [null, null, null, null];
             }
-            fromCell.used_tick[direction] = this.currentSlidingVanCellIndexes.length - 1;
+            fromCell.used_tick[direction] = lastTick;
             fromCell.used_van_index[direction] = this.currentVanIndex;
           }
 
