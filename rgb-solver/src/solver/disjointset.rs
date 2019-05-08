@@ -29,8 +29,7 @@ use std;
  * Useful for testing graph connectivity, and is used in Kruskal's algorithm.
  */
 #[derive(Clone)]
-pub struct DisjointSet
-{
+pub struct DisjointSet {
     numberofsets: usize,
 
     nodes: Vec<DisjointSetNode>,
@@ -38,8 +37,7 @@ pub struct DisjointSet
 
 // Private helper structure.
 #[derive(Clone, Copy)]
-struct DisjointSetNode
-{
+struct DisjointSetNode {
     // The index of the parent element. An element is a representative iff its parent is itself.
     parent: usize,
 
@@ -50,12 +48,10 @@ struct DisjointSetNode
     size: usize,
 }
 
-impl DisjointSet
-{
+impl DisjointSet {
     // Constructs a new set containing the given number of singleton sets.
     // For example, new DisjointSet(3) --> {{0}, {1}, {2}}.
-    pub fn new(numelems: usize) -> Self
-    {
+    pub fn new(numelems: usize) -> Self {
         Self {
             numberofsets: numelems,
             nodes: (0..numelems)
@@ -71,23 +67,20 @@ impl DisjointSet
     // Returns the number of elements among the set of disjoint sets; this was the number passed
     // into the constructor and is constant for the lifetime of the object. All the other methods
     // require the argument elemindex to satisfy 0 <= elemindex < number_of_elements().
-    pub fn number_of_elems(&self) -> usize
-    {
+    pub fn number_of_elems(&self) -> usize {
         self.nodes.len()
     }
 
     // The number of disjoint sets overall. This number decreases monotonically as time progresses;
     // each call to merge_sets() either decrements the number by one or leaves it unchanged. 0 <= number_of_sets() <= number_of_elements().
-    pub fn number_of_sets(&self) -> usize
-    {
+    pub fn number_of_sets(&self) -> usize {
         self.numberofsets
     }
 
     // (Private) Returns the representative element for the set containing the given element. This method is also
     // known as "find" in the literature. Also performs path compression, which alters the internal state to
     // improve the speed of future queries, but has no externally visible effect on the values returned.
-    pub fn get_repr(&mut self, mut elemindex: usize) -> usize
-    {
+    pub fn get_repr(&mut self, mut elemindex: usize) -> usize {
         // Follow parent pointers until we reach a representative
         let mut parent: usize = self.nodes[elemindex].parent;
         if parent == elemindex {
@@ -105,23 +98,20 @@ impl DisjointSet
     }
 
     // Returns the size of the set that the given element is a member of. 1 <= result <= number_of_elements().
-    pub fn get_size_of_set(&mut self, elemindex: usize) -> usize
-    {
+    pub fn get_size_of_set(&mut self, elemindex: usize) -> usize {
         let repr: usize = self.get_repr(elemindex);
         self.nodes[repr].size
     }
 
     // Tests whether the given two elements are members of the same set. Note that the arguments are orderless.
-    pub fn are_in_same_set(&mut self, elemindex0: usize, elemindex1: usize) -> bool
-    {
+    pub fn are_in_same_set(&mut self, elemindex0: usize, elemindex1: usize) -> bool {
         self.get_repr(elemindex0) == self.get_repr(elemindex1)
     }
 
     // Merges together the sets that the given two elements belong to. This method is also known as "union" in the literature.
     // If the two elements belong to different sets, then the two sets are merged and the method returns true.
     // Otherwise they belong in the same set, nothing is changed and the method returns false. Note that the arguments are orderless.
-    pub fn merge_sets(&mut self, elemindex0: usize, elemindex1: usize) -> bool
-    {
+    pub fn merge_sets(&mut self, elemindex0: usize, elemindex1: usize) -> bool {
         //debug!("Merging {} and {}", elemindex0, elemindex1);
 
         // Get representatives
@@ -151,8 +141,7 @@ impl DisjointSet
 
     // For unit tests. This detects many but not all invalid data structures, panicking if a
     // structural invariant is known to be violated. This always returns silently on a valid object.
-    pub fn check_structure(&self)
-    {
+    pub fn check_structure(&self) {
         let mut numrepr: usize = 0;
         for (i, node) in self.nodes.iter().enumerate() {
             let isrepr: bool = node.parent == i;
@@ -192,8 +181,7 @@ impl DisjointSet
 /*---- Main runner ----*/
 
 #[cfg(test)]
-mod test_disjointset
-{
+mod test_disjointset {
 
     //use rand::distributions::IndependentSample;
     use rand::distributions::Distribution;
@@ -203,8 +191,7 @@ mod test_disjointset
 
     /*---- Test suite ----*/
     #[test]
-    fn test_new()
-    {
+    fn test_new() {
         let mut ds = DisjointSet::new(10);
         assert_eq!(10, ds.number_of_sets());
         assert_eq!(1, ds.get_size_of_set(0));
@@ -216,8 +203,7 @@ mod test_disjointset
     }
 
     #[test]
-    fn test_merge()
-    {
+    fn test_merge() {
         let mut ds = DisjointSet::new(10);
         assert_eq!(true, ds.merge_sets(0, 1));
         ds.check_structure();
@@ -243,8 +229,7 @@ mod test_disjointset
     }
 
     #[test]
-    fn test_big_merge()
-    {
+    fn test_big_merge() {
         let maxrank: i8 = 20;
         let trials: i32 = 10000;
 
@@ -276,8 +261,7 @@ mod test_disjointset
     }
 
     #[test]
-    fn test_against_naive_randomly()
-    {
+    fn test_against_naive_randomly() {
         let trials: i32 = 10;
         let iterations: i32 = 3000;
         let numelems: usize = 300;
@@ -307,22 +291,18 @@ mod test_disjointset
 
     /*---- Helper definitions ----*/
 
-    struct NaiveDisjointSet
-    {
+    struct NaiveDisjointSet {
         representatives: Vec<usize>,
     }
 
-    impl NaiveDisjointSet
-    {
-        fn new(numelems: usize) -> Self
-        {
+    impl NaiveDisjointSet {
+        fn new(numelems: usize) -> Self {
             NaiveDisjointSet {
                 representatives: (0usize..numelems).collect(),
             }
         }
 
-        fn number_of_sets(&self) -> usize
-        {
+        fn number_of_sets(&self) -> usize {
             self.representatives
                 .iter()
                 .enumerate()
@@ -330,19 +310,16 @@ mod test_disjointset
                 .count()
         }
 
-        fn get_size_of_set(&self, elemindex: usize) -> usize
-        {
+        fn get_size_of_set(&self, elemindex: usize) -> usize {
             let repr: usize = self.representatives[elemindex];
             self.representatives.iter().filter(|r| **r == repr).count()
         }
 
-        fn are_in_same_set(&self, elemindex0: usize, elemindex1: usize) -> bool
-        {
+        fn are_in_same_set(&self, elemindex0: usize, elemindex1: usize) -> bool {
             self.representatives[elemindex0] == self.representatives[elemindex1]
         }
 
-        fn merge_sets(&mut self, elemindex0: usize, elemindex1: usize) -> bool
-        {
+        fn merge_sets(&mut self, elemindex0: usize, elemindex1: usize) -> bool {
             let repr0: usize = self.representatives[elemindex0];
             let repr1: usize = self.representatives[elemindex1];
             for c in self.representatives.iter_mut() {

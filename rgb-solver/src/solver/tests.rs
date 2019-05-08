@@ -1,5 +1,3 @@
-
-
 #[cfg(test)]
 mod tests {
 
@@ -9,23 +7,23 @@ mod tests {
 
         /* [[[cog
 
-from pathlib import Path
-#LEVEL_DIR = Path(r'D:\git\rgb_delivery\levels\levels_to_unit_test')
-LEVEL_DIR = Path(r'/mnt/e/git/rgb_delivery/levels/levels_to_unit_test')
+        from pathlib import Path
+        #LEVEL_DIR = Path(r'D:\git\rgb_delivery\levels\levels_to_unit_test')
+        LEVEL_DIR = Path(r'/mnt/e/git/rgb_delivery/levels/levels_to_unit_test')
 
-for json_file in LEVEL_DIR.glob('*.json'):
-    with open(json_file, 'r') as f:
-        json_data = f.read()
+        for json_file in LEVEL_DIR.glob('*.json'):
+            with open(json_file, 'r') as f:
+                json_data = f.read()
 
-        var_suffix = json_file.stem.replace(' ', '_').upper()
+                var_suffix = json_file.stem.replace(' ', '_').upper()
 
-        cog.outl(f"""
-        pub (crate) const TEST_DATA_{var_suffix}: &str = r#"
-                {json_data}
-"#;""")
-]]] */
+                cog.outl(f"""
+                pub (crate) const TEST_DATA_{var_suffix}: &str = r#"
+                        {json_data}
+        "#;""")
+        ]]] */
 
-        pub (crate) const TEST_DATA_AUSTIN_Q3: &str = r#"
+        pub(crate) const TEST_DATA_AUSTIN_Q3: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -1399,7 +1397,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_BIRMINGHAM_G10: &str = r#"
+        pub(crate) const TEST_DATA_BIRMINGHAM_G10: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -2701,7 +2699,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_BOSTON_N10: &str = r#"
+        pub(crate) const TEST_DATA_BOSTON_N10: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -3709,7 +3707,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_DALLAS_C10: &str = r#"
+        pub(crate) const TEST_DATA_DALLAS_C10: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -5060,7 +5058,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_HOUSTON_U01: &str = r#"
+        pub(crate) const TEST_DATA_HOUSTON_U01: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -6400,7 +6398,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_LIVERPOOL_E10: &str = r#"
+        pub(crate) const TEST_DATA_LIVERPOOL_E10: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -7417,7 +7415,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_LONDON_H10: &str = r#"
+        pub(crate) const TEST_DATA_LONDON_H10: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -8671,7 +8669,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_SAN_DIEGO_R6: &str = r#"
+        pub(crate) const TEST_DATA_SAN_DIEGO_R6: &str = r#"
                 {
   "width": 11,
   "height": 11,
@@ -10386,7 +10384,7 @@ for json_file in LEVEL_DIR.glob('*.json'):
 }
 "#;
 
-        pub (crate) const TEST_DATA_STARTONLYONE: &str = r#"
+        pub(crate) const TEST_DATA_STARTONLYONE: &str = r#"
                 {
   "width": 5,
   "height": 5,
@@ -10672,79 +10670,78 @@ for json_file in LEVEL_DIR.glob('*.json'):
   "warehouses_remaining": 0
 }
 "#;
-// --[[[end]]]
+        // --[[[end]]]
     }
-    use crate::solver::universe::{ Universe};
-    use crate::solver::grid_state:: {GridState};
     use self::test_data::*;
+    use crate::solver::grid_state::GridState;
+    use crate::solver::universe::Universe;
     use serde_json;
-
 
     /* [[[cog
 
-import re
+    import re
 
-def remove_double_newlines(s):
-    #return s
-    return re.sub(r'\n', ' \n', s)
+    def remove_double_newlines(s):
+        #return s
+        return re.sub(r'\n', ' \n', s)
 
-for json_file in LEVEL_DIR.glob('*.json'):
+    for json_file in LEVEL_DIR.glob('*.json'):
 
-    test_name = json_file.stem.replace(' ', '_').lower()
-    constant_name = json_file.stem.replace(' ', '_').upper()
+        test_name = json_file.stem.replace(' ', '_').lower()
+        constant_name = json_file.stem.replace(' ', '_').upper()
 
-    cog.out(remove_double_newlines(f"""
-//************************************************************************************************/
+        cog.out(remove_double_newlines(f"""
+    //************************************************************************************************/
+        #[test]
+        fn test_{test_name}() {{
+            run_level(TEST_DATA_{constant_name})
+        }}"""))
+    ]]] */
+
+    //************************************************************************************************/
     #[test]
-    fn test_{test_name}() {{
-        run_level(TEST_DATA_{constant_name})
-    }}"""))
-]]] */
- 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_austin_q3() { 
-        run_level(TEST_DATA_AUSTIN_Q3) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_birmingham_g10() { 
-        run_level(TEST_DATA_BIRMINGHAM_G10) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_boston_n10() { 
-        run_level(TEST_DATA_BOSTON_N10) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_dallas_c10() { 
-        run_level(TEST_DATA_DALLAS_C10) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_houston_u01() { 
-        run_level(TEST_DATA_HOUSTON_U01) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_liverpool_e10() { 
-        run_level(TEST_DATA_LIVERPOOL_E10) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_london_h10() { 
-        run_level(TEST_DATA_LONDON_H10) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_san_diego_r6() { 
-        run_level(TEST_DATA_SAN_DIEGO_R6) 
-    } 
-//************************************************************************************************/ 
-    #[test] 
-    fn test_startonlyone() { 
-        run_level(TEST_DATA_STARTONLYONE) 
+    fn test_austin_q3() {
+        run_level(TEST_DATA_AUSTIN_Q3)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_birmingham_g10() {
+        run_level(TEST_DATA_BIRMINGHAM_G10)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_boston_n10() {
+        run_level(TEST_DATA_BOSTON_N10)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_dallas_c10() {
+        run_level(TEST_DATA_DALLAS_C10)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_houston_u01() {
+        run_level(TEST_DATA_HOUSTON_U01)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_liverpool_e10() {
+        run_level(TEST_DATA_LIVERPOOL_E10)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_london_h10() {
+        run_level(TEST_DATA_LONDON_H10)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_san_diego_r6() {
+        run_level(TEST_DATA_SAN_DIEGO_R6)
+    }
+    //************************************************************************************************/
+    #[test]
+    fn test_startonlyone() {
+        run_level(TEST_DATA_STARTONLYONE)
     }
     // --[[[end]]]
 

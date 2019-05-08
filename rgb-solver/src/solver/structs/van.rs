@@ -1,6 +1,6 @@
+use super::{CellIndex, ColorIndex};
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use super::{ColorIndex, CellIndex};
 
 #[derive(Clone, Debug, Serialize, Deserialize, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Van {
@@ -11,12 +11,10 @@ pub struct Van {
     #[serde(skip)]
     pub(crate) tick: usize,
     #[serde(default)]
-    pub(crate) cell_index: CellIndex 
+    pub(crate) cell_index: CellIndex,
 }
 
-
 impl Van {
-
     //0 is the bottom of the stack
 
     pub(crate) fn get_top_box(&self) -> Option<ColorIndex> {
@@ -37,7 +35,7 @@ impl Van {
         }
 
         //did not clear a box
-        panic!("Did not clear a box" );
+        panic!("Did not clear a box");
     }
 
     pub(crate) fn get_empty_slot(&self) -> Option<usize> {

@@ -1,13 +1,16 @@
+use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
+use crate::solver::structs::{
+    get_adjacent_index, AdjSquareInfo, Bridge, Button, CellIndex, ChoiceOverride, ColorIndex,
+    GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex, Warehouse,
+    ALL_DIRECTIONS,
+};
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::structs::{Warehouse, ColorIndex, VanIndex, TileEnum, Bridge, Road, Button, ChoiceOverride,
-                             AdjSquareInfo, CellIndex, Van, ALL_DIRECTIONS, get_adjacent_index, GridConnections, GridConnectionsStaticInfo};
-use crate::solver::structs::TileEnum::{TileWarehouse, TileRoad, TileBridge};
 
-use std::collections::HashMap;
-use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::disjointset::DisjointSet;
+use crate::solver::func_public::{NUM_COLORS, WHITE_COLOR_INDEX};
 use crate::solver::grid_state::ComponentMapIdx::*;
+use std::collections::HashMap;
 
 #[derive(Default)]
 pub struct GridAnalysis {
@@ -17,9 +20,8 @@ pub struct GridAnalysis {
     pub forced_choices: Vec<ChoiceOverride>,
 
     pub warehouse_loc: Vec<usize>,
-    pub distance_to_warehouses: Vec<Vec<usize>>
+    pub distance_to_warehouses: Vec<Vec<usize>>,
 }
-
 
 #[derive(Clone, Serialize, Deserialize, TypescriptDefinition, Default)]
 pub struct GridState {
@@ -48,7 +50,6 @@ pub struct GridState {
 
     #[serde(skip)]
     pub(crate) current_van_index: VanIndex,
-
 }
 
 #[derive(Hash, PartialEq, Eq)]
@@ -79,13 +80,16 @@ impl GridState {
             if !self.current_van().is_done {
                 return Ok(incremented_tick);
             } else {
-                log_trace!("Van #{:?}: {:?} is done, skipping", self.current_van_index, self.vans[self.current_van_index.0]);
+                log_trace!(
+                    "Van #{:?}: {:?} is done, skipping",
+                    self.current_van_index,
+                    self.vans[self.current_van_index.0]
+                );
             }
         }
 
         Err(())
     }
-
 
     pub(crate) fn check_bridges_and_buttons(&self) {
         for b in self.bridges.iter() {
@@ -96,7 +100,11 @@ impl GridState {
         }
 
         for b in self.buttons.iter() {
-            if let TileRoad(Road { button_snapshot: Some(check_b), .. }) = &self.tiles[b.cell_index.0] {
+            if let TileRoad(Road {
+                button_snapshot: Some(check_b),
+                ..
+            }) = &self.tiles[b.cell_index.0]
+            {
                 assert_eq!(check_b.color, b.color);
                 assert_eq!(check_b.is_pressed, b.is_pressed);
             }
@@ -106,12 +114,23 @@ impl GridState {
     pub(crate) fn toggle_bridges_and_buttons(&mut self) -> Result<(), ()> {
         log_trace!("Toggling bridges & buttons");
 
-        let pressed_buttons: Vec<ColorIndex> = self.buttons.iter().filter_map(
-            |b| if !b.was_pressed_this_tick { None } else { Some(b.color) }).collect();
+        let pressed_buttons: Vec<ColorIndex> = self
+            .buttons
+            .iter()
+            .filter_map(|b| {
+                if !b.was_pressed_this_tick {
+                    None
+                } else {
+                    Some(b.color)
+                }
+            })
+            .collect();
 
         for color_to_toggle in pressed_buttons.into_iter() {
-            let button_cells: Vec<CellIndex> = self.buttons.iter_mut().filter_map(
-                |b| {
+            let button_cells: Vec<CellIndex> = self
+                .buttons
+                .iter_mut()
+                .filter_map(|b| {
                     if b.color != color_to_toggle {
                         None
                     } else {
@@ -119,25 +138,30 @@ impl GridState {
                         b.is_pressed = !b.is_pressed;
                         Some(b.cell_index)
                     }
-                }).collect();
+                })
+                .collect();
 
             for bc in button_cells {
                 if let TileRoad(r) = &mut self.tiles[bc.0] {
-                    r.button_snapshot.as_mut().unwrap().is_pressed = !r.button_snapshot.as_mut().unwrap().is_pressed;
+                    r.button_snapshot.as_mut().unwrap().is_pressed =
+                        !r.button_snapshot.as_mut().unwrap().is_pressed;
                 } else {
                     panic!("Inconsistent");
                 }
             }
 
-            let bridge_cells: Vec<CellIndex> = self.bridges.iter_mut().filter_map(
-                |b| {
+            let bridge_cells: Vec<CellIndex> = self
+                .bridges
+                .iter_mut()
+                .filter_map(|b| {
                     if b.color != color_to_toggle {
                         None
                     } else {
                         b.is_up = !b.is_up;
                         Some(b.cell_index)
                     }
-                }).collect();
+                })
+                .collect();
 
             //also update bridge in tile (use reference, hmmm)
             for bc in bridge_cells.iter() {
@@ -150,8 +174,7 @@ impl GridState {
 
             //if any vans are on down(passable) bridges, we fail
             for bc in bridge_cells {
-                let has_van = self.vans.iter().any(|v|
-                    v.cell_index == bc);
+                let has_van = self.vans.iter().any(|v| v.cell_index == bc);
 
                 if has_van {
                     return Err(());
@@ -207,7 +230,7 @@ impl GridState {
                     road.block
                 }
             }
-            _ => None
+            _ => None,
         };
 
         //pick up a block if it exists.  Note a van can pick up a box of any color
@@ -217,7 +240,8 @@ impl GridState {
             if let Some(i) = self.vans[self.current_van_index.0].get_empty_slot() {
                 if !analysis.has_poppers
                     && !self.vans[self.current_van_index.0].color.is_white()
-                    && self.vans[self.current_van_index.0].color != block_color {
+                    && self.vans[self.current_van_index.0].color != block_color
+                {
                     log_trace!("No way of dropping block off");
                     return Err(());
                 }
@@ -237,8 +261,10 @@ impl GridState {
     pub(crate) fn press_button_if_exists(&mut self) {
         let current_cell_index = self.vans[self.current_van_index.0].cell_index;
 
-        let btn_opt = self.buttons.iter_mut().find(|b| b.cell_index ==
-            current_cell_index);
+        let btn_opt = self
+            .buttons
+            .iter_mut()
+            .find(|b| b.cell_index == current_cell_index);
 
         if let Some(btn) = btn_opt {
             log_trace!("Van on a button {:?}", btn);
@@ -264,7 +290,11 @@ impl GridState {
         }
 
         let north_tile = &self.tiles[current_cell_index.0 - self.width];
-        if let TileWarehouse(Warehouse { color: warehouse_color, is_filled }) = north_tile {
+        if let TileWarehouse(Warehouse {
+            color: warehouse_color,
+            is_filled,
+        }) = north_tile
+        {
             if *is_filled {
                 return None;
             } else {
@@ -280,24 +310,21 @@ impl GridState {
             let mut able_to_drop_off = false;
 
             //drop off block at warehouse
-            let top_block_color_index =
-                {
-                    if let Some(color) = self.vans[self.current_van_index.0].get_top_box() {
-                        color
-                    } else {
-                        //warehouse would be unfillable
-                        return Err(CanDropOff::NoFail);
-                    }
-                };
+            let top_block_color_index = {
+                if let Some(color) = self.vans[self.current_van_index.0].get_top_box() {
+                    color
+                } else {
+                    //warehouse would be unfillable
+                    return Err(CanDropOff::NoFail);
+                }
+            };
 
-            if top_block_color_index == warehouse_color_index && (
-                self.current_van().color.is_white()
+            if top_block_color_index == warehouse_color_index
+                && (self.current_van().color.is_white()
                     || self.current_van().color == warehouse_color_index)
             {
-
                 //pop the box
                 self.vans[self.current_van_index.0].clear_top_box();
-
 
                 //set warehouse to filled
                 {
@@ -307,7 +334,6 @@ impl GridState {
 
                 able_to_drop_off = true;
             }
-
 
             //we failed
             if !able_to_drop_off {
@@ -323,13 +349,16 @@ impl GridState {
     pub(crate) fn filter_map_by_can_have_van<'a>(
         &self,
         fixed_choice_opt: &Option<ChoiceOverride>,
-        adj_square_info: &'a AdjSquareInfo) -> Option<&'a AdjSquareInfo>
-
-    {
+        adj_square_info: &'a AdjSquareInfo,
+    ) -> Option<&'a AdjSquareInfo> {
         let direction_index = adj_square_info.direction as usize;
         let adj_cell_index = adj_square_info.cell_index;
 
-        if let Some(ChoiceOverride { direction_index: forced_dir_index, .. }) = fixed_choice_opt {
+        if let Some(ChoiceOverride {
+            direction_index: forced_dir_index,
+            ..
+        }) = fixed_choice_opt
+        {
             if *forced_dir_index != direction_index {
                 log_trace!("Not in the forced direction {:?}", direction_index);
                 return None;
@@ -345,11 +374,13 @@ impl GridState {
 
         match &self.tiles[adj_cell_index.0] {
             TileRoad(..) | TileBridge(..) => {
-
                 //Check each van that has already moved.  The ones that have yet to move don't need to be checked
-                if self.current_van_index.0 > 0 &&
-                    self.vans.iter().take(self.current_van_index.0).any(
-                        |other_van| adj_cell_index == other_van.cell_index)
+                if self.current_van_index.0 > 0
+                    && self
+                        .vans
+                        .iter()
+                        .take(self.current_van_index.0)
+                        .any(|other_van| adj_cell_index == other_van.cell_index)
                 {
                     log_trace!("Another van is there {:?}", direction_index);
                     None
@@ -359,19 +390,23 @@ impl GridState {
                 }
             }
             _ => {
-                log_trace!("Rejecting direction {:?}, not a road or bridge", direction_index);
+                log_trace!(
+                    "Rejecting direction {:?}, not a road or bridge",
+                    direction_index
+                );
                 None
             }
         }
     }
 
-    pub(crate) fn handle_move(
-        &mut self,
-        van_cell_index: CellIndex,
-        adj_info: &AdjSquareInfo) {
+    pub(crate) fn handle_move(&mut self, van_cell_index: CellIndex, adj_info: &AdjSquareInfo) {
         //now we have checked it is a road without a van in it, the mask is ok, etc.
 
-        log_trace!("Moving to actual road {:?}.  Row/col: {:?}", adj_info, adj_info.cell_index.to_row_col(self.width));
+        log_trace!(
+            "Moving to actual road {:?}.  Row/col: {:?}",
+            adj_info,
+            adj_info.cell_index.to_row_col(self.width)
+        );
 
         let moving_to_cell_index = adj_info.cell_index;
 
@@ -383,7 +418,8 @@ impl GridState {
         //Now we remove the edge
         //self.graph.set_is_connected( van_cell_index, adj_info.direction, false);
         self.graph.is_connected[van_cell_index.0] &= !(1 << adj_info.direction as u8);
-        self.graph.is_connected[moving_to_cell_index.0] &= !(1 << adj_info.direction.opposite() as u8);
+        self.graph.is_connected[moving_to_cell_index.0] &=
+            !(1 << adj_info.direction.opposite() as u8);
         //self.graph.set_is_connected( moving_to_cell_index, adj_info.direction.opposite(), false);
 
         //assert!(!self.graph.is_connected( van_cell_index, adj_info.direction));
@@ -391,7 +427,11 @@ impl GridState {
         //assert!(!self.graph.is_connected( moving_to_cell_index, adj_info.direction.opposite() ));
 
         //remove van & set used mask
-        self.tiles[van_cell_index.0].set_leaving_van(self.current_van_index, self.tick, adj_info.direction as usize);
+        self.tiles[van_cell_index.0].set_leaving_van(
+            self.current_van_index,
+            self.tick,
+            adj_info.direction as usize,
+        );
 
         //add van to next square
         {
@@ -400,14 +440,23 @@ impl GridState {
             van.tick += 1;
         }
 
-        self.tiles[moving_to_cell_index.0].set_arriving_van(self.current_van_index, &self.vans[self.current_van_index.0], self.tick,
-                                                            //opposite direction index
-                                                            ALL_DIRECTIONS.iter().position(|d| d == &adj_info.direction.opposite()).unwrap());
+        self.tiles[moving_to_cell_index.0].set_arriving_van(
+            self.current_van_index,
+            &self.vans[self.current_van_index.0],
+            self.tick,
+            //opposite direction index
+            ALL_DIRECTIONS
+                .iter()
+                .position(|d| d == &adj_info.direction.opposite())
+                .unwrap(),
+        );
     }
 
-
     //if did a drop off, returns a grid state to enqueue
-    pub fn handle_warehouse_drop_off(&mut self, gc_static_info: &GridConnectionsStaticInfo) -> Result<Option<Self>, ()> {
+    pub fn handle_warehouse_drop_off(
+        &mut self,
+        gc_static_info: &GridConnectionsStaticInfo,
+    ) -> Result<Option<Self>, ()> {
         //check if we can drop a block off
         if self.empty_warehouse_color().is_some() {
             match self.can_drop_off_block() {
@@ -423,21 +472,27 @@ impl GridState {
                     let mut if_van_stops_state = self.clone();
                     if_van_stops_state.current_van_mut().is_done = true;
 
-                    let stopped_cell_index = if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
+                    let stopped_cell_index =
+                        if_van_stops_state.vans[if_van_stops_state.current_van_index.0].cell_index;
 
-                    assert!(if_van_stops_state.tiles[stopped_cell_index.0].get_van().is_some());
+                    assert!(if_van_stops_state.tiles[stopped_cell_index.0]
+                        .get_van()
+                        .is_some());
 
                     //disconnect this square and everything adjacent to it
                     if_van_stops_state.graph.is_connected[stopped_cell_index.0] = 0;
 
-                    for adj in gc_static_info.adj_info[stopped_cell_index.0].iter().filter_map(|a| a.as_ref()) {
-                        if_van_stops_state.graph.is_connected[adj.cell_index.0] &= !(1 << adj.direction.opposite() as u8);
+                    for adj in gc_static_info.adj_info[stopped_cell_index.0]
+                        .iter()
+                        .filter_map(|a| a.as_ref())
+                    {
+                        if_van_stops_state.graph.is_connected[adj.cell_index.0] &=
+                            !(1 << adj.direction.opposite() as u8);
                     }
 
                     Ok(Some(if_van_stops_state))
-
                 }
-                _ => Ok(None)
+                _ => Ok(None),
             }
         } else {
             Ok(None)
@@ -448,7 +503,11 @@ impl GridState {
     pub fn handle_block_popper(&mut self) -> Result<Option<Self>, ()> {
         let cell_index = self.current_cell_index().0;
         let on_usable_popper = match &mut self.tiles[cell_index] {
-            TileRoad(Road { used_popper_tick, has_popper, .. }) => {
+            TileRoad(Road {
+                used_popper_tick,
+                has_popper,
+                ..
+            }) => {
                 //need to check it hasn't already been toggled
                 let r = *has_popper && used_popper_tick.is_none();
 
@@ -457,7 +516,7 @@ impl GridState {
 
                 r
             }
-            _ => false
+            _ => false,
         };
 
         if !on_usable_popper {
@@ -486,8 +545,6 @@ impl GridState {
         //create the state
     }
 
-
-
     ///basically in each distinct connected component, we should have the same numbers of blocks and warehouses of each color
     //warning on component_number
     #[allow(unused_variables)]
@@ -495,10 +552,10 @@ impl GridState {
         let mut ds = DisjointSet::new(self.tiles.len());
 
         for (idx, is_connected_mask) in self.graph.is_connected.iter().enumerate() {
-
             for (dir_idx, dir) in ALL_DIRECTIONS.iter().enumerate().take(2) {
                 if is_connected_mask & (1 << dir_idx) > 0 {
-                    let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir).expect("Should not be connected if there is no adj cell");
+                    let adj_idx = get_adjacent_index(CellIndex(idx), self.height, self.width, *dir)
+                        .expect("Should not be connected if there is no adj cell");
 
                     //log_trace!("Merging cells {} and {}", idx, adj_idx);
                     ds.merge_sets(idx, adj_idx.0);
@@ -514,21 +571,48 @@ impl GridState {
             let component_number = ds.get_repr(idx);
 
             match tile {
-                TileRoad(Road { block: Some(block), .. }) => {
-                    log_trace!("Block in cell {}, component {}, color {}", idx, component_number, block.0);
+                TileRoad(Road {
+                    block: Some(block), ..
+                }) => {
+                    log_trace!(
+                        "Block in cell {}, component {}, color {}",
+                        idx,
+                        component_number,
+                        block.0
+                    );
                     add_component_to_map(&mut component_to_counts, component_number, *block, BLOCK);
                 }
-                TileWarehouse(Warehouse { is_filled: false, color }) => {
-                    log_trace!("unfilled warehouse in cell {}, component {}, color {}", idx, component_number, color.0);
-                    add_component_to_map(&mut component_to_counts, component_number, *color, WAREHOUSE);
+                TileWarehouse(Warehouse {
+                    is_filled: false,
+                    color,
+                }) => {
+                    log_trace!(
+                        "unfilled warehouse in cell {}, component {}, color {}",
+                        idx,
+                        component_number,
+                        color.0
+                    );
+                    add_component_to_map(
+                        &mut component_to_counts,
+                        component_number,
+                        *color,
+                        WAREHOUSE,
+                    );
                 }
                 _ => {}
             }
 
             match tile {
-                TileRoad(Road { has_popper: true, .. }) => {
-                    add_component_to_map(&mut component_to_counts, component_number, ColorIndex(WHITE_COLOR_INDEX), POPPER);
-                },
+                TileRoad(Road {
+                    has_popper: true, ..
+                }) => {
+                    add_component_to_map(
+                        &mut component_to_counts,
+                        component_number,
+                        ColorIndex(WHITE_COLOR_INDEX),
+                        POPPER,
+                    );
+                }
                 _ => {}
             }
         }
@@ -547,26 +631,40 @@ impl GridState {
                 if let Some(color) = opt_box {
                     add_component_to_map(&mut component_to_counts, component_number, *color, BLOCK);
 
-                    if *color != van.color && van.color.0 != WHITE_COLOR_INDEX && component_to_counts[&component_number][WHITE_COLOR_INDEX][POPPER as usize] == 0 {
+                    if *color != van.color
+                        && van.color.0 != WHITE_COLOR_INDEX
+                        && component_to_counts[&component_number][WHITE_COLOR_INDEX]
+                            [POPPER as usize]
+                            == 0
+                    {
                         log_trace!("No popper available");
                         return false;
                     }
                 }
-
-
             }
         }
 
         //now we can check for consistency
         for (component_number, color_count) in component_to_counts.iter() {
             for color_index in 0..5 {
-                if color_count[color_index][BLOCK as usize] != color_count[color_index][WAREHOUSE as usize] {
+                if color_count[color_index][BLOCK as usize]
+                    != color_count[color_index][WAREHOUSE as usize]
+                {
                     log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
 
-                if color_count[color_index][BLOCK as usize] > 0 && (color_count[WHITE_COLOR_INDEX][VAN as usize] + color_count[color_index][VAN as usize] == 0) {
-                    log_trace!("No vans able to do the drop offs for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                if color_count[color_index][BLOCK as usize] > 0
+                    && (color_count[WHITE_COLOR_INDEX][VAN as usize]
+                        + color_count[color_index][VAN as usize]
+                        == 0)
+                {
+                    log_trace!(
+                        "No vans able to do the drop offs for component {} for color # {}-- {:?}",
+                        component_number,
+                        color_index,
+                        color_count[color_index]
+                    );
                     return false;
                 }
 
@@ -574,34 +672,37 @@ impl GridState {
                 //and each block has a van that can handle it
 
                 //a van shouldn't be without blocks, should have set is_done.  Need to skip the first tick though since we haven't yet set that
-                if self.tick > 1 &&
-                    color_index != WHITE_COLOR_INDEX &&
-                    color_count[color_index][BLOCK as usize] == 0 &&
-                    color_count[color_index][VAN as usize] > 0 {
+                if self.tick > 1
+                    && color_index != WHITE_COLOR_INDEX
+                    && color_count[color_index][BLOCK as usize] == 0
+                    && color_count[color_index][VAN as usize] > 0
+                {
                     log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
                     return false;
                 }
             }
         }
 
-
         return true;
     }
 
     pub fn initial_van_list(&self) -> Vec<Van> {
-        self.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
-            if let Some(van) = tile.get_van() {
-
-                //found a van
-                let mut m_van = van.clone();
-                m_van.tick = 0;
-                m_van.is_done = false;
-                m_van.cell_index = cell_index.into();
-                Some(m_van)
-            } else {
-                None
-            }
-        }).collect()
+        self.tiles
+            .iter()
+            .enumerate()
+            .filter_map(|(cell_index, tile)| {
+                if let Some(van) = tile.get_van() {
+                    //found a van
+                    let mut m_van = van.clone();
+                    m_van.tick = 0;
+                    m_van.is_done = false;
+                    m_van.cell_index = cell_index.into();
+                    Some(m_van)
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 }
 
@@ -610,7 +711,7 @@ enum ComponentMapIdx {
     BLOCK = 0,
     WAREHOUSE = 1,
     VAN = 2,
-    POPPER = 3
+    POPPER = 3,
 }
 
 const NUM_THINGS: usize = 4;
@@ -618,10 +719,15 @@ const NUM_THINGS: usize = 4;
 type ComponentMap = HashMap<usize, [[u8; NUM_THINGS]; NUM_COLORS]>;
 
 //indexs block 0, warehouse 1, van 2
-fn add_component_to_map(component_to_counts: &mut ComponentMap, component_number: usize, color: ColorIndex, thing_idx: ComponentMapIdx) {
-    let counts = component_to_counts.entry(component_number).or_insert(Default::default());
+fn add_component_to_map(
+    component_to_counts: &mut ComponentMap,
+    component_number: usize,
+    color: ColorIndex,
+    thing_idx: ComponentMapIdx,
+) {
+    let counts = component_to_counts
+        .entry(component_number)
+        .or_insert(Default::default());
 
     counts[color.0][thing_idx as usize] += 1
 }
-
-

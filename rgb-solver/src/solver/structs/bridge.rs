@@ -1,13 +1,11 @@
-
+use crate::solver::structs::color::ColorIndex;
+use crate::solver::structs::van::Van;
+use crate::solver::structs::{CellIndex, NavigableTileDynamic, NavigableTileStatic, VanIndex};
 use wasm_bindgen::prelude::*;
 use wasm_typescript_definition::TypescriptDefinition;
-use crate::solver::structs::{VanIndex, CellIndex, NavigableTileStatic, NavigableTileDynamic};
-use crate::solver::structs::van::Van;
-use crate::solver::structs::color::ColorIndex;
 
 #[derive(Clone, Serialize, Deserialize, Debug, TypescriptDefinition, Hash, Eq, PartialEq)]
 pub struct Bridge {
-
     //once van leaves, is set to the van that used this bridge
     #[serde(default)]
     pub used_van_index: Option<VanIndex>,
@@ -30,5 +28,5 @@ pub struct Bridge {
     pub static_attrs: NavigableTileStatic,
 
     #[serde(flatten)]
-    pub dynamic_attrs: NavigableTileDynamic
+    pub dynamic_attrs: NavigableTileDynamic,
 }
