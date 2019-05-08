@@ -609,7 +609,16 @@ export class AppComponent implements OnInit {
               lastTick = 0;
               for (let i = 0; i < 4; ++i) {
                 if (adjTile.used_van_index[i] === this.currentVanIndex) {
-                  lastTick = Math.max(lastTick, (!_.isNil(adjTile.used_tick[i]) && _.isFinite(adjTile.used_tick[i])) ? adjTile.used_tick[i] : 0);
+
+                  if (!_.isArray(adjTile.used_tick)) {
+                    continue;
+                  }
+                  const curTick = adjTile.used_tick[i];
+                  if (_.isNil(curTick) || !_.isFinite(curTick)) {
+                    continue;
+                  }
+
+                  lastTick = Math.max(lastTick, curTick);
                 }
               }
             }
@@ -619,7 +628,7 @@ export class AppComponent implements OnInit {
               && adjTile.used_van_index === this.currentVanIndex) {
 
               lastCellIndex = adjIndex;
-              lastTick = adjTile.used_tick
+              lastTick = adjTile.used_tick || 0;
 
             }
           }
