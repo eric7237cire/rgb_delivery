@@ -14,6 +14,8 @@ use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
 use std::cmp::min;
 use std::usize;
+use crate::solver::tree_path::calc_paths;
+use bitvec::BitVec;
 
 #[cfg_attr(not(target_arch = "x86_64"), wasm_bindgen())]
 #[derive(Default)]
@@ -716,5 +718,9 @@ impl Universe {
         } else {
             log!("Out of bounds, ignoring");
         }
+    }
+
+    pub fn find_paths(&self) {
+        calc_paths(&self.data, &BitVec::new() );
     }
 }

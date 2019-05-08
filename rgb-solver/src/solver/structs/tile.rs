@@ -111,7 +111,8 @@ impl TileEnum {
     pub fn reset(&mut self) {
         match self {
             TileRoad(road) => {
-                //road.used_van_index = Default::default();
+                //comment if using ui forced moves
+                road.used_van_index = Default::default();
                 road.dynamic_attrs.van_snapshot = None;
             }
             TileBridge(bridge) => {
