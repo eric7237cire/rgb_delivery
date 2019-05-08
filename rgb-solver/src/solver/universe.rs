@@ -4,7 +4,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 
 use crate::solver::grid_state::{GridAnalysis, GridState};
-use crate::solver::structs::{Bridge, Button, CalculationResponse, CellData, CellIndex, ChoiceOverride, GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex, Warehouse, build_graph};
+use crate::solver::structs::{Bridge, Button, CalculationResponse, CellData, CellIndex, ChoiceOverride, GridConnections, GridConnectionsStaticInfo, Road, TileEnum, VanIndex, Warehouse, build_graph};
 use crate::solver::structs::Direction::*;
 use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
 use crate::solver::utils;
