@@ -587,6 +587,22 @@ impl GridState {
 
         return true;
     }
+
+    pub fn initial_van_list(&self) -> Vec<Van> {
+        self.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
+            if let Some(van) = tile.get_van() {
+
+                //found a van
+                let mut m_van = van.clone();
+                m_van.tick = 0;
+                m_van.is_done = false;
+                m_van.cell_index = cell_index.into();
+                Some(m_van)
+            } else {
+                None
+            }
+        }).collect()
+    }
 }
 
 #[repr(u8)]
@@ -607,3 +623,5 @@ fn add_component_to_map(component_to_counts: &mut ComponentMap, component_number
 
     counts[color.0][thing_idx as usize] += 1
 }
+
+

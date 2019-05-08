@@ -9,6 +9,8 @@ pub mod func_public;
 
 pub mod disjointset;
 
+pub mod tree_path;
+
 pub(crate) mod utils;
 pub(crate) mod misc;
 pub(crate) mod tests;

@@ -4,7 +4,7 @@ use wasm_bindgen::JsValue;
 use wasm_bindgen::prelude::*;
 
 use crate::solver::grid_state::{GridAnalysis, GridState};
-use crate::solver::structs::{ALL_DIRECTIONS, Bridge, Button, CalculationResponse, CellData, CellIndex, ChoiceOverride, get_adjacent_index, GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex, Warehouse};
+use crate::solver::structs::{Bridge, Button, CalculationResponse, CellData, CellIndex, ChoiceOverride, GridConnections, GridConnectionsStaticInfo, Road, TileEnum, Van, VanIndex, Warehouse, build_graph};
 use crate::solver::structs::Direction::*;
 use crate::solver::structs::TileEnum::{TileBridge, TileRoad, TileWarehouse};
 use crate::solver::utils;
@@ -72,57 +72,10 @@ impl Universe {
     }
 
 
-    pub(crate) fn initial_van_list(&self) -> Vec<Van> {
-        self.data.tiles.iter().enumerate().filter_map(|(cell_index, tile)| {
-            if let Some(van) = tile.get_van() {
-
-                //found a van
-                let mut m_van = van.clone();
-                m_van.tick = 0;
-                m_van.is_done = false;
-                m_van.cell_index = cell_index.into();
-                Some(m_van)
-            } else {
-                None
-            }
-        }).collect()
-    }
 
 
-    pub(crate) fn initial_graph(&self) -> (GridConnections, GridConnectionsStaticInfo) {
-        let mut gc = GridConnections::new(self.data.height, self.data.width);
-
-        let so = gc.build_static_info();
-
-        for (cur_square_index, tile) in self.data.tiles.iter().enumerate() {
-            if let Some(connection_mask) = tile.get_connection_mask() {
-                let cell_index = CellIndex(cur_square_index);
 
 
-                for adj_dir in ALL_DIRECTIONS.iter() {
-                    let adj_square_index = get_adjacent_index(CellIndex(cur_square_index), self.data.height, self.data.width, *adj_dir);
-
-                    if let Some(adj_square_index) = adj_square_index {
-                        if let Some(adj_connection_mask) = self.data.tiles[adj_square_index.0].get_connection_mask()
-                        {
-                            if (connection_mask & (1 << *adj_dir as u8)) > 0 && (adj_connection_mask & (1 << adj_dir.opposite() as u8) > 0) {
-                                gc.set_is_connected(cell_index, *adj_dir, true);
-                            }
-                        } else if adj_dir == &NORTH {
-                            if let TileWarehouse(_) = &self.data.tiles[adj_square_index.0] {
-                                //special case that we want warehouses to be connected to the cell to their south
-                                gc.set_is_connected(cell_index, *adj_dir, true);
-                            }
-                        }
-                    }
-                }
-            } else {
-                continue;
-            }
-        }
-
-        (gc, so)
-    }
 
     pub(crate) fn initial_graph_analysis(&self, graph: &GridConnections) -> GridAnalysis {
 
@@ -592,13 +545,13 @@ impl Universe {
 
         self.success_state = None;
 
-        self.data.vans = self.initial_van_list();
+        self.data.vans = self.data.initial_van_list();
         self.data.buttons = self.initial_button_list();
         self.data.bridges = self.initial_bridge_list();
 
         log!("Init graph");
 
-        let ab = self.initial_graph();
+        let ab = build_graph(&self.data);
         self.data.graph = ab.0;
         self.gc_static_info = ab.1;
 
@@ -611,7 +564,7 @@ impl Universe {
         }).count();
 
         //we increment on pop, so...
-        self.data.current_van_index = VanIndex(self.initial_van_list().len() - 1);
+        self.data.current_van_index = VanIndex(self.data.vans.len() - 1);
 
 
         //reset road history

@@ -18,6 +18,7 @@ cargo watch -x "test --target x86_64-pc-windows-msvc --lib -- --nocapture"
 # watch just one test
 cargo watch -x "test test_london_h10 --target x86_64-pc-windows-msvc --lib -- --nocapture"
 cargo watch -x "test grid_connections --target x86_64-pc-windows-msvc --lib -- --nocapture"
+cargo watch -x "test tree --target x86_64-pc-windows-msvc --lib -- --nocapture"
 
 
 ## Cog with WSL

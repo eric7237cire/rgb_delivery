@@ -18,11 +18,13 @@ pub use self::tile::TileEnum;
 
 pub use self::road::Road;
 pub use self::bridge::Bridge;
-pub use self::grid_connections::{GridConnections,GridConnectionsStaticInfo,AdjSquareInfo};
+pub use self::grid_connections::{GridConnections,GridConnectionsStaticInfo,AdjSquareInfo,build_graph};
 
 pub use self::direction::{Direction, ALL_DIRECTIONS,get_adjacent_index};
 
 pub use self::road::{NavigableTileStatic, NavigableTileDynamic};
+
+
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize, TypescriptDefinition, Default, Hash)]
 pub struct CellIndex(pub usize);
