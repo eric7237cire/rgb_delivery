@@ -16,11 +16,11 @@ pub struct GridConnectionsStaticInfo {
     pub adj_info: Vec<[Option<AdjSquareInfo>; 4]>,
 }
 
-#[derive(Debug, Clone,Default)]
+#[derive(Debug, Clone, Default)]
 pub struct AdjSquareInfo {
     pub direction: Direction,
     pub cell_index: CellIndex,
-    pub edge_index: u8
+    pub edge_index: u8,
 }
 
 impl GridConnections {

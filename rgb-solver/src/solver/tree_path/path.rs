@@ -1,67 +1,11 @@
 use crate::solver::grid_state::GridState;
-use crate::solver::structs::{GridConnectionsStaticInfo, build_graph};
-use bitvec::{BitVec, BigEndian};
-use std::collections::HashMap;
-use std::u8;
+use crate::solver::structs::{build_graph, GridConnectionsStaticInfo, CellIndex};
+use crate::solver::tree_path::ternary_tree_box::TreeNode;
+use bitvec::{BigEndian, BitVec};
 use std::time::SystemTime;
+use std::u8;
+use crate::solver::tree_path::edge_list::{EdgeList, EdgeIndex};
 
-type EdgeIndex = u8;
-type CellIndexTuple = (usize, usize);
-
-#[derive(Default)]
-struct EdgeList {
-    edges: HashMap<CellIndexTuple, EdgeIndex>,
-    edge_list: Vec<CellIndexTuple>,
-}
-
-impl EdgeList {
-    fn get_edge_index(&self, cell_index_1: usize, cell_index_2: usize) -> EdgeIndex {
-        if cell_index_1 < cell_index_2 {
-            self.edges[&(cell_index_1, cell_index_2)]
-        } else {
-            self.edges[&(cell_index_2, cell_index_1)]
-        }
-    }
-
-    fn get_cell_indexes(&self, edge_index: EdgeIndex) -> &CellIndexTuple {
-        &self.edge_list[edge_index as usize]
-    }
-
-    fn insert_edge_if_needed(&mut self, cell_index_1: usize, cell_index_2: usize) -> EdgeIndex {
-        let cur_len = self.edges.len() as EdgeIndex;
-
-        let cell_index_tuple = if cell_index_1 < cell_index_2 {
-            (cell_index_1, cell_index_2)
-        } else {
-            (cell_index_2, cell_index_1)
-        };
-
-        let inserted = *self.edges.entry(cell_index_tuple).or_insert(cur_len);
-
-        //a record was added
-        if inserted == cur_len {
-            assert_eq!(self.edge_list.len(), cur_len as usize);
-
-            self.edge_list.push(cell_index_tuple);
-        }
-
-        inserted
-    }
-
-    pub fn len(&self) -> usize {
-        self.edges.len()
-    }
-
-    fn find_next_cell_index(current_cells: &CellIndexTuple, prev_cells: &CellIndexTuple) -> usize {
-        if current_cells.0 == prev_cells.0 || current_cells.0 == prev_cells.1 {
-            current_cells.1
-        } else if current_cells.1 == prev_cells.0 || current_cells.1 == prev_cells.1 {
-            current_cells.0
-        } else {
-            panic!("No common one found")
-        }
-    }
-}
 
 fn min_distance(
     cur_index: usize,
@@ -112,7 +56,7 @@ fn min_distance(
             distance[ai.cell_index.0] = distance[current_index] + 1;
 
             queue[queue_back] = ai.cell_index.0;
-            queue_back+=1;
+            queue_back += 1;
 
             if ai.cell_index.0 == target_index {
                 return Some(distance[target_index]);
@@ -123,7 +67,6 @@ fn min_distance(
     None
 }
 
-
 pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
     let bg = build_graph(&grid_state);
     let (gc, mut si) = bg;
@@ -131,7 +74,7 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
 
     for (idx, ai_array) in si.adj_info.iter_mut().enumerate() {
         for dir_idx in 0..4 {
-            if gc.is_connected[idx] & 1 << dir_idx == 0  || forbidden_squares[idx] {
+            if gc.is_connected[idx] & 1 << dir_idx == 0 || forbidden_squares[idx] {
                 ai_array[dir_idx] = None;
                 continue;
             }
@@ -144,9 +87,10 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
         }
     }
 
-
     let edge_list: EdgeList = {
         let mut edge_list: EdgeList = Default::default();
+
+        edge_list.grid_width = grid_state.width;
 
         //add self loop edges for van starting locations
         let _van_edge_indexes: Vec<EdgeIndex> = grid_state
@@ -156,7 +100,10 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
             .collect();
 
         for (cell_index, _is_connected) in gc.is_connected.iter().enumerate() {
-            for ai in si.adj_info[cell_index].iter_mut().filter_map(|ai| ai.as_mut()) {
+            for ai in si.adj_info[cell_index]
+                .iter_mut()
+                .filter_map(|ai| ai.as_mut())
+            {
                 let edge_index = edge_list.insert_edge_if_needed(cell_index, ai.cell_index.0);
 
                 ai.edge_index = edge_index;
@@ -175,7 +122,7 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
     //println!("{:?}.  Edges: {:?}", grid.tiles[0], edge_list.edges);
 
     //now create a tree
-    //let mut tree: TernaryTree<EdgeIndex> = TernaryTree::new(van_edge_indexes[0]);
+    let mut tree: TreeNode = TreeNode{ edge_index: van_edge_indexes[0], ..Default::default() };
 
     let mut used_edges: BitVec<BigEndian, u8> = bitvec![0; edge_list.len()];
 
@@ -200,13 +147,9 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
     let mut distance = vec![u8::MAX; visited.len()];
     let mut queue = vec![0usize; visited.len()];
 
-
-
-
     let start = SystemTime::now();
 
     'while_loop: while let Some(cur_edge) = edge_stack.last() {
-
         let cur_edge = *cur_edge;
 
         macro_rules! pop_stack {
@@ -215,7 +158,7 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
                 next_adj_index.pop();
                 used_edges.set(cur_edge.into(), false);
                 continue;
-            }
+            };
         }
 
         it_check += 1;
@@ -226,6 +169,9 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
             let time_check = SystemTime::now();
             let since_the_epoch = time_check.duration_since(start).unwrap();
             let in_ms = since_the_epoch.as_millis();
+
+            tree.print_up_to_depth(0, 10, &edge_list);
+
             println!(
                 "Done with {}  path count {} μs per iteration {:.3}",
                 it_check,
@@ -261,11 +207,11 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
             &si,
         ) {
             /*println!("Node cur edge {} index {} tuple {:?} cur row col {:?} \
-                remaining distance {} \
-                ", cur_edge, current_index, cell_index_tuple,
-                             CellIndex(current_index).to_row_col(grid.width),
-                             remaining_dist
-                    );*/
+            remaining distance {} \
+            ", cur_edge, current_index, cell_index_tuple,
+                         CellIndex(current_index).to_row_col(grid.width),
+                         remaining_dist
+                );*/
 
             if edge_stack.len() - 1 + remaining_dist as usize > max_distance {
                 pop_stack!();
@@ -275,26 +221,29 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
         }
 
         if current_index == target_index {
-            /*let mut row_col_strs = Vec::new();
+            if false {
+                let mut row_col_strs = Vec::new();
 
-                                    let start = edge_list.get_cell_indexes(edge_stack[0]).0;
-                                    let row_cols = CellIndex(start).to_row_col(grid.width);
+                let start = edge_list.get_cell_indexes(edge_stack[0]).0;
+                let row_cols = CellIndex(start).to_row_col(grid_state.width);
 
-                                    row_col_strs.push(format!("(r{:02}, c{:02})", row_cols.0, row_cols.1  ));
+                row_col_strs.push(format!("(r{:02}, c{:02})", row_cols.0, row_cols.1));
 
-                                    for ft in edge_stack.windows(2) {
-                                        let last_edge = ft[0];
-                                        let this_edge = ft[1];
-                                        let cell_index = EdgeList::find_next_cell_index( edge_list.get_cell_indexes(this_edge), edge_list.get_cell_indexes(last_edge) );
-                                        let row_cols = CellIndex(cell_index).to_row_col(grid.width);
-                                        row_col_strs.push(format!("(r{:02}, c{:02})", row_cols.0, row_cols.1  ));
-                                    }
+                for ft in edge_stack.windows(2) {
+                    let last_edge = ft[0];
+                    let this_edge = ft[1];
+                    let cell_index = EdgeList::find_next_cell_index(
+                        edge_list.get_cell_indexes(this_edge),
+                        edge_list.get_cell_indexes(last_edge),
+                    );
+                    let row_cols = CellIndex(cell_index).to_row_col(grid_state.width);
+                    row_col_strs.push(format!("(r{:02}, c{:02})", row_cols.0, row_cols.1));
+                }
 
-                                    println!("{}", row_col_strs.join(", "));
-
-                */
+                println!("{}", row_col_strs.join(", "));
+            }
             path_count += 1;
-            //tree.add_path(&edge_stack);
+            tree.add_path(&edge_stack);
 
             pop_stack!();
         }
@@ -306,52 +255,52 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
             .iter()
             .enumerate()
             .filter(|(idx, ai)| *idx >= last_next_idx && ai.is_some())
-            {
-                let adj_index = ai.0;
-                let ai = ai.1.as_ref().unwrap();
-                let edge_index = ai.edge_index;
-                //edge_list.get_edge_index(current_index, ai.cell_index.0);
+        {
+            let adj_index = ai.0;
+            let ai = ai.1.as_ref().unwrap();
+            let edge_index = ai.edge_index;
+            //edge_list.get_edge_index(current_index, ai.cell_index.0);
 
-                //println!("Current index {} adj index {} edge index {} is used {}", current_index, ai.cell_index.0, edge_index,used_edges[edge_index as usize]);
+            //println!("Current index {} adj index {} edge index {} is used {}", current_index, ai.cell_index.0, edge_index,used_edges[edge_index as usize]);
 
-                if used_edges[edge_index as usize] {
-                    continue;
-                }
-
-                //edge_stack.push(*cur_edge);
-                edge_stack.push(edge_index);
-                let last_idx = next_adj_index.len() - 1;
-                next_adj_index[last_idx] = adj_index + 1;
-                next_adj_index.push(0);
-
-                assert_eq!(edge_stack.len(), next_adj_index.len());
-
-                used_edges.set(edge_index.into(), true);
-
-                continue 'while_loop;
+            if used_edges[edge_index as usize] {
+                continue;
             }
+
+            //edge_stack.push(*cur_edge);
+            edge_stack.push(edge_index);
+            let last_idx = next_adj_index.len() - 1;
+            next_adj_index[last_idx] = adj_index + 1;
+            next_adj_index.push(0);
+
+            assert_eq!(edge_stack.len(), next_adj_index.len());
+
+            used_edges.set(edge_index.into(), true);
+
+            continue 'while_loop;
+        }
 
         //println!("No more choices");
 
         if last_next_idx == 0 {
             /*
-                let mut row_col_strs = Vec::new();
+            let mut row_col_strs = Vec::new();
 
-                let start = edge_list.get_cell_indexes(edge_stack[0]).0;
-                let row_cols = CellIndex(start).to_row_col(grid.width);
+            let start = edge_list.get_cell_indexes(edge_stack[0]).0;
+            let row_cols = CellIndex(start).to_row_col(grid.width);
 
+            row_col_strs.push(format!("(r{:02}, c{:02})", row_cols.0, row_cols.1  ));
+
+            for ft in edge_stack.windows(2) {
+                let last_edge = ft[0];
+                let this_edge = ft[1];
+                let cell_index = EdgeList::find_next_cell_index( edge_list.get_cell_indexes(this_edge), edge_list.get_cell_indexes(last_edge) );
+                let row_cols = CellIndex(cell_index).to_row_col(grid.width);
                 row_col_strs.push(format!("(r{:02}, c{:02})", row_cols.0, row_cols.1  ));
+            }
 
-                for ft in edge_stack.windows(2) {
-                    let last_edge = ft[0];
-                    let this_edge = ft[1];
-                    let cell_index = EdgeList::find_next_cell_index( edge_list.get_cell_indexes(this_edge), edge_list.get_cell_indexes(last_edge) );
-                    let row_cols = CellIndex(cell_index).to_row_col(grid.width);
-                    row_col_strs.push(format!("(r{:02}, c{:02})", row_cols.0, row_cols.1  ));
-                }
-
-                println!("{}", row_col_strs.join(", "));
-                */
+            println!("{}", row_col_strs.join(", "));
+            */
 
             //path_count += 1;
         }
@@ -361,6 +310,8 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
     }
 
     println!("Number of paths found: {}", path_count);
+
+    tree.print_up_to_depth(0, 7, &edge_list);
 }
 
 #[cfg(test)]
@@ -389,6 +340,5 @@ mod tests {
         forbidden_squares.set(54, true);
 
         calc_paths(&grid_state, &forbidden_squares);
-
     }
 }

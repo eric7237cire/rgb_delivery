@@ -49,6 +49,10 @@ features = [
 version = "=0.2.34"
 features = ["serde-serialize"]
 
+[dependencies.arrayvec]
+version = "*"
+features = ["std"]
+
 [profile.release]
 # Tell `rustc` to optimize for small code size.
-opt-level = "s"
+opt-level = 2

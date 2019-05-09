@@ -14,6 +14,8 @@ rem wasm-pack build --dev
 wasm-pack build --release
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+exit /b 0
+
 CD pkg
 REM we want to use the one built, not the one from npm
 REM Normally only needed once, but we do it each time as npm installs can unlink it
