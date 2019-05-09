@@ -170,7 +170,7 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
             let since_the_epoch = time_check.duration_since(start).unwrap();
             let in_ms = since_the_epoch.as_millis();
 
-            tree.print_up_to_depth(0, 10, &edge_list);
+            //tree.print_up_to_depth(0, 10, &edge_list);
 
             println!(
                 "Done with {}  path count {} μs per iteration {:.3}",
@@ -311,7 +311,7 @@ pub fn calc_paths(grid_state: &GridState, forbidden_squares: &BitVec) {
 
     println!("Number of paths found: {}", path_count);
 
-    tree.print_up_to_depth(0, 7, &edge_list);
+    tree.print_up_to_depth(0, 15, &edge_list);
 }
 
 #[cfg(test)]
