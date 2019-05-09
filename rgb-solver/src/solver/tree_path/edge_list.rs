@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crate::solver::structs::CellIndex;
+use std::collections::HashMap;
 
 pub type EdgeIndex = u8;
 
@@ -9,7 +9,7 @@ type CellIndexTuple = (usize, usize);
 pub struct EdgeList {
     edges: HashMap<CellIndexTuple, EdgeIndex>,
     edge_list: Vec<CellIndexTuple>,
-    pub grid_width: usize
+    pub grid_width: usize,
 }
 
 impl EdgeList {
@@ -26,13 +26,10 @@ impl EdgeList {
     }
 
     pub fn get_edge_str(&self, edge_index: EdgeIndex, edge_index_2: EdgeIndex) -> String {
-
-
         let common_cell = EdgeList::find_common_cell_index(
             self.get_cell_indexes(edge_index),
-            self.get_cell_indexes(edge_index_2)
+            self.get_cell_indexes(edge_index_2),
         );
-
 
         let row_cols = CellIndex(common_cell).to_row_col(self.grid_width);
         format!("(r{:02}, c{:02})", row_cols.0, row_cols.1)
@@ -63,7 +60,10 @@ impl EdgeList {
         self.edges.len()
     }
 
-    pub fn find_next_cell_index(current_cells: &CellIndexTuple, prev_cells: &CellIndexTuple) -> usize {
+    pub fn find_next_cell_index(
+        current_cells: &CellIndexTuple,
+        prev_cells: &CellIndexTuple,
+    ) -> usize {
         if current_cells.0 == prev_cells.0 || current_cells.0 == prev_cells.1 {
             current_cells.1
         } else if current_cells.1 == prev_cells.0 || current_cells.1 == prev_cells.1 {
@@ -73,7 +73,10 @@ impl EdgeList {
         }
     }
 
-    fn find_common_cell_index(current_cells: &CellIndexTuple, prev_cells: &CellIndexTuple) -> usize {
+    fn find_common_cell_index(
+        current_cells: &CellIndexTuple,
+        prev_cells: &CellIndexTuple,
+    ) -> usize {
         if current_cells.0 == prev_cells.0 || current_cells.0 == prev_cells.1 {
             current_cells.0
         } else if current_cells.1 == prev_cells.0 || current_cells.1 == prev_cells.1 {

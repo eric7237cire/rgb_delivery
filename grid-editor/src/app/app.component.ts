@@ -585,10 +585,10 @@ export class AppComponent implements OnInit {
 
             const adjTile = this.gridState.tiles[adjIndex];
 
-            //if van of correct coller
-            if (adjTile.type === "TileRoad" && !_.isNil(adjTile.van) && adjTile.van.color === this.selectedColor.color_index) {
 
+            if (adjTile.type === "TileRoad" && !_.isNil(adjTile.van)) {
 
+              this.log.info("clicked next to a van", adjTile.van);
               lastCellIndex = adjIndex;
               /*this.currentVanIndex = this.gridState.tiles.reduce((vanCount, testTile, testIndex) =>
               testTile.type === "TileRoad" && !(_.isNil(testTile.van)) && testIndex <= adjIndex ? vanCount + 1 : vanCount, 0);*/
@@ -606,7 +606,7 @@ export class AppComponent implements OnInit {
               && adjTile.used_van_index.some(vi => vi === this.currentVanIndex)
             ) {
               lastCellIndex = adjIndex;
-              lastTick = 0;
+              lastTick = 500;
               for (let i = 0; i < 4; ++i) {
                 if (adjTile.used_van_index[i] === this.currentVanIndex) {
 
@@ -618,7 +618,7 @@ export class AppComponent implements OnInit {
                     continue;
                   }
 
-                  lastTick = Math.max(lastTick, curTick);
+                  lastTick = Math.min(lastTick, curTick);
                 }
               }
             }
@@ -673,7 +673,7 @@ export class AppComponent implements OnInit {
             if (!_.isArray(fromCell.used_van_index)) {
               fromCell.used_van_index = [null, null, null, null];
             }
-            fromCell.used_tick[direction] = lastTick;
+            fromCell.used_tick[direction] = lastTick + 1;
             fromCell.used_van_index[direction] = this.currentVanIndex;
           }
 

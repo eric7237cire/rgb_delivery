@@ -10,7 +10,7 @@ use crate::solver::structs::{
     build_graph, Bridge, Button, CalculationResponse, CellData, CellIndex, ChoiceOverride,
     GridConnections, GridConnectionsStaticInfo, Road, TileEnum, VanIndex, Warehouse,
 };
-use crate::solver::tree_path::calc_paths;
+
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
 use bitvec::BitVec;
@@ -721,6 +721,6 @@ impl Universe {
     }
 
     pub fn find_paths(&self) {
-        calc_paths(&self.data, &BitVec::new());
+        //calc_paths(&self.data, &BitVec::new());
     }
 }

@@ -7,8 +7,8 @@ use crate::solver::structs::{CellIndex, Direction, ALL_DIRECTIONS};
 #[derive(Clone, Default)]
 pub struct GridConnections {
     pub is_connected: Vec<u8>,
-    num_rows: usize,
-    num_cols: usize,
+    pub num_rows: usize,
+    pub num_cols: usize,
 }
 
 #[derive(Default)]
