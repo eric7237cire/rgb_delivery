@@ -6,6 +6,13 @@ use bitvec::{BigEndian, BitVec};
 
 use std::time::SystemTime;
 use std::u8;
+use arrayvec::ArrayVec;
+use crate::solver::disjointset::DisjointSet;
+
+struct CellIndexConstraint {
+    cell_index: usize,
+    one_of_cell_index: ArrayVec< [usize; 3] >
+}
 
 struct PathCalc {
     gc: GridConnections,
@@ -128,8 +135,7 @@ fn min_distance(
 }
 
 impl PathCalc {
-    pub fn calc_paths(&self, source_edge: EdgeIndex) ->
-   // Vec<Vec<EdgeIndex>>
+    pub fn calc_paths(&self, source_edge: EdgeIndex, constraints : Vec<CellIndexConstraint>) ->
     TreeNode
     {
         //println!("{:?}.  Edges: {:?}", grid.tiles[0], edge_list.edges);
@@ -142,7 +148,7 @@ impl PathCalc {
 
         //let mut path_list : Vec<Vec<EdgeIndex>> = Vec::new();
 
-        let mut used_edges: BitVec<BigEndian, u8> = bitvec![0; self.edge_list.len()];
+        let mut used_edges: BitVec = bitvec![0; self.edge_list.len()];
 
         used_edges.set(source_edge as usize, true);
 
@@ -237,6 +243,8 @@ impl PathCalc {
             } else {
                 pop_stack!();
             }
+
+            //Check constraints, using union find
 
             //got to target
             if current_index == target_index {
@@ -337,14 +345,87 @@ impl PathCalc {
     }
 }
 
+fn check_constraints(
+    constraints : Vec<CellIndexConstraint>,
+    si: &GridConnectionsStaticInfo,
+    used_edges: &BitVec
+) {
+    let mut ds = DisjointSet::new(self.tiles.len());
+
+
+    for (idx,ai_array) in si.adj_info
+                .iter()
+                .enumerate()
+    {
+        for ai in ai_array.iter()
+                .filter_map(|ai| ai)
+    {
+        let edge_index = ai.edge_index;
+        //edge_list.get_edge_index(current_index, ai.cell_index.0);
+
+        //println!("Current index {} adj index {} edge index {} is used {}", current_index, ai.cell_index.0, edge_index,used_edges[edge_index as usize]);
+
+        if used_edges[edge_index as usize] {
+            continue;
+        }
+
+        ds.merge_sets(idx, ai.cell_index.0);
+    }
+
+    //now we can check for consistency
+    for c in constraints.iter() {
+
+        let comp1 = ds.get_repr( c.cell_index );
+
+        let other_comps
+            if color_count[color_index][BLOCK as usize]
+                != color_count[color_index][WAREHOUSE as usize]
+            {
+                log_trace!("Inconsistent block / unfilled warehouse in component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                return false;
+            }
+
+            if color_count[color_index][BLOCK as usize] > 0
+                && (color_count[WHITE_COLOR_INDEX][VAN as usize]
+                + color_count[color_index][VAN as usize]
+                == 0)
+            {
+                log_trace!(
+                        "No vans able to do the drop offs for component {} for color # {}-- {:?}",
+                        component_number,
+                        color_index,
+                        color_count[color_index]
+                    );
+                return false;
+            }
+
+            //we don't need to check for warehouses and vans since we know the block count must == the warehouse count
+            //and each block has a van that can handle it
+
+            //a van shouldn't be without blocks, should have set is_done.  Need to skip the first tick though since we haven't yet set that
+            if self.tick > 1
+                && color_index != WHITE_COLOR_INDEX
+                && color_count[color_index][BLOCK as usize] == 0
+                && color_count[color_index][VAN as usize] > 0
+            {
+                log_trace!("We have a van but with no blocks to deal with for component {} for color # {}-- {:?}", component_number, color_index, color_count[color_index]);
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::solver::grid_state::GridState;
     use bincode::{deserialize_from, serialize_into};
     use std::fs::File;
-    use crate::solver::structs::Road;
-    use crate::solver::structs::tile::TileEnum::TileRoad;
+    use crate::solver::structs::{Road, Warehouse, ColorIndex};
+    use crate::solver::structs::tile::TileEnum::{TileRoad, TileWarehouse};
 
     const VAN_0_TREE: &str =
         r"E:\git\rgb_delivery\rgb-solver\src\solver\tree_path\test_data\van0.tree";
@@ -370,14 +451,8 @@ mod tests {
 
         //26 28 30
 
-        let mut forbidden_squares = bitvec![0; grid_state.height*grid_state.width];
 
-        forbidden_squares.set(26, true);
-        forbidden_squares.set(28, true);
-        forbidden_squares.set(30, true);
-        forbidden_squares.set(66, true);
-        forbidden_squares.set(76, true);
-        forbidden_squares.set(54, true);
+
 
         let popper_cell_indexes: Vec<usize> = grid_state
             .tiles
@@ -387,6 +462,31 @@ mod tests {
                             if let TileRoad( Road{ has_popper:true,..}) = t
         { Some(t_idx) } else {None})
             .collect();
+
+        let constraints : Vec<CellIndexConstraint> = (1..=5).map(
+            |color_index|
+           {
+               let color_index = ColorIndex(color_index);
+
+               //find warehouses
+               grid_state
+                   .tiles
+                   .iter()
+                   .enumerate()
+                   .filter_map(|(t_idx, t)|
+                       if let TileWarehouse(Warehouse { color: color_index, .. }) = t
+                       { Some( (color_index,t_idx) ) } else { None })
+
+           }).flatten().map( |(color_index,warehouse_tile_index)| {
+            CellIndexConstraint {
+                cell_index: warehouse_tile_index,
+                one_of_cell_index: grid_state.vans.iter().filter_map(
+                    |van| if van.color.is_white() ||
+                        van.color == *color_index { Some(van.cell_index.0) } else { None }).collect()
+            }
+        }).collect();
+
+
 
         let saving = true;
 
