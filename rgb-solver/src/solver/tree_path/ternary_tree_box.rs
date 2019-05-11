@@ -1,11 +1,61 @@
 use crate::solver::tree_path::edge_list::{EdgeIndex, EdgeList};
 use arrayvec::ArrayVec;
+use std::collections::vec_deque::VecDeque;
+
+#[derive(Serialize, Deserialize, Default,Debug)]
+pub struct TreeArrayNode
+{
+    pub all_children_count: usize,
+    pub parent_index: usize,
+    pub child_start_index: usize,
+    pub num_children: u8,
+    pub depth: u8,
+    pub edge_index: EdgeIndex,
+}
+
+#[derive(Serialize, Deserialize, Default)]
+pub struct TreeArray
+{
+    pub nodes: Vec<TreeArrayNode>
+}
 
 #[derive(Serialize, Deserialize, Default)]
 pub struct TreeNode {
     pub all_children_count: usize,
     pub nodes: ArrayVec<[Box<TreeNode>; 3]>,
     pub edge_index: EdgeIndex,
+}
+
+impl TreeArray
+{
+     pub fn print_up_to_depth(
+        &self,
+        current_index: usize,
+        allowed_depth: usize,
+        edge_list: &EdgeList,
+    ) {
+        if allowed_depth == 0 {
+            return;
+        }
+
+         let cur_node = &self.nodes[current_index];
+
+        let last_edge = self.nodes[cur_node.parent_index].edge_index;
+        let this_edge = cur_node.edge_index;
+
+        println!(
+            "{} depth {} count is {}.  Cell: {} ",
+            "..".to_string().repeat(cur_node.depth.into() ),
+            cur_node.depth,
+            cur_node.all_children_count,
+            edge_list.get_edge_str(last_edge, this_edge),
+
+        );
+
+        for i in cur_node.child_start_index..cur_node.child_start_index+cur_node.num_children as usize {
+            self.print_up_to_depth(i,  allowed_depth - 1, edge_list);
+        }
+    }
 }
 
 impl TreeNode {
@@ -107,4 +157,53 @@ impl TreeNode {
             current_node.all_children_count += 1;
         }
     }
+
+    pub fn convert_to_array(&self) ->   TreeArray {
+
+        let root_node = self;
+
+        let mut tree_array: TreeArray = Default::default();
+
+        let mut queue: VecDeque< (& TreeNode, usize) > = VecDeque::new();
+
+        queue.push_back((root_node,0) );
+
+        while let Some( (tree_node, parent_index ) ) = queue.pop_front() {
+
+            let current_tree_index = tree_array.nodes.len();
+
+            let depth = if tree_array.nodes.len() > 0 {
+                //return depth
+                tree_array.nodes[parent_index].depth + 1
+            }
+            else {
+                //root node
+                0
+            };
+
+            if tree_array.nodes.len() > 0 && tree_array.nodes[parent_index].child_start_index == 0 {
+                //set start index
+                tree_array.nodes[parent_index].child_start_index = current_tree_index;
+            }
+
+            tree_array.nodes.push(TreeArrayNode {
+                edge_index: tree_node.edge_index,
+                num_children: tree_node.nodes.len() as u8,
+                all_children_count: tree_node.all_children_count,
+                parent_index,
+                depth,
+                ..Default::default()
+            });
+
+
+
+            queue.extend( tree_node.nodes.iter().map(|tn| (tn.as_ref(), current_tree_index)));
+        }
+
+        tree_array
+    }
+
+
 }
+
+

@@ -4,7 +4,7 @@ use crate::solver::structs::{
 };
 use crate::solver::tree_path::edge_list::{EdgeIndex, EdgeList};
 use crate::solver::tree_path::ternary_tree_box::TreeNode;
-use bitvec::{BigEndian, BitVec};
+use bitvec::{BitVec};
 
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::structs::tile::TileEnum::TileWarehouse;
@@ -193,6 +193,9 @@ impl PathCalc {
 
             it_check += 1;
             if it_check > 100_000_000 {
+                break;
+            }
+            if it_check > 100000 {
                 break;
             }
             if it_check % 100_000 == 0 {
@@ -477,6 +480,7 @@ mod tests {
     use crate::solver::structs::{ColorIndex, Road};
     use bincode::{deserialize_from, serialize_into};
     use std::fs::File;
+    use crate::solver::tree_path::ternary_tree_box::TreeArray;
 
     const VAN_0_TREE: &str =
         r"E:\git\rgb_delivery\rgb-solver\src\solver\tree_path\test_data\van0.tree";
@@ -523,29 +527,34 @@ mod tests {
 
         let saving = true;
 
-        let tree = if !saving {
+        let tree_array = if !saving {
             let mut tree_file = File::open(VAN_0_TREE).unwrap();
             //let tree: TreeNode = serde_cbor::from_reader(&mut tree_file).unwrap();
 
             println!("Loading...");
-            let tree: TreeNode = deserialize_from(&mut tree_file).unwrap();
+            let tree_array: TreeArray = deserialize_from(&mut tree_file).unwrap();
             //let tree: Vec<Vec<EdgeIndex>> = deserialize_from(&mut tree_file).unwrap();
 
             println!("Loaded");
-            tree
+            tree_array
         } else {
             let tree = pc.calc_paths(van_edge_indexes[0], &constraints, target_cell, 24);
+
+            //tree.print_up_to_depth(0, 14, &pc.edge_list);
+
+            let tree_array = tree.convert_to_array();
+
             let mut tree_file = File::create(VAN_0_TREE).unwrap();
 
             //serde_cbor::to_writer(&mut tree_file, &tree).unwrap();
-            serialize_into(&mut tree_file, &tree).unwrap();
-            tree
+            serialize_into(&mut tree_file, &tree_array).unwrap();
+            tree_array
         };
 
-        tree.print_up_to_depth(0, 9, &pc.edge_list);
+        tree_array.print_up_to_depth(0, 14, &pc.edge_list);
 
         if false {
-            for (idx, cell_index) in popper_cell_indexes.iter().enumerate() {
+            /*for (idx, cell_index) in popper_cell_indexes.iter().enumerate() {
                 let mut path_list: Vec<Vec<EdgeIndex>> = Vec::new();
                 let mut cur_path: Vec<EdgeIndex> = Vec::new();
                 tree.add_path_containing_cell(
@@ -569,7 +578,7 @@ mod tests {
                 //serde_json::to_writer(&mut path_file, &path_list).unwrap();
                 //serde_cbor::to_writer(&mut path_file, &path_list).unwrap();
                 serialize_into(&mut path_file, &path_list).unwrap();
-            }
+            }*/
         }
     }
 }

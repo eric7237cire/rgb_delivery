@@ -13,7 +13,6 @@ use crate::solver::structs::{
 
 use crate::solver::utils;
 use crate::solver::utils::set_panic_hook;
-use bitvec::BitVec;
 use std::cmp::min;
 use std::usize;
 
