@@ -35,6 +35,16 @@ impl EdgeList {
         format!("(r{:02}, c{:02})", row_cols.0, row_cols.1)
     }
 
+    pub fn get_edge_str_2(&self, current_edge_index: EdgeIndex, prev_edge_index: EdgeIndex) -> String {
+        let common_cell = EdgeList::find_next_cell_index(
+            self.get_cell_indexes(current_edge_index),
+            self.get_cell_indexes(prev_edge_index),
+        );
+
+        let row_cols = CellIndex(common_cell).to_row_col(self.grid_width);
+        format!("(r{:02}, c{:02})", row_cols.0, row_cols.1)
+    }
+
     pub fn insert_edge_if_needed(&mut self, cell_index_1: usize, cell_index_2: usize) -> EdgeIndex {
         let cur_len = self.edges.len() as EdgeIndex;
 

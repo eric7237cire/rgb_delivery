@@ -1,16 +1,25 @@
-use crate::solver::grid_state::GridState;
-use crate::solver::structs::{
-    build_graph, CellIndex, ColorIndex, GridConnections, GridConnectionsStaticInfo, Warehouse,
-};
-use crate::solver::tree_path::edge_list::{EdgeIndex, EdgeList};
-use crate::solver::tree_path::ternary_tree_box::TreeNode;
-use bitvec::{BitVec};
-
-use crate::solver::disjointset::DisjointSet;
-use crate::solver::structs::tile::TileEnum::TileWarehouse;
-use arrayvec::ArrayVec;
+use std::fs::File;
+use std::io::{BufReader, BufWriter};
+use std::path::Path;
 use std::time::SystemTime;
 use std::u8;
+
+use arrayvec::ArrayVec;
+use bincode::{deserialize_from, serialize_into};
+use bitvec::BitVec;
+use serde::{Serialize};
+use serde::de::DeserializeOwned;
+
+use crate::solver::disjointset::DisjointSet;
+use crate::solver::grid_state::GridState;
+use crate::solver::structs::{
+    build_graph, CellIndex, ColorIndex, Road,GridConnections, GridConnectionsStaticInfo, Warehouse,
+};
+use crate::solver::structs::tile::TileEnum::TileRoad;
+use crate::solver::structs::tile::TileEnum::TileWarehouse;
+use crate::solver::tree_path::edge_list::{EdgeIndex, EdgeList};
+use crate::solver::tree_path::ternary_tree_box::TreeArray;
+use crate::solver::tree_path::ternary_tree_box::TreeNode;
 
 struct CellIndexConstraint {
     cell_index: usize,
@@ -192,12 +201,11 @@ impl PathCalc {
             }
 
             it_check += 1;
-            if it_check > 100_000_000 {
-                break;
+            if it_check > 1_000_000_000 {
+                //break;
             }
-            if it_check > 100000 {
-                break;
-            }
+
+
             if it_check % 100_000 == 0 {
                 let time_check = SystemTime::now();
                 let since_the_epoch = time_check.duration_since(start).unwrap();
@@ -438,20 +446,23 @@ fn build_constraints(grid_state: &GridState, ignore_warehouse: usize) -> Vec<Cel
                 .tiles
                 .iter()
                 .enumerate()
-                .filter_map(|(t_idx, t)| {
+                .filter_map(move |(t_idx, t)| {
                     if t_idx + grid_state.width == ignore_warehouse {
                         return None;
                     }
 
                     if let TileWarehouse(Warehouse {
-                        color: color_index, ..
+                        color: warehouse_color_index, ..
                     }) = t
                     {
-                        //square directly below
-                        Some((color_index, t_idx + grid_state.width))
-                    } else {
-                        None
+                        if color_index == *warehouse_color_index {
+                            //square directly below
+                            return Some((color_index, t_idx + grid_state.width));
+                        }
                     }
+
+                    None
+
                 })
         })
         .flatten()
@@ -461,7 +472,7 @@ fn build_constraints(grid_state: &GridState, ignore_warehouse: usize) -> Vec<Cel
                 .vans
                 .iter()
                 .filter_map(|van| {
-                    if van.color.is_white() || van.color == *color_index {
+                    if van.color.is_white() || van.color == color_index {
                         Some(van.cell_index.0)
                     } else {
                         None
@@ -472,89 +483,131 @@ fn build_constraints(grid_state: &GridState, ignore_warehouse: usize) -> Vec<Cel
         .collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::solver::grid_state::GridState;
-    use crate::solver::structs::tile::TileEnum::TileRoad;
-    use crate::solver::structs::{ColorIndex, Road};
-    use bincode::{deserialize_from, serialize_into};
-    use std::fs::File;
-    use crate::solver::tree_path::ternary_tree_box::TreeArray;
 
-    const VAN_0_TREE: &str =
-        r"E:\git\rgb_delivery\rgb-solver\src\solver\tree_path\test_data\van0.tree";
-    const VAN_0_INTERSECT_BASE: &str =
-        r"E:\git\rgb_delivery\rgb-solver\src\solver\tree_path\test_data\van_0_intersect";
 
-    #[test]
-    fn test_gen_paths() {
-        let data_str = include_str!("./test_data/treeTest2.json");
+fn get_tree_fn(van_index: usize) -> String {
+    format!(
+        r"E:\git\rgb_delivery\rgb-solver\src\solver\tree_path\test_data\van{}.tree",
+        van_index
+    )
+}
+fn get_array_tree_fn(van_index: usize) -> String {
+    format!(
+        r"E:\git\rgb_delivery\rgb-solver\src\solver\tree_path\test_data\van{}_array.tree",
+        van_index
+    )
+}
+fn read_from_file<T>(file_path: &Path) -> T
+where
+    T: DeserializeOwned,
+{
+    let file = File::open(file_path.to_str().unwrap()).unwrap();
+    let mut reader = BufReader::new(file);
 
-        //build a grid state
-        let mut grid_state: GridState = serde_json::from_str(data_str).unwrap();
+    let start = SystemTime::now();
 
-        grid_state.vans = grid_state.initial_van_list();
+    println!("Loading...{}", file_path.display());
+    let obj: T = deserialize_from(&mut reader).unwrap();
 
-        let pc = PathCalc::new(&grid_state);
+    let time_check = SystemTime::now();
+    let since_the_epoch = time_check.duration_since(start).unwrap();
+    let in_ms = since_the_epoch.as_millis();
 
-        let van_edge_indexes: Vec<EdgeIndex> = grid_state
-            .vans
-            .iter()
-            .map(|v| pc.edge_list.get_edge_index(v.cell_index.0, v.cell_index.0))
-            .collect();
+    println!("Loaded in {:.02} secs", in_ms as f64 / 1000f64);
 
-        //26 28 30
+    obj
+}
+fn write_to_file<T>(file_path: &Path, obj: &T)
+where
+    T: Serialize,
+{
+    let file = File::create(file_path.to_str().unwrap()).unwrap();
+    let mut writer = BufWriter::new(file);
 
-        let popper_cell_indexes: Vec<usize> = grid_state
-            .tiles
-            .iter()
-            .enumerate()
-            .filter_map(|(t_idx, t)| {
-                if let TileRoad(Road {
-                    has_popper: true, ..
-                }) = t
-                {
-                    Some(t_idx)
-                } else {
-                    None
-                }
-            })
-            .collect();
+    serialize_into(&mut writer, obj).unwrap();
+}
+fn get_intersect_fn(van_index: usize, target_index: usize) -> String {
+    format!(
+        r"E:\git\rgb_delivery\rgb-solver\src\solver\tree_path\test_data\van_{}_intersect_{}.path",
+        van_index, target_index
+    )
+}
 
-        let target_cell = 24;
+pub fn gen_paths() {
+    let data_str = include_str!("./test_data/treeTest2.json");
+
+    //build a grid state
+    let mut grid_state: GridState = serde_json::from_str(data_str).unwrap();
+
+    grid_state.vans = grid_state.initial_van_list();
+
+    let pc = PathCalc::new(&grid_state);
+
+    let van_edge_indexes: Vec<EdgeIndex> = grid_state
+        .vans
+        .iter()
+        .map(|v| pc.edge_list.get_edge_index(v.cell_index.0, v.cell_index.0))
+        .collect();
+
+    //26 28 30
+
+    let popper_cell_indexes: Vec<usize> = grid_state
+        .tiles
+        .iter()
+        .enumerate()
+        .filter_map(|(t_idx, t)| {
+            if let TileRoad(Road {
+                has_popper: true, ..
+            }) = t
+            {
+                Some(t_idx)
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    for (current_van_index, &target_cell) in [24, 26, 30, 28].iter().enumerate() {
+   // for (current_van_index, &target_cell) in [24, 30, 26, 28].iter().enumerate() {
         let constraints = build_constraints(&grid_state, target_cell);
 
-        let saving = true;
+        let tree_file_name = get_tree_fn(current_van_index);
+        let array_tree_file_name = get_array_tree_fn(current_van_index);
 
-        let tree_array = if !saving {
-            let mut tree_file = File::open(VAN_0_TREE).unwrap();
-            //let tree: TreeNode = serde_cbor::from_reader(&mut tree_file).unwrap();
+        let tree_file = Path::new(&tree_file_name);
+        let array_tree_file = Path::new(&array_tree_file_name);
 
-            println!("Loading...");
-            let tree_array: TreeArray = deserialize_from(&mut tree_file).unwrap();
-            //let tree: Vec<Vec<EdgeIndex>> = deserialize_from(&mut tree_file).unwrap();
+        let (tree, tree_array) = if tree_file.exists() && array_tree_file.exists() {
+            let tree: TreeNode = read_from_file(&tree_file);
+            let tree_array: TreeArray = read_from_file(&array_tree_file);
 
-            println!("Loaded");
-            tree_array
+            (tree, tree_array)
         } else {
-            let tree = pc.calc_paths(van_edge_indexes[0], &constraints, target_cell, 24);
+            let tree = pc.calc_paths(
+                van_edge_indexes[current_van_index],
+                &constraints,
+                target_cell,
+                24,
+            );
 
+            write_to_file(&tree_file, &tree);
+
+            println!("Done calcing tree");
             //tree.print_up_to_depth(0, 14, &pc.edge_list);
 
             let tree_array = tree.convert_to_array();
 
-            let mut tree_file = File::create(VAN_0_TREE).unwrap();
+            write_to_file(&array_tree_file, &tree_array);
 
-            //serde_cbor::to_writer(&mut tree_file, &tree).unwrap();
-            serialize_into(&mut tree_file, &tree_array).unwrap();
-            tree_array
+            println!("Done serializing");
+
+            (tree, tree_array)
         };
 
-        tree_array.print_up_to_depth(0, 14, &pc.edge_list);
+        tree_array.print_up_to_depth(0, 12, &pc.edge_list);
 
         if false {
-            /*for (idx, cell_index) in popper_cell_indexes.iter().enumerate() {
+            for (idx, cell_index) in popper_cell_indexes.iter().enumerate() {
                 let mut path_list: Vec<Vec<EdgeIndex>> = Vec::new();
                 let mut cur_path: Vec<EdgeIndex> = Vec::new();
                 tree.add_path_containing_cell(
@@ -571,14 +624,22 @@ mod tests {
                     path_list.len()
                 );
 
-                //VAN_0_INTERSECT_BASE
-                let mut path_file =
-                    File::create(format!("{}{}.tree", VAN_0_INTERSECT_BASE, idx)).unwrap();
+                let file_path_sting = get_intersect_fn(current_van_index, idx);
+                let file_path = Path::new(&file_path_sting);
 
-                //serde_json::to_writer(&mut path_file, &path_list).unwrap();
-                //serde_cbor::to_writer(&mut path_file, &path_list).unwrap();
-                serialize_into(&mut path_file, &path_list).unwrap();
-            }*/
+                write_to_file(file_path, &path_list);
+            }
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_gen_paths() {
+        gen_paths()
+    }
+
 }

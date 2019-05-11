@@ -2,9 +2,8 @@ use crate::solver::tree_path::edge_list::{EdgeIndex, EdgeList};
 use arrayvec::ArrayVec;
 use std::collections::vec_deque::VecDeque;
 
-#[derive(Serialize, Deserialize, Default,Debug)]
-pub struct TreeArrayNode
-{
+#[derive(Serialize, Deserialize, Default, Debug)]
+pub struct TreeArrayNode {
     pub all_children_count: usize,
     pub parent_index: usize,
     pub child_start_index: usize,
@@ -14,9 +13,8 @@ pub struct TreeArrayNode
 }
 
 #[derive(Serialize, Deserialize, Default)]
-pub struct TreeArray
-{
-    pub nodes: Vec<TreeArrayNode>
+pub struct TreeArray {
+    pub nodes: Vec<TreeArrayNode>,
 }
 
 #[derive(Serialize, Deserialize, Default)]
@@ -26,9 +24,8 @@ pub struct TreeNode {
     pub edge_index: EdgeIndex,
 }
 
-impl TreeArray
-{
-     pub fn print_up_to_depth(
+impl TreeArray {
+    pub fn print_up_to_depth(
         &self,
         current_index: usize,
         allowed_depth: usize,
@@ -38,22 +35,23 @@ impl TreeArray
             return;
         }
 
-         let cur_node = &self.nodes[current_index];
+        let cur_node = &self.nodes[current_index];
 
         let last_edge = self.nodes[cur_node.parent_index].edge_index;
         let this_edge = cur_node.edge_index;
 
         println!(
             "{} depth {} count is {}.  Cell: {} ",
-            "..".to_string().repeat(cur_node.depth.into() ),
+            "..".to_string().repeat(cur_node.depth.into()),
             cur_node.depth,
             cur_node.all_children_count,
-            edge_list.get_edge_str(last_edge, this_edge),
-
+            edge_list.get_edge_str_2( this_edge, last_edge),
         );
 
-        for i in cur_node.child_start_index..cur_node.child_start_index+cur_node.num_children as usize {
-            self.print_up_to_depth(i,  allowed_depth - 1, edge_list);
+        for i in
+            cur_node.child_start_index..cur_node.child_start_index + cur_node.num_children as usize
+        {
+            self.print_up_to_depth(i, allowed_depth - 1, edge_list);
         }
     }
 }
@@ -87,6 +85,7 @@ impl TreeNode {
         return;
     }
 
+    #[allow(dead_code)]
     pub fn print_up_to_depth(
         &self,
         current_depth: usize,
@@ -158,25 +157,22 @@ impl TreeNode {
         }
     }
 
-    pub fn convert_to_array(&self) ->   TreeArray {
-
+    pub fn convert_to_array(&self) -> TreeArray {
         let root_node = self;
 
         let mut tree_array: TreeArray = Default::default();
 
-        let mut queue: VecDeque< (& TreeNode, usize) > = VecDeque::new();
+        let mut queue: VecDeque<(&TreeNode, usize)> = VecDeque::new();
 
-        queue.push_back((root_node,0) );
+        queue.push_back((root_node, 0));
 
-        while let Some( (tree_node, parent_index ) ) = queue.pop_front() {
-
+        while let Some((tree_node, parent_index)) = queue.pop_front() {
             let current_tree_index = tree_array.nodes.len();
 
             let depth = if tree_array.nodes.len() > 0 {
                 //return depth
                 tree_array.nodes[parent_index].depth + 1
-            }
-            else {
+            } else {
                 //root node
                 0
             };
@@ -195,15 +191,14 @@ impl TreeNode {
                 ..Default::default()
             });
 
-
-
-            queue.extend( tree_node.nodes.iter().map(|tn| (tn.as_ref(), current_tree_index)));
+            queue.extend(
+                tree_node
+                    .nodes
+                    .iter()
+                    .map(|tn| (tn.as_ref(), current_tree_index)),
+            );
         }
 
         tree_array
     }
-
-
 }
-
-
