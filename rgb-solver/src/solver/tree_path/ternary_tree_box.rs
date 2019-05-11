@@ -9,16 +9,14 @@ pub struct TreeNode {
 }
 
 impl TreeNode {
-
     pub fn add_path_containing_cell(
         &self,
         edge_list: &EdgeList,
         cur_path: &mut Vec<EdgeIndex>,
         paths: &mut Vec<Vec<EdgeIndex>>,
         contains_target: bool,
-        target_cell: usize
+        target_cell: usize,
     ) {
-
         //let has_target
         cur_path.push(self.edge_index);
 
@@ -31,20 +29,13 @@ impl TreeNode {
             return;
         }
 
-
-
         for n in self.nodes.iter() {
-            n.add_path_containing_cell(edge_list,
-            cur_path,
-            paths,
-            contains_target,
-            target_cell);
+            n.add_path_containing_cell(edge_list, cur_path, paths, contains_target, target_cell);
         }
 
         cur_path.pop();
         return;
     }
-
 
     pub fn print_up_to_depth(
         &self,

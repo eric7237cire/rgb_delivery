@@ -14,6 +14,7 @@ pub struct GridConnections {
 #[derive(Default)]
 pub struct GridConnectionsStaticInfo {
     pub adj_info: Vec<[Option<AdjSquareInfo>; 4]>,
+    pub num_cols: usize,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -50,6 +51,7 @@ impl GridConnections {
                     array
                 })
                 .collect(),
+            num_cols: self.num_cols,
         }
     }
 
