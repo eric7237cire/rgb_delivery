@@ -15,7 +15,7 @@ impl GridPath {
     {
         let mut paths = Vec::new();
 
-        for (idx,tree_node) in tree_array.iter().enumerate()
+        for (idx,tree_node) in tree_array.nodes.iter().enumerate()
         {
             //only want leaf nodes
             if tree_node.num_children > 0 {
@@ -27,7 +27,7 @@ impl GridPath {
             let mut cur_index = idx;
 
             loop {
-                let cur_node = &tree_array[cur_index];
+                let cur_node = &tree_array.nodes[cur_index];
                 edges.push( cur_node.edge_index);
 
                 if cur_node.parent_index == 0 {
@@ -39,12 +39,25 @@ impl GridPath {
 
             //indexes everything but first & last
             let mut cell_indexes : Vec<usize> = edges.windows(2).map( |
-                (from_edge, to_edge) |
+                window_slice |
             {
+                let from_edge = window_slice[0];
+                let to_edge = window_slice[1];
+
 edge_list.get_cell_index( to_edge, from_edge, )
             }).collect();
 
-            cell_indexes.insert(0, edge_list.)
+
+            cell_indexes.insert(0,
+                                edge_list.get_extreme_cell_index(edges[0], cell_indexes[0]));
+            cell_indexes.push(
+                                edge_list.get_extreme_cell_index(*edges.last().unwrap(), *cell_indexes.last().unwrap()));
+
+
+            let mut cell_mask = bitvec![0; edge_list.grid_height * edge_list.grid_width];
+            let mut edge_mask = bitvec![0; edge_list.edges.len()]
+
+
         }
 
         paths

@@ -76,6 +76,7 @@ impl PathCalc {
             let mut edge_list: EdgeList = Default::default();
 
             edge_list.grid_width = grid_state.width;
+            edge_list.grid_height = grid_state.height;
 
             //add self loop edges for van starting locations
             let _van_edge_indexes: Vec<EdgeIndex> = grid_state

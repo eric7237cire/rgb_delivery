@@ -10,6 +10,7 @@ pub struct EdgeList {
     edges: HashMap<CellIndexTuple, EdgeIndex>,
     edge_list: Vec<CellIndexTuple>,
     pub grid_width: usize,
+    pub grid_height: usize,
 }
 
 impl EdgeList {
@@ -55,8 +56,8 @@ impl EdgeList {
         edge_index_2: EdgeIndex,
     ) -> usize {
         let common_cell = EdgeList::find_common_cell_index(
-            self.get_cell_indexes(current_edge_index),
-            self.get_cell_indexes(prev_edge_index),
+            self.get_cell_indexes(edge_index),
+            self.get_cell_indexes(edge_index_2),
         );
 
         common_cell
@@ -67,7 +68,7 @@ impl EdgeList {
         edge_index: EdgeIndex,
         next_cell: usize
     ) -> usize {
-        let cell_indexes = self.get_cell_indexes(current_edge_index);
+        let cell_indexes = self.get_cell_indexes(edge_index);
 
         if cell_indexes.0 == next_cell {
             cell_indexes.1
