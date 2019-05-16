@@ -7,30 +7,44 @@ use std::u8;
 use arrayvec::ArrayVec;
 use bincode::{deserialize_from, serialize_into};
 use bitvec::BitVec;
-use serde::{Serialize};
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 
 use crate::solver::disjointset::DisjointSet;
 use crate::solver::grid_state::GridState;
-use crate::solver::structs::{
-    build_graph, CellIndex, ColorIndex, Road,GridConnections, GridConnectionsStaticInfo, Warehouse,
-};
 use crate::solver::structs::tile::TileEnum::TileRoad;
 use crate::solver::structs::tile::TileEnum::TileWarehouse;
+use crate::solver::structs::{
+    build_graph, CellIndex, ColorIndex, GridConnections, GridConnectionsStaticInfo, Road, Warehouse,
+};
 use crate::solver::tree_path::edge_list::{EdgeIndex, EdgeList};
-use crate::solver::tree_path::ternary_tree_box::TreeArray;
-use crate::solver::tree_path::ternary_tree_box::TreeNode;
+use crate::solver::tree_path::ternary_tree_array::TreeArray;
+use crate::solver::tree_path::ternary_tree_array::TreeNode;
 
 struct CellIndexConstraint {
     cell_index: usize,
     one_of_cell_index: ArrayVec<[usize; 3]>,
 }
 
+
 struct PathCalc {
     gc: GridConnections,
     si: GridConnectionsStaticInfo,
     edge_list: EdgeList,
 }
+
+/*
+
+Pick 4 points
+
+for each:
+
+    Find Van to point, shortest dist
+
+    point to drop off point, shortest dist
+
+    drop off point to warehouse shortest dist
+*/
 
 impl PathCalc {
     pub fn new(grid_state: &GridState) -> Self {
@@ -204,7 +218,6 @@ impl PathCalc {
             if it_check > 1_000_000_000 {
                 //break;
             }
-
 
             if it_check % 100_000 == 0 {
                 let time_check = SystemTime::now();
@@ -452,7 +465,8 @@ fn build_constraints(grid_state: &GridState, ignore_warehouse: usize) -> Vec<Cel
                     }
 
                     if let TileWarehouse(Warehouse {
-                        color: warehouse_color_index, ..
+                        color: warehouse_color_index,
+                        ..
                     }) = t
                     {
                         if color_index == *warehouse_color_index {
@@ -462,7 +476,6 @@ fn build_constraints(grid_state: &GridState, ignore_warehouse: usize) -> Vec<Cel
                     }
 
                     None
-
                 })
         })
         .flatten()
@@ -482,8 +495,6 @@ fn build_constraints(grid_state: &GridState, ignore_warehouse: usize) -> Vec<Cel
         })
         .collect()
 }
-
-
 
 fn get_tree_fn(van_index: usize) -> String {
     format!(
@@ -568,7 +579,7 @@ pub fn gen_paths() {
         .collect();
 
     for (current_van_index, &target_cell) in [24, 26, 30, 28].iter().enumerate() {
-   // for (current_van_index, &target_cell) in [24, 30, 26, 28].iter().enumerate() {
+        // for (current_van_index, &target_cell) in [24, 30, 26, 28].iter().enumerate() {
         let constraints = build_constraints(&grid_state, target_cell);
 
         let tree_file_name = get_tree_fn(current_van_index);

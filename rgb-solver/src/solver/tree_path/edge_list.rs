@@ -35,7 +35,11 @@ impl EdgeList {
         format!("(r{:02}, c{:02})", row_cols.0, row_cols.1)
     }
 
-    pub fn get_edge_str_2(&self, current_edge_index: EdgeIndex, prev_edge_index: EdgeIndex) -> String {
+    pub fn get_edge_str_2(
+        &self,
+        current_edge_index: EdgeIndex,
+        prev_edge_index: EdgeIndex,
+    ) -> String {
         let common_cell = EdgeList::find_next_cell_index(
             self.get_cell_indexes(current_edge_index),
             self.get_cell_indexes(prev_edge_index),
@@ -43,6 +47,35 @@ impl EdgeList {
 
         let row_cols = CellIndex(common_cell).to_row_col(self.grid_width);
         format!("(r{:02}, c{:02})", row_cols.0, row_cols.1)
+    }
+
+    pub fn get_cell_index(
+        &self,
+        edge_index: EdgeIndex,
+        edge_index_2: EdgeIndex,
+    ) -> usize {
+        let common_cell = EdgeList::find_common_cell_index(
+            self.get_cell_indexes(current_edge_index),
+            self.get_cell_indexes(prev_edge_index),
+        );
+
+        common_cell
+    }
+
+    pub fn get_extreme_cell_index(
+        &self,
+        edge_index: EdgeIndex,
+        next_cell: usize
+    ) -> usize {
+        let cell_indexes = self.get_cell_indexes(current_edge_index);
+
+        if cell_indexes.0 == next_cell {
+            cell_indexes.1
+        } else {
+            assert_eq!(cell_indexes.1, next_cell);
+            cell_indexes.0
+        }
+
     }
 
     pub fn insert_edge_if_needed(&mut self, cell_index_1: usize, cell_index_2: usize) -> EdgeIndex {
