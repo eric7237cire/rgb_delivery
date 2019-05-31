@@ -18,6 +18,8 @@ cargo watch -x "test --target x86_64-pc-windows-msvc --lib -- --nocapture"
 # watch just one test
 cargo watch -x "test test_london_h10 --target x86_64-pc-windows-msvc --lib -- --nocapture"
 cargo watch -x "test grid_connections --target x86_64-pc-windows-msvc --lib -- --nocapture"
+SET RUST_BACKTRACE=1
+cargo watch --ignore *.tree --ignore *.path -x "test tree --release --target x86_64-pc-windows-msvc  --lib -- --nocapture"
 
 
 ## Cog with WSL
@@ -41,3 +43,7 @@ docker login --username=eric7237cire
 docker push eric7237cire/rgb
 
 docker run --rm  -it eric7237cire/rgb bash
+
+#San Diego R4
+#46,922,652 iterations
+#9 secs: 43.90

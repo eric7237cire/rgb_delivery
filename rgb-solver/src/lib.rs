@@ -6,8 +6,8 @@ extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 
-//#[macro_use]
-//extern crate bitvec;
+#[macro_use]
+extern crate bitvec;
 
 //use bitvec::prelude::*;
 
@@ -19,7 +19,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 //Calling a JS function
 #[wasm_bindgen]
-extern {
+extern "C" {
     fn alert(s: &str);
 }
 
@@ -37,5 +37,3 @@ const TS_APPEND_CONTENT: &'static str = r#"
 mod solver;
 
 pub use solver::*;
-
-

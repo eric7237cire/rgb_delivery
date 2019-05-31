@@ -6,17 +6,33 @@ export const enum LogLevel {
   Info = 2,
   Warn = 3,
   Error = 4,
-  Fatal = 5,
   Off = 6
 }
 
 export class LogEntry {
   // Public Properties
-  entryDate: Date = new Date();
+
   message: string = "";
-  level: LogLevel = LogLevel.Debug;
+  level: LogLevel = LogLevel.All;
   extraInfo: any[] = [];
   logWithDate: boolean = true;
+
+
+
+  private static formatParams(params: any[]): string {
+    let ret: string = params.join(",");
+
+    // Is there at least one object in the array?
+    if (params.some(p => typeof p === "object")) {
+      ret = "";
+      // Build comma-delimited string
+      for (const item of params) {
+        ret += JSON.stringify(item) + ",";
+      }
+    }
+
+    return ret;
+  }
 
   buildLogString(): string {
     let ret: string = "";
@@ -33,21 +49,6 @@ export class LogEntry {
 
     return ret;
   }
-
-  private static formatParams(params: any[]): string {
-    let ret: string = params.join(",");
-
-    // Is there at least one object in the array?
-    if (params.some(p => typeof p == "object")) {
-      ret = "";
-      // Build comma-delimited string
-      for (const item of params) {
-        ret += JSON.stringify(item) + ",";
-      }
-    }
-
-    return ret;
-  }
 }
 
 @Injectable({
@@ -56,7 +57,7 @@ export class LogEntry {
 export class LogService {
 
 
-  readonly level: LogLevel = LogLevel.Warn;
+  readonly level: LogLevel = LogLevel.All;
 
   debug(msg: string, ...optionalParams: any[]) {
     this.writeToLog(msg, LogLevel.Debug,
@@ -78,11 +79,6 @@ export class LogService {
       optionalParams);
   }
 
-  fatal(msg: string, ...optionalParams: any[]) {
-    this.writeToLog(msg, LogLevel.Fatal,
-      optionalParams);
-  }
-
   log(msg: string, ...optionalParams: any[]) {
     this.writeToLog(msg, LogLevel.All,
       optionalParams);
@@ -92,7 +88,7 @@ export class LogService {
                      level: LogLevel,
                      params: any[]) {
     if (this.shouldLog(level)) {
-      let entry: LogEntry = new LogEntry();
+      const entry: LogEntry = new LogEntry();
       entry.message = msg;
       entry.level = level;
       entry.extraInfo = params;

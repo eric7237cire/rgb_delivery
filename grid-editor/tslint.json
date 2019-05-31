@@ -43,17 +43,14 @@
       "trace"
     ],
     "no-empty": false,
-    "no-inferrable-types": [
-      true,
-      "ignore-params",
-      "ignore-properties"
-    ],
+    "no-inferrable-types": false,
     "no-non-null-assertion": true,
     "no-redundant-jsdoc": true,
     "no-switch-case-fall-through": true,
     "no-string-literal": false,
     "no-trailing-whitespace": false,
     "typedef-whitespace": false,
+    "whitespace": false,
     "no-use-before-declare": true,
     "no-var-requires": false,
     "object-literal-key-quotes": [

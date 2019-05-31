@@ -3,7 +3,7 @@ SET DEVOPS_DIR=%~dp0
 SET WEB_WORKER_BUILD_DIR=%DEVOPS_DIR%..\web_worker\
 SET GRID_EDITOR_BUILD_DIR=%DEVOPS_DIR%..\grid-editor\
 SET RGB_SOLVER_DIR=%~dp0..\rgb-solver\
-SET CALL_NPM_LINK=NO
+SET CALL_NPM_LINK=YES
 
 cd /D "%RGB_SOLVER_DIR%"
 
@@ -13,6 +13,8 @@ SET TRAVIS_BUILD_NUMBER=%date% %time%
 rem wasm-pack build --dev
 wasm-pack build --release
 if %errorlevel% neq 0 exit /b %errorlevel%
+
+exit /b 0
 
 CD pkg
 REM we want to use the one built, not the one from npm

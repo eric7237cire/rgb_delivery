@@ -13,7 +13,7 @@ import {
 } from "web_worker";
 import {GridStorageService} from "./grid-storage.service";
 import {DomSanitizer, SafeUrl} from "@angular/platform-browser";
-import { Subject} from "rxjs";
+import {Subject} from "rxjs";
 import {mergeMap, takeUntil, throttleTime} from "rxjs/operators";
 
 import {
@@ -29,7 +29,6 @@ import {
   WasmWebWorkerResponse
 } from "web_worker";
 import {LogService} from "./log.service";
-
 
 
 interface DirectionMarker {
@@ -51,10 +50,12 @@ enum DIRECTION_INDEX {
 
 const LOCAL_STORAGE_KEY_NUM_STEPS = "numSteps";
 const LOCAL_STORAGE_KEY_MAX_STEPS = "maxSteps";
+const LOCAL_STORAGE_KEY_COLOR = "color";
+const LOCAL_STORAGE_KEY_THING = "thing";
 
 const DEFAULT_DM_COLOR = "rgb(200, 200, 200)";
 
-type Thing = "Van" | "Block" | "Button" | "Clear" | "Popper";
+type Thing = "Van" | "Block" | "Button" | "Clear" | "Popper" | "ForcedMove";
 
 @Component({
   selector: 'app-root',
@@ -129,7 +130,7 @@ export class AppComponent implements OnInit {
 
   selectedColor = this.colors[0];
   selectedThing: Thing = "Van";
-  readonly THING_LIST: Array<Thing> = ["Van", "Block", "Button", "Clear", "Popper"];
+  readonly THING_LIST: Array<Thing> = ["Van", "Block", "Button", "Clear", "Popper", "ForcedMove"];
 
   selectedTile: TileEnum_type = this.tiles[0];
 
@@ -146,12 +147,18 @@ export class AppComponent implements OnInit {
 
   cells: Array<CellData> = [];
 
+  currentVanIndex: number = -1;
+
   numCalcSteps = 100000;
   maxSteps = 100;
 
   mouseMoveRow = "00";
   mouseMoveCol = "00";
   mouseMoveIndex = "00";
+
+  lastClickRow = -1;
+  lastClickCol = -1;
+  lastRightClick = false;
 
   progressMessage: string = "No Progress Info";
 
@@ -164,6 +171,11 @@ export class AppComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private log: LogService
   ) {
+  }
+
+  clearLastGridSelection() {
+    this.lastClickRow = -1;
+    this.lastClickCol = -1;
   }
 
   handleWasmLoaded(wasmLoadedMessage: ResponseWasmLoaded) {
@@ -193,13 +205,13 @@ export class AppComponent implements OnInit {
   sendOverrideList() {
     const overRideList: Array<ChoiceOverride> = [
 
-/*
-      {
-         row_index: 2,
-         col_index: 0,
-         van_index: 0,
-         direction_index: DIRECTION_INDEX.EAST
-       },*/
+      /*
+            {
+               row_index: 2,
+               col_index: 0,
+               van_index: 0,
+               direction_index: DIRECTION_INDEX.EAST
+             },*/
 
 
     ];
@@ -212,8 +224,7 @@ export class AppComponent implements OnInit {
   }
 
   handleGridStateFromWasm() {
-    this.log.debug("Data is now", this.gridState);
-
+    //this.log.debug("Data is now", this.gridState);
 
     //strip out empty cells
     if (_.isNil(this.gridState)) {
@@ -298,9 +309,9 @@ export class AppComponent implements OnInit {
     this.gridState.height = this.numRows;
 
     //basically keep loading until the next change
-    if (loadTemp)  {
+    if (loadTemp) {
       for (const cell of this.tempTiles) {
-        this.gridState.tiles[ cell.row_index * this.gridState.width + cell.col_index ] = cell.tile;
+        this.gridState.tiles[cell.row_index * this.gridState.width + cell.col_index] = cell.tile;
       }
     }
 
@@ -323,6 +334,22 @@ export class AppComponent implements OnInit {
     if (!_.isNil(maxSteps)) {
       this.maxSteps = _.toNumber(maxSteps);
     }
+
+    const color = localStorage.getItem(LOCAL_STORAGE_KEY_COLOR);
+
+    if (!_.isNil(color)) {
+      try {
+        this.selectedColor = JSON.parse(color);
+      } catch (e) {
+        this.log.warn("Couldn't parse color", color);
+      }
+    }
+
+    const thing = localStorage.getItem(LOCAL_STORAGE_KEY_THING);
+    if (!_.isNil(thing)) {
+      this.selectedThing = thing as Thing;
+    }
+
 
     //RustRGBProject/pkg works but not in PyCharm
 
@@ -355,12 +382,12 @@ export class AppComponent implements OnInit {
         case ResponseTypes.BATCH_PROGRESS_MESSAGE:
 
           const totalSecElapsed = (message.currentMs - message.startedMs) / 1000;
-          const minutesElapsed = _.floor( totalSecElapsed / 60);
-          const secElapsed =  totalSecElapsed - minutesElapsed * 60;
+          const minutesElapsed = _.floor(totalSecElapsed / 60);
+          const secElapsed = totalSecElapsed - minutesElapsed * 60;
 
           const failure = !_.isNil(message.success) && !message.success;
 
-          const microSecsPerIteration = (totalSecElapsed * 1000 * 1000) /  message.stepsCompleted;
+          const microSecsPerIteration = (totalSecElapsed * 1000 * 1000) / message.stepsCompleted;
 
           this.progressMessage = `${message.success ? 'Success! ' : ''}${failure ? 'Failure! ' : ''}` +
             `Iteration Count: [${message.stepsCompleted.toLocaleString()}].  ` +
@@ -439,29 +466,37 @@ export class AppComponent implements OnInit {
 
   onTileClick(t) {
     this.selectedTile = t;
+    this.clearLastGridSelection();
   }
 
   onColorClick(c) {
     this.selectedColor = c;
+
+    localStorage.setItem(LOCAL_STORAGE_KEY_COLOR, JSON.stringify(this.selectedColor));
+    this.clearLastGridSelection();
   }
 
   buildConnectionMask() {
     let mask = 0;
     for (let i = 0; i < 4; ++i) {
       if (this.isDirectionOn[i]) {
-        mask |= 1 << i ;
+        mask |= 1 << i;
       }
     }
 
     return mask;
   }
 
-  isAllowed(connectionMask: number, direction: number) : boolean {
+  isAllowed(connectionMask: number, direction: number): boolean {
     return (connectionMask & (1 << direction)) > 0;
   }
 
   onThingClick(thing) {
     this.selectedThing = thing;
+
+    localStorage.setItem(LOCAL_STORAGE_KEY_THING, this.selectedThing);
+
+    this.clearLastGridSelection();
   }
 
   getCssForColor(c: Color) {
@@ -486,14 +521,14 @@ export class AppComponent implements OnInit {
 
     const leftPadNumber = (n) => _.toString(n).padStart(2, '0');
 
-    this.mouseMoveRow = leftPadNumber( mmRow );
+    this.mouseMoveRow = leftPadNumber(mmRow);
     this.mouseMoveCol = leftPadNumber(mmCol);
     this.mouseMoveIndex = leftPadNumber(mmRow * this.gridState.width + mmCol);
   }
 
   handleGridClick(clickEvent: MouseEvent, isRightClick: boolean): boolean {
 
-    //this.log.debug(clickEvent);
+
     // this.log.debug(clickEvent.target);
 
     const rect = (clickEvent.target as any).getBoundingClientRect();
@@ -504,11 +539,19 @@ export class AppComponent implements OnInit {
     const colIndex = _.floor(x / this.GRID_SIZE);
     const rowIndex = _.floor(y / this.GRID_SIZE);
 
-    this.log.debug(`Clicked on row ${rowIndex}, col ${colIndex}.  Right click? ${isRightClick}`);
+    this.log.debug(`Clicked on row ${rowIndex}, col ${colIndex}.  Right click? ${isRightClick}.`);
 
     if (_.isNil(this.gridState)) {
       return false;
     }
+
+    if (rowIndex === this.lastClickRow && colIndex === this.lastClickCol && isRightClick === this.lastRightClick) {
+      return false;
+    }
+
+    this.lastClickRow = rowIndex;
+    this.lastRightClick = isRightClick;
+    this.lastClickCol = colIndex;
 
     if (isRightClick) {
       const cellIndex = rowIndex * this.numCols + colIndex;
@@ -524,8 +567,131 @@ export class AppComponent implements OnInit {
       }
 
       switch (this.selectedThing) {
+        case "ForcedMove":
+
+          let lastCellIndex:number|null = null;
+          let lastTick : number = 0;
+
+          //first check if an adjacent index is a van
+          for (const offset of [1,-1, this.numCols,-this.numCols]) {
+            const adjIndex = cellIndex + offset;
+            if (adjIndex < 0 || adjIndex >= this.gridState.tiles.length) {
+              continue;
+            }
+            if (offset * offset === 1 && cellIndex % this.numCols !== adjIndex % this.numCols) {
+              //enforce same row
+              continue;
+            }
+
+            const adjTile = this.gridState.tiles[adjIndex];
+
+
+            if (adjTile.type === "TileRoad" && !_.isNil(adjTile.van)) {
+
+              this.log.info("clicked next to a van", adjTile.van);
+              lastCellIndex = adjIndex;
+              /*this.currentVanIndex = this.gridState.tiles.reduce((vanCount, testTile, testIndex) =>
+              testTile.type === "TileRoad" && !(_.isNil(testTile.van)) && testIndex <= adjIndex ? vanCount + 1 : vanCount, 0);*/
+              this.currentVanIndex = this.gridState.vans.findIndex(van => van.cell_index === adjIndex);
+              lastTick = 0;
+
+              //this.gridState.vans[this.currentVanIndex] = adjTile.van;
+
+              break;
+            }
+
+            //Used index
+            if (adjTile.type === "TileRoad"
+              && !_.isNil(adjTile.used_van_index)
+              && adjTile.used_van_index.some(vi => vi === this.currentVanIndex)
+            ) {
+              lastCellIndex = adjIndex;
+              lastTick = 500;
+              for (let i = 0; i < 4; ++i) {
+                if (adjTile.used_van_index[i] === this.currentVanIndex) {
+
+                  if (!_.isArray(adjTile.used_tick)) {
+                    continue;
+                  }
+                  const curTick = adjTile.used_tick[i];
+                  if (_.isNil(curTick) || !_.isFinite(curTick)) {
+                    continue;
+                  }
+
+                  lastTick = Math.min(lastTick, curTick);
+                }
+              }
+            }
+
+            if (adjTile.type === "TileBridge"
+              && !_.isNil(adjTile.used_van_index)
+              && adjTile.used_van_index === this.currentVanIndex) {
+
+              lastCellIndex = adjIndex;
+              lastTick = adjTile.used_tick || 0;
+
+            }
+          }
+
+          if (_.isNil(lastCellIndex)) {
+            return false;
+          }
+
+
+          //determine direction
+          let direction: DIRECTION_INDEX | null = null;
+          if (lastCellIndex + 1 === cellIndex) {
+            direction = DIRECTION_INDEX.EAST;
+          } else if (lastCellIndex - 1 === cellIndex) {
+            direction = DIRECTION_INDEX.WEST;
+          } else if (lastCellIndex + this.numCols === cellIndex) {
+            direction = DIRECTION_INDEX.SOUTH;
+          } else if (lastCellIndex - this.numCols === cellIndex) {
+            direction = DIRECTION_INDEX.NORTH;
+          } else {
+            return false;
+          }
+
+          const toCell = tile;
+          if (!_.isNil(toCell) && toCell.type === "TileRoad" && !_.isNil(direction)) {
+            if (!_.isArray(toCell.used_tick)) {
+              toCell.used_tick = [null, null, null, null];
+            }
+            if (!_.isArray(toCell.used_van_index)) {
+              toCell.used_van_index = [null, null, null, null];
+            }
+            toCell.used_tick[(direction + 2) % 4] = lastTick + 1;
+            toCell.used_van_index[(direction + 2) % 4] = this.currentVanIndex;
+            delete toCell.van;
+          }
+
+          const fromCell = this.gridState.tiles[lastCellIndex];
+          if (!_.isNil(fromCell) && fromCell.type === "TileRoad" && !_.isNil(direction)) {
+            if (!_.isArray(fromCell.used_tick)) {
+              fromCell.used_tick = [null, null, null, null];
+            }
+            if (!_.isArray(fromCell.used_van_index)) {
+              fromCell.used_van_index = [null, null, null, null];
+            }
+            fromCell.used_tick[direction] = lastTick + 1;
+            fromCell.used_van_index[direction] = this.currentVanIndex;
+          }
+
+          const fromRow: number = _.floor(lastCellIndex / this.numCols);
+          const fromCol = lastCellIndex % this.numCols;
+          this.setGridSquare({row_index: fromRow, col_index: fromCol, tile: fromCell});
+          this.setGridSquare({row_index: rowIndex, col_index: colIndex, tile: toCell});
+
+          return false;
         case "Van":
-          tile.van = {boxes: [null, null, null], color: this.selectedColor.color_index, is_done: false, cell_index: cellIndex};
+
+          tile.van = {
+            boxes: [null, null, null],
+            color: this.selectedColor.color_index, is_done: false, cell_index: cellIndex
+          };
+
+          this.gridState.vans[this.currentVanIndex] = tile.van;
+
           break;
         case "Block":
           tile.block = this.selectedColor.color_index;
@@ -544,6 +710,8 @@ export class AppComponent implements OnInit {
           delete tile.van;
           tile.has_popper = false;
           delete tile.button;
+          tile.used_van_index = [null,null,null,null];
+          tile.used_tick = [null,null,null,null];
           break;
       }
 
@@ -645,6 +813,11 @@ export class AppComponent implements OnInit {
       return DEFAULT_DM_COLOR;
     }
 
+    if (_.size(this.gridState.vans) <= vanIndex) {
+      this.log.warn("Missing van?");
+      return DEFAULT_DM_COLOR;
+    }
+
     return this.getCssForColorIndex(this.gridState.vans[vanIndex].color);
   }
 
@@ -707,7 +880,7 @@ export class AppComponent implements OnInit {
 
     this.worker.postMessage(request);
 
-    this.initCalculations();
+    //this.initCalculations();
   }
 
   handleNumCalcStepsChange(steps) {
@@ -758,9 +931,6 @@ export class AppComponent implements OnInit {
 
       this.tempTiles = [];
 
-      this.initCalculations();
-
-
       this.sendOverrideList();
 
       //temp
@@ -783,21 +953,21 @@ export class AppComponent implements OnInit {
 
 function tileToCellState(gridState: GridState, tile: TileEnum, index: number): CellData {
 
-    if (!_.isFinite(index)) {
-        throw Error(`Index is not a number: ${index}`);
-    }
+  if (!_.isFinite(index)) {
+    throw Error(`Index is not a number: ${index}`);
+  }
 
-    const w = gridState.width;
+  const w = gridState.width;
 
-    if (!_.isFinite(w) || w < 0) {
-        throw Error(`Width must be >0: ${w}`);
-    }
+  if (!_.isFinite(w) || w < 0) {
+    throw Error(`Width must be >0: ${w}`);
+  }
 
-    return {
-        tile,
-        row_index: _.floor(index / w),
-        col_index: index % w
-    };
+  return {
+    tile,
+    row_index: _.floor(index / w),
+    col_index: index % w
+  };
 }
 
 

@@ -10,20 +10,29 @@ pub enum Direction {
 use self::Direction::*;
 use crate::solver::structs::CellIndex;
 
+impl Default for Direction {
+    fn default() -> Self {
+        NORTH
+    }
+}
+
 impl Direction {
     pub(crate) fn opposite(&self) -> Direction {
         match self {
             NORTH => SOUTH,
             EAST => WEST,
             SOUTH => NORTH,
-            WEST => EAST
+            WEST => EAST,
         }
     }
 }
 
-
-pub fn get_adjacent_index(square_index: CellIndex, grid_height: usize, grid_width: usize, dir: Direction) -> Option<CellIndex> {
-
+pub fn get_adjacent_index(
+    square_index: CellIndex,
+    grid_height: usize,
+    grid_width: usize,
+    dir: Direction,
+) -> Option<CellIndex> {
     let (cell_row_index, cell_col_index) = square_index.to_row_col(grid_width);
 
     match dir {
