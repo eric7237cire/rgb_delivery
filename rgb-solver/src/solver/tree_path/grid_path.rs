@@ -1,11 +1,11 @@
 use bitvec::BitVec;
 use crate::solver::tree_path::ternary_tree_array::TreeArray;
-use crate::solver::tree_path::edge_list::EdgeList;
+use crate::solver::tree_path::edge_list::{EdgeList, EdgeIndex};
 
 //len cells == len edges + 1
 struct GridPath {
     cells: Vec<usize>,
-    edges: Vec<usize>,
+    edges: Vec<EdgeIndex>,
     cell_mask: BitVec,
     edge_mask: BitVec
 }
@@ -58,7 +58,23 @@ edge_list.get_cell_index( to_edge, from_edge, )
             let mut edge_mask = bitvec![0; edge_list.edges.len()]
 
 
+            for edge_index in edges.iter() {
+                edge_mask.set(edge_index, true);
+            }
+
+            for cell_index in cell_indexes.iter() {
+                cell_mask.set(cell_index, true);
+            }
+
+            paths.push(GridPath {
+                edge_mask,
+                cell_mask,
+                edges,
+                cells: cell_indexes
+            });
+
         }
+
 
         paths
     }
