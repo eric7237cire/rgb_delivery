@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.123",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.13",
     "rgb-solver": "=0.1.0-progress.3"
   },
   "browser": "./dist/worker.js",
